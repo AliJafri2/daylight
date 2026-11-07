@@ -1,7 +1,7 @@
 // Minimum: SpacetimeDB module. This is the ENTIRE backend.
 //
 // Plain-English map:
-// - A "profile" is one person's finances (the demo persona, Maria).
+// - A "profile" is one person's finances (the demo persona, Bill).
 // - Every device that connects becomes a "member" of a profile, so phone and
 //   laptop see the same money and the same live agent work.
 // - Money tables are PRIVATE. Clients only see their own profile's rows through
@@ -192,7 +192,7 @@ function requireMember(ctx: Ctx) {
   return m;
 }
 
-// Maria: numbers designed to produce exactly a $43 shortfall on Nov 17 (see CLAUDE.md section 7).
+// Bill: numbers designed to produce exactly a $43 shortfall on Nov 17 (see CLAUDE.md section 7).
 function seedDemoFinances(ctx: Ctx, profileId: bigint) {
   const acct = (kind: string, nickname: string, dollars: number, extra: { limit?: number; apr?: number; source?: string } = {}) =>
     ctx.db.account.insert({
@@ -294,7 +294,7 @@ export const init = spacetimedb.init(ctx => {
   ctx.db.appConfig.insert({ id: 0, owner: ctx.sender });
   const p = ctx.db.profile.insert({
     id: 0n,
-    displayName: 'Maria',
+    displayName: 'Bill',
     language: 'en',
     asOfDate: '2026-11-07',
     paydayIntervalDays: 14,
@@ -412,7 +412,7 @@ export const setLanguage = spacetimedb.reducer({ language: t.string() }, (ctx, {
   if (p) ctx.db.profile.id.update({ ...p, language });
 });
 
-// Restores Maria's starting numbers between judge demos.
+// Restores Bill's starting numbers between judge demos.
 export const resetDemo = spacetimedb.reducer(ctx => {
   const m = requireMember(ctx);
   const p = ctx.db.profile.id.find(m.profileId);

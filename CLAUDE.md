@@ -79,7 +79,7 @@
 - **Spacetime:** "Spacetime is Minimum's entire backend. Your bank data, the AI agents' live work, and your approvals all flow through it, so your phone, laptop and agents always see the same truth."
 
 ### Who it's for (persona)
-**"Maria"**: DFW parent, paid hourly every two weeks, commutes by car, feeds a family of five. Gas and groceries are the biggest costs that change week to week. The last week before payday is when overdrafts and payday-rate cash advances happen. (Persona is illustrative; don't claim she's a real person.)
+**"Bill"**: DFW parent, paid hourly every two weeks, commutes by car, feeds a family of five. Gas and groceries are the biggest costs that change week to week. The last week before payday is when overdrafts and payday-rate cash advances happen. (Persona is illustrative; don't claim this is a real person.)
 
 Narrow by **situation**, not ethnicity. Do NOT target a specific ethnic group: PNC is a bank bound by fair-lending rules, and it reads as stereotyping. Serve underserved communities through **access features**: plain language, Spanish toggle, mobile-first, works on a cheap phone.
 
@@ -345,7 +345,7 @@ Execution (after approval): `move_bill` → Nessie `PUT /bills/{id}` new payment
 ## 12. Demo and pitch
 
 ### ~2-minute table demo flow
-1. **Story (15s):** "Maria's paid every two weeks, drives to work, feeds a family of five. Gas in Texas is 94 cents higher than last year…"
+1. **Story (15s):** "Bill's paid every two weeks, drives to work, feeds a family of five. Gas in Texas is 94 cents higher than last year…"
 2. **Phone buzzes (wow):** "Heads up: you'll be $43 short on Nov 17. I found a fix."
 3. **Forecast + indicators:** whole picture, red dip, runway 10 days, utilization 74%. Tap a "Why?".
 4. **What-if:** toggle one option, watch the line move.
