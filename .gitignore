@@ -8,3 +8,4 @@ dist/
 target/
 spacetime.local.json
 .claude/settings.local.json
+worker/nessie-ids.json

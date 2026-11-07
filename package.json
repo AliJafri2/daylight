@@ -9,6 +9,8 @@
     "db:publish:cloud": "spacetime publish --module-path spacetimedb --server maincloud minimum -y",
     "db:generate": "spacetime generate --lang typescript --out-dir client/src/module_bindings --module-path spacetimedb",
     "db:logs": "spacetime logs --server local minimum",
-    "client:dev": "npm run dev --prefix client"
-  }
+    "client:dev": "npm run dev --prefix client",
+    "nessie:seed": "node --env-file=worker/.env scripts/seed-nessie.ts"
+  },
+  "type": "module"
 }
