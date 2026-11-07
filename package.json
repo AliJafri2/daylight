@@ -4,13 +4,14 @@
   "scripts": {
     "install:all": "npm install --prefix spacetimedb && npm install --prefix client",
     "db:start": "spacetime start",
-    "db:publish": "spacetime publish --module-path spacetimedb --server local minimum -y",
-    "db:publish:reset": "spacetime publish --module-path spacetimedb --server local minimum -y --delete-data",
+    "db:publish": "spacetime publish --module-path spacetimedb --server local minimum-dev -y",
+    "db:publish:reset": "spacetime publish --module-path spacetimedb --server local minimum-dev -y --delete-data",
     "db:publish:cloud": "spacetime publish --module-path spacetimedb --server maincloud minimum -y",
     "db:generate": "spacetime generate --lang typescript --out-dir client/src/module_bindings --module-path spacetimedb",
-    "db:logs": "spacetime logs --server local minimum",
+    "db:logs": "spacetime logs --server local minimum-dev",
     "client:dev": "npm run dev --prefix client",
-    "nessie:seed": "node --env-file=worker/.env scripts/seed-nessie.ts"
+    "nessie:seed": "node --env-file=worker/.env scripts/seed-nessie.ts",
+    "client:dev:cloud": "npm run dev:cloud --prefix client"
   },
   "type": "module"
 }

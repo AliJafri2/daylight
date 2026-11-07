@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:cloud": "vite --host --mode cloud"
   },
   "dependencies": {
     "spacetimedb": "2.14.*",
