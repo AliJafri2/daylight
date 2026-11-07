@@ -33,6 +33,25 @@ const profile = table(
     homeLng: t.f64(),
     vehicleMpg: t.f64(),
     usualGallons: t.f64(),
+    lastNessieSync: t.option(t.timestamp()).default(undefined), // shown in UI: "Synced from your bank 2 min ago"
+  }
+);
+
+// Agent workers are ordinary Spacetime clients. They register with a shared secret
+// that only the database owner can set (via `spacetime call ... set_worker_secret`).
+const worker = table(
+  { name: 'worker' },
+  {
+    identity: t.identity().primaryKey(),
+    registeredAt: t.timestamp(),
+  }
+);
+
+const workerSecret = table(
+  { name: 'worker_secret' },
+  {
+    id: t.u32().primaryKey(), // always 0
+    secret: t.string(),
   }
 );
 
@@ -162,6 +181,8 @@ const planAction = table(
 
 const spacetimedb = schema({
   appConfig,
+  worker,
+  workerSecret,
   profile,
   member,
   account,
@@ -184,6 +205,16 @@ const $ = (dollars: number): bigint => BigInt(Math.round(dollars * 100));
 function demoProfileId(ctx: Ctx): bigint | undefined {
   for (const p of ctx.db.profile.iter()) if (p.isDemo) return p.id;
   return undefined;
+}
+
+function requireWorker(ctx: Ctx) {
+  if (!ctx.db.worker.identity.find(ctx.sender)) throw new SenderError('Only a registered worker can do this');
+}
+
+function requireDemoProfile(ctx: Ctx): bigint {
+  const pid = demoProfileId(ctx);
+  if (pid === undefined) throw new SenderError('No demo profile');
+  return pid;
 }
 
 function requireMember(ctx: Ctx) {
@@ -211,6 +242,7 @@ function seedDemoFinances(ctx: Ctx, profileId: bigint) {
   acct('credit_card', 'Credit Card', 1840, { limit: 2500, apr: 27.9 });
   acct('auto_loan', 'Auto Loan', 14200, { apr: 7.4 });
   acct('ira', 'Roth IRA', 650, { source: 'manual' });
+  acct('cd', '6-month CD (matures Mar 2027)', 300, { apr: 4.1, source: 'manual' });
 
   const billRow = (payee: string, category: string, dollars: number, dueDate: string, movable = false, latestSafeDate?: string) =>
     ctx.db.bill.insert({
@@ -303,6 +335,7 @@ export const init = spacetimedb.init(ctx => {
     homeLng: -96.7502,
     vehicleMpg: 25,
     usualGallons: 15,
+    lastNessieSync: undefined,
   });
   seedDemoFinances(ctx, p.id);
   seedPrices(ctx);
@@ -419,4 +452,73 @@ export const resetDemo = spacetimedb.reducer(ctx => {
   if (!p || !p.isDemo) throw new SenderError('Only the demo profile can be reset');
   wipeProfileData(ctx, p.id);
   seedDemoFinances(ctx, p.id);
+});
+
+// ---------- Worker registration ----------
+
+// Owner-only. Run once per database: spacetime call --server maincloud minimum set_worker_secret '"<secret>"'
+export const setWorkerSecret = spacetimedb.reducer({ secret: t.string() }, (ctx, { secret }) => {
+  const cfg = ctx.db.appConfig.id.find(0);
+  if (!cfg || !cfg.owner.equals(ctx.sender)) throw new SenderError('Only the database owner can set the worker secret');
+  if (secret.length < 16) throw new SenderError('Secret must be at least 16 characters');
+  if (ctx.db.workerSecret.id.find(0)) ctx.db.workerSecret.id.update({ id: 0, secret });
+  else ctx.db.workerSecret.insert({ id: 0, secret });
+});
+
+export const registerWorker = spacetimedb.reducer({ secret: t.string() }, (ctx, { secret }) => {
+  const stored = ctx.db.workerSecret.id.find(0);
+  if (!stored || stored.secret !== secret) throw new SenderError('Bad worker secret');
+  if (!ctx.db.worker.identity.find(ctx.sender)) {
+    ctx.db.worker.insert({ identity: ctx.sender, registeredAt: ctx.timestamp });
+  }
+});
+
+// ---------- Worker reducers: Nessie -> Spacetime sync ----------
+// Upserts match on the Nessie ID first, then link an unlinked seeded row of the same
+// kind/payee, so Minimum-only fields (movable, latest_safe_date, credit limit) survive.
+
+export const syncAccount = spacetimedb.reducer(
+  { nessieId: t.string(), kind: t.string(), nickname: t.string(), balanceCents: t.i64() },
+  (ctx, { nessieId, kind, nickname, balanceCents }) => {
+    requireWorker(ctx);
+    const pid = requireDemoProfile(ctx);
+    const rows = [...ctx.db.account.profileId.filter(pid)];
+    const existing =
+      rows.find(a => a.nessieId === nessieId) ?? rows.find(a => a.kind === kind && a.nessieId === undefined);
+    if (existing) {
+      ctx.db.account.id.update({ ...existing, nessieId, nickname, balanceCents, source: 'nessie' });
+    } else {
+      ctx.db.account.insert({
+        id: 0n, profileId: pid, nessieId, kind, nickname, balanceCents,
+        creditLimitCents: undefined, apr: undefined, source: 'nessie',
+      });
+    }
+  }
+);
+
+export const syncBill = spacetimedb.reducer(
+  { nessieBillId: t.string(), payee: t.string(), amountCents: t.i64(), dueDate: t.string() },
+  (ctx, { nessieBillId, payee, amountCents, dueDate }) => {
+    requireWorker(ctx);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) throw new SenderError('dueDate must be YYYY-MM-DD');
+    const pid = requireDemoProfile(ctx);
+    const rows = [...ctx.db.bill.profileId.filter(pid)];
+    const existing =
+      rows.find(b => b.nessieBillId === nessieBillId) ??
+      rows.find(b => b.payee === payee && b.nessieBillId === undefined);
+    if (existing) {
+      ctx.db.bill.id.update({ ...existing, nessieBillId, amountCents, dueDate });
+    } else {
+      ctx.db.bill.insert({
+        id: 0n, profileId: pid, nessieBillId, payee, category: 'other', amountCents, dueDate,
+        movable: false, latestSafeDate: undefined,
+      });
+    }
+  }
+);
+
+export const markNessieSynced = spacetimedb.reducer(ctx => {
+  requireWorker(ctx);
+  const p = ctx.db.profile.id.find(requireDemoProfile(ctx));
+  if (p) ctx.db.profile.id.update({ ...p, lastNessieSync: ctx.timestamp });
 });

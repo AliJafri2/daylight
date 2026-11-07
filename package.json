@@ -2,7 +2,7 @@
   "name": "minimum",
   "private": true,
   "scripts": {
-    "install:all": "npm install --prefix spacetimedb && npm install --prefix client",
+    "install:all": "npm install --prefix spacetimedb && npm install --prefix client && npm install --prefix worker",
     "db:start": "spacetime start",
     "db:publish": "spacetime publish --module-path spacetimedb --server local minimum-dev -y",
     "db:publish:reset": "spacetime publish --module-path spacetimedb --server local minimum-dev -y --delete-data",
@@ -11,7 +11,9 @@
     "db:logs": "spacetime logs --server local minimum-dev",
     "client:dev": "npm run dev --prefix client",
     "nessie:seed": "node --env-file=worker/.env scripts/seed-nessie.ts",
-    "client:dev:cloud": "npm run dev:cloud --prefix client"
+    "client:dev:cloud": "npm run dev:cloud --prefix client",
+    "worker:start": "npm start --prefix worker",
+    "worker:sync": "npm run sync --prefix worker"
   },
   "type": "module"
 }

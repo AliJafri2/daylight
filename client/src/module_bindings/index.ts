@@ -36,10 +36,15 @@ import {
 // Import all reducer arg schemas
 import ApproveActionReducer from "./approve_action_reducer";
 import ApproveAllReducer from "./approve_all_reducer";
+import MarkNessieSyncedReducer from "./mark_nessie_synced_reducer";
+import RegisterWorkerReducer from "./register_worker_reducer";
 import RejectActionReducer from "./reject_action_reducer";
 import RequestPlanReducer from "./request_plan_reducer";
 import ResetDemoReducer from "./reset_demo_reducer";
 import SetLanguageReducer from "./set_language_reducer";
+import SetWorkerSecretReducer from "./set_worker_secret_reducer";
+import SyncAccountReducer from "./sync_account_reducer";
+import SyncBillReducer from "./sync_bill_reducer";
 
 // Import all procedure arg schemas
 
@@ -131,10 +136,15 @@ const tablesSchema = __schema({
 const reducersSchema = __reducers(
   __reducerSchema("approve_action", ApproveActionReducer),
   __reducerSchema("approve_all", ApproveAllReducer),
+  __reducerSchema("mark_nessie_synced", MarkNessieSyncedReducer),
+  __reducerSchema("register_worker", RegisterWorkerReducer),
   __reducerSchema("reject_action", RejectActionReducer),
   __reducerSchema("request_plan", RequestPlanReducer),
   __reducerSchema("reset_demo", ResetDemoReducer),
   __reducerSchema("set_language", SetLanguageReducer),
+  __reducerSchema("set_worker_secret", SetWorkerSecretReducer),
+  __reducerSchema("sync_account", SyncAccountReducer),
+  __reducerSchema("sync_bill", SyncBillReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

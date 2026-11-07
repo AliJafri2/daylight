@@ -1,0 +1,17 @@
+{
+  "name": "minimum-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx --env-file=.env src/index.ts",
+    "sync": "tsx --env-file=.env src/index.ts --once"
+  },
+  "dependencies": {
+    "spacetimedb": "2.14.*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "~5.6.2"
+  }
+}

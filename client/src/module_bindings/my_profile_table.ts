@@ -21,4 +21,5 @@ export default __t.row({
   homeLng: __t.f64().name("home_lng"),
   vehicleMpg: __t.f64().name("vehicle_mpg"),
   usualGallons: __t.f64().name("usual_gallons"),
+  lastNessieSync: __t.option(__t.timestamp()).name("last_nessie_sync"),
 });

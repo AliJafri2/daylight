@@ -147,6 +147,7 @@ export const Profile = __t.object("Profile", {
   homeLng: __t.f64(),
   vehicleMpg: __t.f64(),
   usualGallons: __t.f64(),
+  lastNessieSync: __t.option(__t.timestamp()),
 });
 export type Profile = __Infer<typeof Profile>;
 
@@ -159,4 +160,16 @@ export const ScheduledSpend = __t.object("ScheduledSpend", {
   date: __t.string(),
 });
 export type ScheduledSpend = __Infer<typeof ScheduledSpend>;
+
+export const Worker = __t.object("Worker", {
+  identity: __t.identity(),
+  registeredAt: __t.timestamp(),
+});
+export type Worker = __Infer<typeof Worker>;
+
+export const WorkerSecret = __t.object("WorkerSecret", {
+  id: __t.u32(),
+  secret: __t.string(),
+});
+export type WorkerSecret = __Infer<typeof WorkerSecret>;
 

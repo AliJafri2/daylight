@@ -10,3 +10,4 @@ spacetime.local.json
 .claude/settings.local.json
 worker/nessie-ids.json
 !client/.env.cloud
+worker/.worker-token
