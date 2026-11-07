@@ -6,9 +6,17 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
-import AddReducer from "../add_reducer";
-import SayHelloReducer from "../say_hello_reducer";
+import ApproveActionReducer from "../approve_action_reducer";
+import ApproveAllReducer from "../approve_all_reducer";
+import RejectActionReducer from "../reject_action_reducer";
+import RequestPlanReducer from "../request_plan_reducer";
+import ResetDemoReducer from "../reset_demo_reducer";
+import SetLanguageReducer from "../set_language_reducer";
 
-export type AddParams = __Infer<typeof AddReducer>;
-export type SayHelloParams = __Infer<typeof SayHelloReducer>;
+export type ApproveActionParams = __Infer<typeof ApproveActionReducer>;
+export type ApproveAllParams = __Infer<typeof ApproveAllReducer>;
+export type RejectActionParams = __Infer<typeof RejectActionReducer>;
+export type RequestPlanParams = __Infer<typeof RequestPlanReducer>;
+export type ResetDemoParams = __Infer<typeof ResetDemoReducer>;
+export type SetLanguageParams = __Infer<typeof SetLanguageReducer>;
 

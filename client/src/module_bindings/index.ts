@@ -34,31 +34,107 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
-import AddReducer from "./add_reducer";
-import SayHelloReducer from "./say_hello_reducer";
+import ApproveActionReducer from "./approve_action_reducer";
+import ApproveAllReducer from "./approve_all_reducer";
+import RejectActionReducer from "./reject_action_reducer";
+import RequestPlanReducer from "./request_plan_reducer";
+import ResetDemoReducer from "./reset_demo_reducer";
+import SetLanguageReducer from "./set_language_reducer";
 
 // Import all procedure arg schemas
 
 // Import all table schema definitions
-import PersonRow from "./person_table";
+import MyAccountsRow from "./my_accounts_table";
+import MyActionsRow from "./my_actions_table";
+import MyBillsRow from "./my_bills_table";
+import MyIncomeRow from "./my_income_table";
+import MyJobsRow from "./my_jobs_table";
+import MyProfileRow from "./my_profile_table";
+import MySpendRow from "./my_spend_table";
+import MyStepsRow from "./my_steps_table";
+import PriceRow from "./price_table";
 
 /** Type-only namespace exports for generated type groups. */
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema({
-  person: __table({
-    name: 'person',
+  price: __table({
+    name: 'price',
+    indexes: [
+      { accessor: 'id', name: 'price_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+    ],
+    constraints: [
+      { name: 'price_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, PriceRow),
+  myAccounts: __table({
+    name: 'my_accounts',
     indexes: [
     ],
     constraints: [
     ],
-  }, PersonRow),
+  }, MyAccountsRow),
+  myActions: __table({
+    name: 'my_actions',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyActionsRow),
+  myBills: __table({
+    name: 'my_bills',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyBillsRow),
+  myIncome: __table({
+    name: 'my_income',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyIncomeRow),
+  myJobs: __table({
+    name: 'my_jobs',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyJobsRow),
+  myProfile: __table({
+    name: 'my_profile',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyProfileRow),
+  mySpend: __table({
+    name: 'my_spend',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MySpendRow),
+  mySteps: __table({
+    name: 'my_steps',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyStepsRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
-  __reducerSchema("add", AddReducer),
-  __reducerSchema("say_hello", SayHelloReducer),
+  __reducerSchema("approve_action", ApproveActionReducer),
+  __reducerSchema("approve_all", ApproveAllReducer),
+  __reducerSchema("reject_action", RejectActionReducer),
+  __reducerSchema("request_plan", RequestPlanReducer),
+  __reducerSchema("reset_demo", ResetDemoReducer),
+  __reducerSchema("set_language", SetLanguageReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

@@ -11,5 +11,10 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  name: __t.string(),
+  id: __t.u64().primaryKey(),
+  jobId: __t.u64().name("job_id"),
+  profileId: __t.u64().name("profile_id"),
+  agent: __t.string(),
+  message: __t.string(),
+  createdAt: __t.timestamp().name("created_at"),
 });
