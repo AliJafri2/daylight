@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { tables } from './module_bindings';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import type { DbConnection } from './module_bindings';
+import { useMoney } from './engine';
 
 const money = (cents: bigint) =>
   (Number(cents) / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -28,6 +29,7 @@ export default function App() {
   }, [bills, spend, income]);
 
   const profile = profiles[0];
+  const m = useMoney();
 
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
@@ -36,6 +38,24 @@ export default function App() {
         {isActive ? 'Live' : 'Connecting…'}
         {profile && ` · ${profile.displayName} · as of ${profile.asOfDate}`}
       </p>
+
+      {m.ready && (
+        <section style={{ padding: 12, borderRadius: 12, background: m.forecast.shortfall ? '#fdecea' : '#e8f5e9', marginBottom: 16 }}>
+          <strong style={{ fontSize: 22 }}>
+            {m.forecast.shortfall
+              ? `${money(BigInt(-m.forecast.shortfall.balanceCents))} short on ${m.forecast.shortfall.date.slice(5)}`
+              : `You're okay until payday`}
+          </strong>
+          <div style={{ fontSize: 14, marginTop: 6 }}>
+            Runway {m.health.runwayDays} days · Card {Math.round((m.health.creditUtilization ?? 0) * 100)}% used ·
+            Overdraft risk {m.health.overdraftRisk} · Savings {money(BigInt(m.health.savingsCents))}
+          </div>
+          <div style={{ fontSize: 14, marginTop: 6, color: '#555' }}>
+            Engine's plan: {m.plan.actions.map(a => a.kind).join(' + ') || 'none'} → low point{' '}
+            {money(BigInt(m.plan.after.lowPoint.balanceCents))}, fees avoided {money(BigInt(m.plan.feesAvoidedCents))}
+          </div>
+        </section>
+      )}
 
       <h2>Accounts</h2>
       {!accountsReady && <p>Loading…</p>}

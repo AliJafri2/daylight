@@ -292,7 +292,7 @@ function seedPrices(ctx: Ctx) {
   gas('Exxon', 3.62, 32.9860, -96.7445);
   gas('QuikTrip', 3.39, 33.0050, -96.7700);
   gas('Murphy USA', 3.35, 32.9980, -96.7585);
-  gas('Costco', 3.29, 33.0280, -96.8050);
+  gas('Costco', 3.29, 33.0700, -96.8200);
 
   const groc = (item: string, nameBrand: number, storeBrand: number) => {
     for (const [variant, dollars] of [['name_brand', nameBrand], ['store_brand', storeBrand]] as const) {
@@ -452,6 +452,9 @@ export const resetDemo = spacetimedb.reducer(ctx => {
   if (!p || !p.isDemo) throw new SenderError('Only the demo profile can be reset');
   wipeProfileData(ctx, p.id);
   seedDemoFinances(ctx, p.id);
+  // Restore seeded prices (keeps nothing reported live by judges' phones from the last demo).
+  for (const r of [...ctx.db.price.iter()]) ctx.db.price.id.delete(r.id);
+  seedPrices(ctx);
 });
 
 // ---------- Worker registration ----------
