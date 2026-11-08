@@ -179,8 +179,8 @@ export default function Plan({ m, language, onDone }: { m: Money; language: stri
         <>
           <div className="eyebrow">Without changes</div>
           <BigMoney cents={sf.balanceCents} tone="red" />
-          <div className="plan-head" style={{ fontSize: 24, marginTop: 10 }}>You'll be {usd(-sf.balanceCents, { whole: true })} short on {day(sf.date)}.</div>
-          <p className="plan-sub">That's {sf.daysBeforePayday} days before payday. I can find a fix in a few seconds, and nothing changes until you say so.</p>
+          <div className="plan-head" style={{ fontSize: 24, marginTop: 10 }}>You need {usd(-sf.balanceCents, { whole: true })} more to stay in the green.</div>
+          <p className="plan-sub">That's on {day(sf.date)}, {sf.daysBeforePayday} days before payday. I can find a fix in a few seconds, and nothing changes until you say so.</p>
           <button className="btn" disabled={!isActive} onClick={() => { setShowSteps(false); setReview(false); call(conn?.reducers.requestPlan({})); }}>
             <Icon name="sparkle" /> Find a fix
           </button>

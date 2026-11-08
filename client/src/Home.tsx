@@ -79,7 +79,7 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
       {sf ? (
         <>
           <BigMoney cents={sf.balanceCents} tone="red" />
-          <div className="hero-sub">Your balance on {day(sf.date)}, {sf.daysBeforePayday} days before payday. You'd be ${(-sf.balanceCents / 100).toFixed(0)} short.</div>
+          <div className="hero-sub"><strong>You need {usd(-sf.balanceCents, { whole: true })} more to stay in the green.</strong><br />That's your balance on {day(sf.date)}, {sf.daysBeforePayday} days before payday.</div>
         </>
       ) : (
         <>
