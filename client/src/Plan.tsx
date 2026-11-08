@@ -181,7 +181,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
       <div className="screen plan">
         <div className="topbar"><h1>Your plan</h1></div>
         <div className="plan-working">
-          <div className="orb" style={{ width: 72, height: 72 }} />
+          <div className="work-spin" />
           <div className="plan-head" style={{ marginTop: 18 }}>Ben is finding the cheapest fix</div>
         </div>
         <div className="checklist">

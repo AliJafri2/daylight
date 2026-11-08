@@ -49,8 +49,7 @@ export default function Coach({ name, pending, onPendingSent }: {
 
       {sorted.length === 0 ? (
         <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <div className="orb" style={{ width: 84, height: 84 }} />
-          <div className="small muted" style={{ marginTop: 18 }}>{today}</div>
+          <div className="small muted">{today}</div>
           <h2 style={{ fontSize: 26, letterSpacing: '-0.02em', margin: '6px 0 4px' }}>Hi {name}, I'm Ben.</h2>
           <p className="muted" style={{ margin: 0 }}>Your AI money coach. Ask me anything about your money.</p>
         </div>

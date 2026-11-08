@@ -126,7 +126,7 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
           <div className="sheet" role="dialog" aria-label={why.title}>
             <div className="grabber" />
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-              <div className="orb" style={{ width: 32, height: 32, margin: 0 }} />
+              <span className="why-ico"><Icon name="sparkle" size={16} /></span>
               <span className="small muted" style={{ fontWeight: 600 }}>Why?</span>
             </div>
             <h2>{why.title}</h2>

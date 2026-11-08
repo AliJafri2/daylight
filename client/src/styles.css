@@ -925,3 +925,8 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .pico.green { background: linear-gradient(160deg, #4fdc8f 0%, #22b066 55%, #158a4c 100%); color: #fff; box-shadow: 0 6px 14px rgba(26, 145, 82, 0.30), inset 0 1px 0 rgba(255,255,255,0.45); }
 .pico.blue  { background: linear-gradient(160deg, #6fa0ff 0%, #3a6cf0 55%, #2450cf 100%); color: #fff; box-shadow: 0 6px 14px rgba(47, 91, 217, 0.30), inset 0 1px 0 rgba(255,255,255,0.45); }
 .power { align-items: center; }
+/* Orb replacements */
+.app-tile { width: 56px; height: 56px; border-radius: 16px; margin: 0 auto; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(160deg, #ffe66b, #ffb21f); box-shadow: 0 8px 20px rgba(255, 178, 31, 0.35); animation: orbFloat 3s ease-in-out infinite; }
+.why-ico { width: 28px; height: 28px; border-radius: 9px; background: var(--fill); display: grid; place-items: center; color: var(--ink); }
+.work-spin { width: 56px; height: 56px; margin: 0 auto; border-radius: 50%; border: 4px solid var(--fill-2); border-top-color: var(--green); animation: spin 0.9s linear infinite; }

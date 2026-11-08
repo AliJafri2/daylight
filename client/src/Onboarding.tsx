@@ -197,7 +197,6 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
     content = (
       <div className={`step ${out ? 'out' : ''}`} key="ai">
         {top('bank', 2)}
-        <div className="orb" style={{ margin: '4px 0 16px', ...i(1) }} />
         <h1 className="ob" style={i(2)}>Hi, I'm Ben!</h1>
         <p className="lead" style={i(3)}>Your AI money coach. Ask me anything.</p>
         <div className="ai-pill" aria-hidden="true" style={{ margin: '0 0 24px', width: '100%', ...i(4) }}><div><TypedPrompts /></div></div>

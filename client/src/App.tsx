@@ -58,7 +58,7 @@ export default function App() {
     return (
       <div className="app" style={{ display: 'grid', placeItems: 'center', minHeight: '100dvh' }}>
         <div style={{ textAlign: 'center' }}>
-          <div className="orb" />
+          <div className="app-tile"><Icon name="sun" size={28} stroke={2.4} /></div>
           <p className="muted" style={{ marginTop: 16 }}>{isActive ? 'Loading your money…' : 'Connecting…'}</p>
         </div>
       </div>
