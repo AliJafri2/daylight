@@ -18,3 +18,5 @@ docs/design/*.png
 CLAUDE.md
 docs/design/*.html
 docs/private/
+client/chart-preview.html
+client/src/chart-preview.tsx

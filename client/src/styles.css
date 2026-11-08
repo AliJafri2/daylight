@@ -547,3 +547,28 @@ input { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .edge-glow, .edge-glow .halo { animation: none !important; }
 }
+
+/* ===================== Balance chart (self-explaining) ===================== */
+.bl { margin: 18px 0 4px; }
+.bl-title { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+.bl-title .muted { font-weight: 500; font-size: 14px; }
+.bl-chart { position: relative; height: 150px; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: crosshair; }
+.bl-chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.bl-dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #111; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); pointer-events: none; }
+.bl-dot.big { width: 14px; height: 14px; margin: -7px 0 0 -7px; animation: dotIn 0.5s var(--ease-spring) 0.2s backwards; }
+.bl-dot.red { background: var(--red); }
+.bl-dot.green { background: var(--green); }
+.bl-label { position: absolute; transform: translateX(-50%); font-size: 13px; color: var(--ink-3); white-space: nowrap; pointer-events: none; animation: fade 0.4s ease backwards; }
+.bl-label strong { color: var(--ink); margin-left: 3px; }
+.bl-label.green strong { color: var(--green); }
+.bl-callout {
+  position: absolute; transform: translateX(-50%); pointer-events: none; white-space: nowrap;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 5px 10px; box-shadow: 0 6px 18px rgba(17,17,17,0.10);
+  display: flex; flex-direction: column; align-items: center; font-size: 13px; line-height: 1.25; animation: fade 0.3s ease both;
+}
+.bl-callout.red strong { color: var(--red); }
+.bl-callout.green strong { color: var(--green); }
+.bl-callout small { color: var(--ink-3); font-size: 12px; }
+.bl-legend { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); margin-top: 8px; }
+.bl-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+.bl-legend .sw.red { background: rgba(214, 69, 69, 0.25); }
