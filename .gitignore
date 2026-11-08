@@ -13,3 +13,6 @@ worker/nessie-ids.json
 worker/.worker-token
 docs/design/*.jpg
 docs/design/*.png
+
+# Private build brief (stays local)
+CLAUDE.md
