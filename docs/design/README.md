@@ -10,7 +10,10 @@ layout, spacing and interaction patterns, never their logos, illustrations or br
 | 09-fuse-email-signup.jpg | **Create account**: big title, rounded input, pill button | built by eye |
 | 10-cleo-ai-onboarding.jpg | **"Here's what I do"**: AI explains itself (save from Cleo AI, not Cleo) | ✅ credit 2 |
 | 01-fuse-home.jpg | **Home**: big number with greyed cents, thin chart, 2x2 tiles | ✅ credit 3 |
-| 11-cleo-ai-chat.jpg | **Coach + Plan**: AI bubbles, reply chips (save from Cleo AI, not Cleo) | ✅ credit 4 |
+| 11-cleo-ai-chat.jpg | **Coach**: warm glow, frosted reply-chip panel, voice button (real Cleo AI) | ✅ credit 4 |
+| 12-perplexity-agent-card.jpg | **Plan**: "running tasks" + interactive card with Skip/Continue | optional credit 5, else by eye |
+| 13-cleo-ai-voice-orb.jpg | **Voice coach** (Vapi): glowing orb, "Talking to…" | built by eye |
+| 14-wabi-rich-card-in-chat.jpg | Result card inside chat ("Plan ready · Review") | built by eye |
 | 02-fuse-detail-with-chart.jpg | Balance line + legend | built by eye |
 | 03-fuse-detail-floating-pill-bar.jpg | Floating "Approve all" bar; Accounts list | built by eye |
 | 04-fuse-quick-action-menu.jpg | Blurred overlay + quick actions | built by eye |
@@ -27,7 +30,8 @@ Do these one at a time (one image per run; several at once blends them together)
 | 1 | `08-fuse-welcome.jpg` | `08-fuse-welcome.html` |
 | 2 | `01-fuse-home.jpg` | `01-fuse-home.html` |
 | 3 | `10-cleo-ai-onboarding.png` (screenshot it from the **Cleo AI** app on Mobbin) | `10-cleo-ai-onboarding.html` |
-| 4 | `11-cleo-ai-chat.png` (screenshot it from the **Cleo AI** app on Mobbin) | `11-cleo-ai-chat.html` |
+| 4 | `11-cleo-ai-chat.jpg` (already downloaded) | `11-cleo-ai-chat.html` |
+| 5 (optional) | `12-perplexity-agent-card.jpg` | `12-perplexity-agent-card.html` |
 
 For every run:
 - Output stack: **HTML + CSS** (React + Tailwind is OK if HTML + CSS isn't offered).
