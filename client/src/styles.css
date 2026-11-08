@@ -1163,7 +1163,7 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .headsup-top { display: flex; justify-content: space-between; font-size: 15px; color: var(--ink); }
 .headsup-top span { font-size: 13px; color: var(--ink-3); }
 .headsup-body { font-size: 15px; line-height: 1.35; color: var(--ink-2); }
-.headsup-x { all: unset; cursor: pointer; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-3); }
+.headsup-x { all: unset; cursor: pointer; width: 40px; height: 40px; margin: -6px -4px -6px 0; display: grid; place-items: center; border-radius: 50%; color: var(--ink-3); }
 .settings-h { font-size: 17px; margin: 22px 0 4px; }
 .settings-p { font-size: 14px; color: var(--ink-3); margin: 0 0 10px; line-height: 1.4; }
 @media (prefers-reduced-motion: reduce) { .headsup { animation: none; } }

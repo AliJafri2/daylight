@@ -85,7 +85,7 @@ export default function App() {
   return (
     <div className="app">
       {toast && <div className="toast"><span className="spinner" />{toast}</div>}
-      <HeadsUpBanner onReview={() => { setAgent('forecast'); setTab('plan'); }} />
+      <HeadsUpBanner hidden={tour} onReview={() => { setAgent('forecast'); setTab('plan'); }} />
 
       {tab === 'home' && (
         <Home m={m} name={name} onOpenPlan={() => { setAgent('forecast'); setTab('plan'); }} onSettings={() => setSettings(true)}
