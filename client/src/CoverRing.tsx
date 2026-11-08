@@ -58,7 +58,7 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
               <stop offset="0" stopColor="#3ccf87" /><stop offset="1" stopColor="#1d8f53" />
             </linearGradient>
             <filter id="ring-gap-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="7" />
+              <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="#ff3b30" floodOpacity="0.55" />
             </filter>
             <filter id="ring-end" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="0" stdDeviation={THICK * 0.14} floodColor="rgba(0,0,0,0.45)" />
@@ -70,21 +70,18 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
             {/* first lap */}
             <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
               strokeLinecap="round" strokeDasharray={`${Math.max(0.0001, first) * C} ${C}`} />
-            {/* the missing part: a red arc that glows and pulses (only once the fill has arrived) */}
-            {!closed && p >= target - 0.002 && (
-              <g className="ring-gap" style={{ ['--gap-off' as string]: `${-target * C}` }}>
-                <circle cx={c} cy={c} r={r} fill="none" stroke="#ff3b30" strokeWidth={THICK + 10}
-                  strokeDasharray={`${(1 - target) * C} ${C}`} strokeDashoffset={-target * C} filter="url(#ring-gap-glow)" className="ring-gap-halo" />
-                <circle cx={c} cy={c} r={r} fill="none" stroke="#ff3b30" strokeWidth={THICK}
-                  strokeDasharray={`${(1 - target) * C} ${C}`} strokeDashoffset={-target * C} className="ring-gap-core" />
-              </g>
-            )}
             {/* overflow lap: money left over */}
             {p > 1 && (
               <circle cx={c} cy={c} r={r} fill="none" stroke={`url(#ring-${tone})`} strokeWidth={THICK}
                 strokeLinecap="round" strokeDasharray={`${lap * C} ${C}`} filter="url(#ring-end)" />
             )}
           </g>
+          {/* The missing part: a rounded-square ring segment drawn on top (hides the green caps),
+              glowing in its own shape and pulsing. Minimum 7% so a small gap is still visible. */}
+          {!closed && p >= target - 0.002 && (
+            <path className="ring-gap" d={gapPath(c, r, THICK, Math.min(target, 0.93))} fill="#ff3b30"
+              stroke="#ff3b30" strokeWidth={8} strokeLinejoin="round" filter="url(#ring-gap-glow)" />
+          )}
         </svg>
         <span className="ring-arrow" aria-hidden="true" style={{ opacity: p > 0.02 ? 1 : 0 }}><Icon name="arrowRight" size={20} stroke={3} /></span>
         <div className="ring-center">
@@ -122,4 +119,21 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
       </div>
     </div>
   );
+}
+
+/** Annulus sector from `fromFrac` of the way round (clockwise from 12 o'clock) back to the top.
+ *  Shrunk by 4px on every side; the 8px round-joined stroke then gives it rounded-square corners. */
+function gapPath(c: number, r: number, thick: number, fromFrac: number) {
+  const inset = 4;
+  const ro = r + thick / 2 - inset;
+  const ri = r - thick / 2 + inset;
+  const a1 = fromFrac * 2 * Math.PI + inset / r;
+  const a2 = 2 * Math.PI - inset / r;
+  const pt = (rad: number, a: number) => {
+    const x = c + rad * Math.sin(a);
+    const y = c - rad * Math.cos(a);
+    return `${x.toFixed(2)} ${y.toFixed(2)}`;
+  };
+  const large = a2 - a1 > Math.PI ? 1 : 0;
+  return `M ${pt(ro, a1)} A ${ro} ${ro} 0 ${large} 1 ${pt(ro, a2)} L ${pt(ri, a2)} A ${ri} ${ri} 0 ${large} 0 ${pt(ri, a1)} Z`;
 }

@@ -743,10 +743,7 @@ input { font: inherit; }
 .ring-wrap.green .ring-col { color: var(--green); }
 
 /* Missing part of the ring: glowing, pulsing red warning */
-.ring-gap { animation: fade 0.4s ease both; }
-.ring-gap-core { animation: gapCore 1.6s ease-in-out infinite; }
-.ring-gap-halo { animation: gapHalo 1.6s ease-in-out infinite; }
-@keyframes gapCore { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
-@keyframes gapHalo { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.85; } }
+.ring-gap { animation: gapPulse 1.6s ease-in-out infinite; }
+@keyframes gapPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 .ring-wrap.red .ring-big { animation: gapText 1.6s ease-in-out infinite; }
 @keyframes gapText { 50% { text-shadow: 0 0 18px rgba(255, 59, 48, 0.35); } }
