@@ -4,19 +4,19 @@ Reference screens downloaded from Mobbin (full resolution). The images are **not
 (they belong to Mobbin / the app makers); they're local references only. We use them for
 layout, spacing and interaction patterns, never their logos, illustrations or brand colors.
 
-| File | Use it for |
-|---|---|
-| 01-fuse-home.jpg | **Home**: big number with greyed cents, thin chart, 2x2 tiles, bottom bar |
-| 02-fuse-detail-with-chart.jpg | Balance line + legend styling |
-| 03-fuse-detail-floating-pill-bar.jpg | Floating pill action bar (Approve all) |
-| 04-fuse-quick-action-menu.jpg | Blurred overlay + quick actions |
-| 05-fuse-form-big-title-pill-button.jpg | Onboarding steps: big title, full-width pill button |
-| 06-fuse-status-toast.jpg | Top status toast ("Moving your bill…") |
-| 07-cleo-home.jpg | Card + tab bar alternative |
-| 08-cleo-onboarding-ai-explained.jpg | Onboarding "Here's what I do" (bubbles explain the AI) |
-| 09-cleo-chat-reply-chips.jpg | Coach chat: tap-to-reply chips |
-| 10-cleo-chat-action-in-bubble.jpg | Action button inside an AI bubble |
-| 11-cleo-chat-stacked-quick-replies.jpg | Stacked quick replies |
+| File | Use it for | screenshot-to-code? |
+|---|---|---|
+| 08-fuse-welcome.jpg | **Title screen**: word "wheel" (Gas · Groceries · Bills · Savings), gradient, Get started + subtle Log in | ✅ credit 1 |
+| 09-fuse-email-signup.jpg | **Create account**: big title, rounded input, pill button | built by eye |
+| 10-cleo-ai-onboarding.jpg | **"Here's what I do"**: AI explains itself (save from Cleo AI, not Cleo) | ✅ credit 2 |
+| 01-fuse-home.jpg | **Home**: big number with greyed cents, thin chart, 2x2 tiles | ✅ credit 3 |
+| 11-cleo-ai-chat.jpg | **Coach + Plan**: AI bubbles, reply chips (save from Cleo AI, not Cleo) | ✅ credit 4 |
+| 02-fuse-detail-with-chart.jpg | Balance line + legend | built by eye |
+| 03-fuse-detail-floating-pill-bar.jpg | Floating "Approve all" bar; Accounts list | built by eye |
+| 04-fuse-quick-action-menu.jpg | Blurred overlay + quick actions | built by eye |
+| 05-fuse-form-big-title-pill-button.jpg | Onboarding step layout | built by eye |
+| 06-fuse-status-toast.jpg | Top status toast | built by eye |
+| 07-cleo-ai-home.jpg | Cleo AI's warm card + tab styling | built by eye |
 
 ## Using screenshot-to-code (screenshottocode.com)
 
