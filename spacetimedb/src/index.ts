@@ -1,7 +1,7 @@
 // MinMax: SpacetimeDB module. This is the ENTIRE backend.
 //
 // Plain-English map:
-// - A "profile" is one person's finances (the demo persona, Bill).
+// - A "profile" is one person's finances (the demo persona, George).
 // - Every device that connects becomes a "member" of a profile, so phone and
 //   laptop see the same money and the same live agent work.
 // - Money tables are PRIVATE. Clients only see their own profile's rows through
@@ -244,7 +244,7 @@ function requireMember(ctx: Ctx) {
   return m;
 }
 
-// Bill: numbers designed to produce exactly a $43 shortfall on Nov 17 (see CLAUDE.md section 7).
+// George: numbers designed to produce exactly a $43 shortfall on Nov 17 (see CLAUDE.md section 7).
 function seedDemoFinances(ctx: Ctx, profileId: bigint) {
   const acct = (kind: string, nickname: string, dollars: number, extra: { limit?: number; apr?: number; source?: string } = {}) =>
     ctx.db.account.insert({
@@ -315,7 +315,7 @@ function seedPrices(ctx: Ctx) {
   gas('Murphy USA', 3.35, 32.9980, -96.7585);
   gas('Costco', 3.29, 33.0700, -96.8200);
 
-  // Bill's usual items at 4 stores. Keep in sync with GROCERY_TABLE in shared/demo-fixture.ts.
+  // George's usual items at 4 stores. Keep in sync with GROCERY_TABLE in shared/demo-fixture.ts.
   // Usual (H-E-B name brand) = $77.47. Aldi $53.48 (net $23.93 after drive) wins; H-E-B store brand saves $18.
   const stores = {
     'H-E-B': [32.9960, -96.7620],
@@ -363,7 +363,7 @@ export const init = spacetimedb.init(ctx => {
   ctx.db.appConfig.insert({ id: 0, owner: ctx.sender });
   const p = ctx.db.profile.insert({
     id: 0n,
-    displayName: 'Bill',
+    displayName: 'George',
     language: 'en',
     asOfDate: '2026-11-07',
     paydayIntervalDays: 14,
@@ -488,14 +488,14 @@ export const setLanguage = spacetimedb.reducer({ language: t.string() }, (ctx, {
   if (p) ctx.db.profile.id.update({ ...p, language });
 });
 
-// Restores Bill's starting numbers between judge demos.
+// Restores George's starting numbers between judge demos.
 export const resetDemo = spacetimedb.reducer(ctx => {
   const m = requireMember(ctx);
   const p = ctx.db.profile.id.find(m.profileId);
   if (!p || !p.isDemo) throw new SenderError('Only the demo profile can be reset');
   wipeProfileData(ctx, p.id);
   seedDemoFinances(ctx, p.id);
-  ctx.db.profile.id.update({ ...p, displayName: 'Bill', needsNessieReset: true, lastNessieSync: undefined });
+  ctx.db.profile.id.update({ ...p, displayName: 'George', needsNessieReset: true, lastNessieSync: undefined });
   // Restore seeded prices (keeps nothing reported live by judges' phones from the last demo).
   for (const r of [...ctx.db.price.iter()]) ctx.db.price.id.delete(r.id);
   seedPrices(ctx);

@@ -1,4 +1,4 @@
-// Sync agent: copies Bill's bank data from Nessie into Spacetime.
+// Sync agent: copies George's bank data from Nessie into Spacetime.
 // Once synced, the app keeps running from the Spacetime copy even if Nessie goes down.
 
 import { readFileSync } from 'node:fs';

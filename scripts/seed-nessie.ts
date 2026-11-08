@@ -1,8 +1,8 @@
-// Creates the demo persona "Bill" in Nessie (Capital One's mock bank) and saves every ID
+// Creates the demo persona "George" in Nessie (Capital One's mock bank) and saves every ID
 // it created to worker/nessie-ids.json. The worker reads ONLY those IDs.
 //
 // Run from the repo root:   npm run nessie:seed
-// Re-running creates a brand-new Bill (old one is left untouched); pass --force to overwrite the IDs file.
+// Re-running creates a brand-new George (old one is left untouched); pass --force to overwrite the IDs file.
 //
 // Verified Nessie behavior (Nov 7 2026, by probing the live API):
 // - Base URL must be https://api.nessieisreal.com (plain http refuses connections)
@@ -23,7 +23,7 @@ if (!KEY) {
   process.exit(1);
 }
 if (existsSync(OUT) && !process.argv.includes('--force')) {
-  console.error(`${OUT} already exists, so Bill is already in Nessie. Use --force to create a new Bill.`);
+  console.error(`${OUT} already exists, so George is already in Nessie. Use --force to create a new George.`);
   process.exit(1);
 }
 
@@ -64,10 +64,10 @@ const MERCHANTS = {
 } as const;
 
 async function main() {
-  console.log(`Creating Bill in Nessie at ${BASE} ...`);
+  console.log(`Creating George in Nessie at ${BASE} ...`);
 
   const customerId = await post('/customers', {
-    first_name: 'Bill',
+    first_name: 'George',
     last_name: 'Parker',
     address: address('800', 'W Campbell Rd'),
   });
@@ -160,7 +160,7 @@ async function main() {
     console.error('Balances did not match. Check the output above.');
     process.exit(1);
   }
-  console.log('Done. Bill is in Nessie.');
+  console.log('Done. George is in Nessie.');
 }
 
 main().catch(err => {

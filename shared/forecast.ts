@@ -223,7 +223,7 @@ export type GroceryOption = {
 };
 
 /**
- * For each store, price Bill's usual items at their cheapest version there (store brand counts),
+ * For each store, price George's usual items at their cheapest version there (store brand counts),
  * subtract extra driving vs the usual store. Includes "same store, store brand" as an option.
  * Only items every store carries are compared, so totals are apples to apples.
  */

@@ -11,7 +11,7 @@ layout, spacing and interaction patterns, never their logos, illustrations or br
 | 10-cleo-ai-onboarding.jpg | (skipped: "Here's what I do" built from 08 + 15) | — |
 | 01-fuse-home.jpg | **Home**: big number with greyed cents, thin chart, 2x2 tiles | ✅ credit 3 |
 | 11-bevel-ai-chat-thinking-steps.jpg | **Plan**: "Thought for Xs" step list, result card, frosted input | built by eye |
-| 15-bevel-ai-greeting.jpg | **Coach** (chosen): pastel glow, mascot, "Here for you, Bill.", suggestion cards, frosted input | ✅ credit 3 |
+| 15-bevel-ai-greeting.jpg | **Coach** (chosen): pastel glow, mascot, "Here for you, George.", suggestion cards, frosted input | ✅ credit 3 |
 | 16-wabi-plan-progress-card.jpg | Plan card with step checklist filling in | built by eye |
 | 17-cleo-ai-chat-backup.jpg | Backup chat style (Cleo AI) | built by eye |
 | 12-perplexity-agent-card.jpg | **Plan**: "running tasks" + interactive card with Skip/Continue | optional credit 5, else by eye |

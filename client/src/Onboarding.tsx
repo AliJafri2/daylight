@@ -61,8 +61,8 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
   const [step, setStep] = useState<Step>(() => (['create', 'bank', 'ai'] as const).find(x => x === new URLSearchParams(location.search).get('ob')) ?? 'title');
   const [out, setOut] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [name, setName] = useState('Bill');
-  const [email, setEmail] = useState('bill.parker@example.com');
+  const [name, setName] = useState('George');
+  const [email, setEmail] = useState('george.parker@example.com');
   const [bank, setBank] = useState<'idle' | 'connecting' | 'done'>('idle');
 
   // Name typed on "Create your account" is saved; "Log in" / "Skip" keep the existing name.

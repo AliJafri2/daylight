@@ -1,4 +1,4 @@
-// Coach chat agent. Gemini answers Bill's questions, but every number it may use is computed
+// Coach chat agent. Gemini answers George's questions, but every number it may use is computed
 // here by the deterministic engine first ("the AI never does math"). Answers that contain a
 // number not present in the facts or the question are rejected and replaced.
 import type { DbConnection } from './module_bindings/index.ts';

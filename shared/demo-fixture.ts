@@ -1,4 +1,4 @@
-// Bill's demo data in engine format. Mirrors the Spacetime seed (spacetimedb/src/index.ts)
+// George's demo data in engine format. Mirrors the Spacetime seed (spacetimedb/src/index.ts)
 // and CLAUDE.md section 7. Used by tests and as the client's offline fallback.
 import type { Account, Bill, ForecastInput, GasPrice, GroceryPrice, Income, Spend, Vehicle } from './forecast.ts';
 
@@ -35,7 +35,7 @@ export const gasPrices: GasPrice[] = [
   { place: 'Costco', priceCents: 329, lat: 33.07, lng: -96.82 },
 ];
 
-// Bill's usual items. Columns: H-E-B name brand, H-E-B store brand, Aldi, Walmart (store brand), Kroger (store brand).
+// George's usual items. Columns: H-E-B name brand, H-E-B store brand, Aldi, Walmart (store brand), Kroger (store brand).
 // Keep in sync with seedPrices() in spacetimedb/src/index.ts.
 export const GROCERY_TABLE: Array<[string, number, number, number, number, number]> = [
   ['Cereal, 2-pack', 898, 548, 449, 512, 529],
