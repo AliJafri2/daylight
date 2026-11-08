@@ -16,7 +16,7 @@ const log = (...a: unknown[]) => console.log(new Date().toLocaleTimeString(), ..
 
 export const usd = (cents: number) => {
   const d = Math.abs(cents) / 100;
-  const s = cents % 100 === 0 ? `$${d.toFixed(0)}` : `$${d.toFixed(2)}`;
+  const s = `$${d.toLocaleString('en-US', cents % 100 === 0 ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   return cents < 0 ? `-${s}` : s;
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

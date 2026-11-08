@@ -13,6 +13,7 @@ import { executeAction, restoreNessieBills, runInvestJob, runPlanJob, runResearc
 import { answerCoachQuestion } from './chat.ts';
 import { hideKey } from './nessie.ts';
 import { loadNessieIds, syncFromNessie } from './sync.ts';
+import { summaryFingerprint, writeSummary } from './summary.ts';
 
 const URI = process.env.SPACETIME_URI ?? 'wss://maincloud.spacetimedb.com';
 const DB = process.env.SPACETIME_DB_NAME ?? 'minimum';
@@ -52,7 +53,7 @@ function subscribe(conn: DbConnection): Promise<void> {
       .onApplied(() => resolve())
       .subscribe([
         tables.myProfile, tables.myAccounts, tables.myBills, tables.myIncome, tables.mySpend,
-        tables.myJobs, tables.myActions, tables.price, tables.myCoach, tables.myTransactions,
+        tables.myJobs, tables.myActions, tables.price, tables.myCoach, tables.myTransactions, tables.mySummary,
       ]);
   });
 }
@@ -124,6 +125,29 @@ async function main() {
   conn.db.myProfile.onUpdate((_ctx, old, p) => {
     if (p.needsNessieReset && !old.needsNessieReset) void queue('reset', sync);
   });
+
+  // 360° summary: refresh (debounced) whenever the numbers behind it change. Runs outside the queue
+  // so a slow Gemini call never delays a plan or an approval.
+  let lastPrint: string | undefined;
+  let timer: NodeJS.Timeout | undefined;
+  let writing = false;
+  const refreshSummary = () => {
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      if (writing) return refreshSummary();
+      const fp = summaryFingerprint(conn);
+      if (!fp || (fp === lastPrint && conn.db.mySummary.count() > 0)) return;
+      writing = true;
+      try { await writeSummary(conn); lastPrint = fp; } catch (err) { log('summary failed:', hideKey(String(err))); }
+      finally { writing = false; }
+    }, 2000);
+  };
+  for (const tbl of [conn.db.myAccounts, conn.db.myBills, conn.db.mySpend, conn.db.myActions, conn.db.myTransactions, conn.db.mySummary] as const) {
+    (tbl as any).onInsert(refreshSummary);
+    (tbl as any).onUpdate?.(refreshSummary);
+    (tbl as any).onDelete(refreshSummary);
+  }
+  refreshSummary();
 
   // Catch up on anything that happened while the worker was offline.
   for (const job of conn.db.myJobs.iter()) onJob(job);

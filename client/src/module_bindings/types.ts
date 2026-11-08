@@ -107,6 +107,9 @@ export type MySpend = __Infer<typeof MySpend>;
 export const MySteps = __t.object("MySteps", {});
 export type MySteps = __Infer<typeof MySteps>;
 
+export const MySummary = __t.object("MySummary", {});
+export type MySummary = __Infer<typeof MySummary>;
+
 export const MyTransactions = __t.object("MyTransactions", {});
 export type MyTransactions = __Infer<typeof MyTransactions>;
 
@@ -183,6 +186,16 @@ export const ScheduledSpend = __t.object("ScheduledSpend", {
   date: __t.string(),
 });
 export type ScheduledSpend = __Infer<typeof ScheduledSpend>;
+
+export const Summary = __t.object("Summary", {
+  profileId: __t.u64(),
+  rightNow: __t.string(),
+  watchOut: __t.string(),
+  nextMove: __t.string(),
+  source: __t.string(),
+  updatedAt: __t.timestamp(),
+});
+export type Summary = __Infer<typeof Summary>;
 
 export const Transaction = __t.object("Transaction", {
   id: __t.u64(),

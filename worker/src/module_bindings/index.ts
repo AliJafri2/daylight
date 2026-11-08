@@ -54,6 +54,7 @@ import RunAgentReducer from "./run_agent_reducer";
 import ScheduleMoveReducer from "./schedule_move_reducer";
 import SetDisplayNameReducer from "./set_display_name_reducer";
 import SetJobStatusReducer from "./set_job_status_reducer";
+import SetSummaryReducer from "./set_summary_reducer";
 import SetWorkerSecretReducer from "./set_worker_secret_reducer";
 import SyncAccountReducer from "./sync_account_reducer";
 import SyncBillReducer from "./sync_bill_reducer";
@@ -71,6 +72,7 @@ import MyJobsRow from "./my_jobs_table";
 import MyProfileRow from "./my_profile_table";
 import MySpendRow from "./my_spend_table";
 import MyStepsRow from "./my_steps_table";
+import MySummaryRow from "./my_summary_table";
 import MyTransactionsRow from "./my_transactions_table";
 import PriceRow from "./price_table";
 
@@ -152,6 +154,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyStepsRow),
+  mySummary: __table({
+    name: 'my_summary',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MySummaryRow),
   myTransactions: __table({
     name: 'my_transactions',
     indexes: [
@@ -183,6 +192,7 @@ const reducersSchema = __reducers(
   __reducerSchema("schedule_move", ScheduleMoveReducer),
   __reducerSchema("set_display_name", SetDisplayNameReducer),
   __reducerSchema("set_job_status", SetJobStatusReducer),
+  __reducerSchema("set_summary", SetSummaryReducer),
   __reducerSchema("set_worker_secret", SetWorkerSecretReducer),
   __reducerSchema("sync_account", SyncAccountReducer),
   __reducerSchema("sync_bill", SyncBillReducer),

@@ -3,7 +3,7 @@
 //   Research agent:    reads last month's purchases, finds habits         -> AgentRun + BenNoticed
 //   Investing agent:   where spare money goes (cushion -> card -> IRA)    -> AgentRun + NextMove
 // Every run is a Spacetime job; the worker streams its steps live.
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables, type DbConnection } from './module_bindings';
 import ForecastAgent from './Plan';
@@ -75,7 +75,9 @@ function Hub({ m, open }: { m: Money; open: (a: AgentKind) => void }) {
   return (
     <div className="screen plan">
       <div className="topbar"><h1>Your plan</h1></div>
-      <p className="hub-lead">Three agents work for you. Tap one to run it. Nothing changes until you approve.</p>
+      <Summary360 />
+      <div className="section-title">Your agents</div>
+      <p className="hub-lead">Tap one to run it. Nothing changes until you approve.</p>
       <div className="agent-tiles">
         {(Object.keys(AGENTS) as AgentKind[]).map((k, i) => {
           const a = AGENTS[k];
@@ -194,5 +196,35 @@ function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: 
       )}
       {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
     </div>
+  );
+}
+
+// ---------- 360° summary (always fresh: the worker rewrites it whenever the numbers change) ----------
+
+function Summary360() {
+  const [rows] = useTable(tables.mySummary);
+  const [, tick] = useState(0);
+  useEffect(() => { const t = setInterval(() => tick(x => x + 1), 30_000); return () => clearInterval(t); }, []);
+  const s = rows[0];
+  const lines: Array<{ key: string; label: string; tone: string; text?: string }> = [
+    { key: 'now', label: 'Right now', tone: 'blue', text: s?.rightNow },
+    { key: 'watch', label: 'Watch out', tone: 'orange', text: s?.watchOut },
+    { key: 'next', label: 'Next move', tone: 'green', text: s?.nextMove },
+  ];
+  const ago = s ? Math.max(0, Math.round((Date.now() - time(s.updatedAt)) / 60_000)) : 0;
+  return (
+    <section className="s360" aria-label="Your 360 degree summary" aria-live="polite">
+      <div className="s360-head">
+        <span className="s360-ico"><Icon name="sparkle" size={16} /></span>
+        <span className="s360-title">Your 360° summary</span>
+      </div>
+      {lines.map(l => (
+        <div className="s360-row" key={l.key}>
+          <span className={`s360-label ${l.tone}`}>{l.label}</span>
+          {l.text ? <span key={l.text} className="s360-text">{l.text}</span> : <span className="s360-skel" />}
+        </div>
+      ))}
+      <div className="s360-foot">{s ? `Written by Ben from your numbers · ${ago < 1 ? 'just now' : `${ago} min ago`}` : 'Ben is reading your accounts…'}</div>
+    </section>
   );
 }

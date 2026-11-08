@@ -186,6 +186,19 @@ const planAction = table(
   }
 );
 
+// 360° summary: a short, always-fresh AI summary of the whole financial picture (worker writes it).
+const summary = table(
+  { name: 'summary' },
+  {
+    profileId: t.u64().primaryKey(),
+    rightNow: t.string(),
+    watchOut: t.string(),
+    nextMove: t.string(),
+    source: t.string(), // 'gemini' | 'template'
+    updatedAt: t.timestamp(),
+  }
+);
+
 // Past purchases (from the bank, or from scanned receipts). The Spending agent reasons over these.
 const transaction = table(
   { name: 'transaction' },
@@ -232,6 +245,7 @@ const spacetimedb = schema({
   planAction,
   coachMessage,
   transaction,
+  summary,
 });
 export default spacetimedb;
 
@@ -457,6 +471,13 @@ export const myCoach = spacetimedb.view({ name: 'my_coach', public: true }, t.ar
 export const myTransactions = spacetimedb.view({ name: 'my_transactions', public: true }, t.array(transaction.rowType), ctx => {
   const m = ctx.db.member.identity.find(ctx.sender);
   return m ? [...ctx.db.transaction.profileId.filter(m.profileId)] : [];
+});
+
+export const mySummary = spacetimedb.view({ name: 'my_summary', public: true }, t.array(summary.rowType), ctx => {
+  const m = ctx.db.member.identity.find(ctx.sender);
+  if (!m) return [];
+  const row = ctx.db.summary.profileId.find(m.profileId);
+  return row ? [row] : [];
 });
 
 // ---------- User reducers ----------
@@ -798,5 +819,18 @@ export const syncTransaction = spacetimedb.reducer(
     if (!/^\d{4}-\d{2}-\d{2}$/.test(a.date)) throw new SenderError('date must be YYYY-MM-DD');
     if (ctx.db.transaction.nessieId.find(a.nessieId)) return; // already synced
     ctx.db.transaction.insert({ id: 0n, profileId: requireDemoProfile(ctx), ...a, source: 'bank' });
+  }
+);
+
+// ---------- Worker: 360° summary ----------
+export const setSummary = spacetimedb.reducer(
+  { rightNow: t.string(), watchOut: t.string(), nextMove: t.string(), source: t.string() },
+  (ctx, a) => {
+    requireWorker(ctx);
+    const profileId = requireDemoProfile(ctx);
+    const clip = (s: string) => s.slice(0, 240);
+    const row = { profileId, rightNow: clip(a.rightNow), watchOut: clip(a.watchOut), nextMove: clip(a.nextMove), source: a.source, updatedAt: ctx.timestamp };
+    if (ctx.db.summary.profileId.find(profileId)) ctx.db.summary.profileId.update(row);
+    else ctx.db.summary.insert(row);
   }
 );
