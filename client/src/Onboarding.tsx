@@ -53,9 +53,13 @@ function Progress({ at }: { at: number }) {
   );
 }
 
+const COLOR: Record<Step, string> = { title: 'g-green', create: 'g-blue', bank: 'g-purple', ai: 'g-orange' };
+const i = (n: number) => ({ ['--i' as string]: n });
+
 export default function Onboarding({ onDone }: { onDone: (name?: string) => void }) {
-  const [step, setStep] = useState<Step>('title');
-  const [phase, setPhase] = useState<'in' | 'out'>('in');
+  // ?ob=create|bank|ai opens a specific step (handy for previews and demos).
+  const [step, setStep] = useState<Step>(() => (['create', 'bank', 'ai'] as const).find(x => x === new URLSearchParams(location.search).get('ob')) ?? 'title');
+  const [out, setOut] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [name, setName] = useState('Bill');
   const [email, setEmail] = useState('bill.parker@example.com');
@@ -67,18 +71,28 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
     setLeaving(true);
     setTimeout(() => onDone(created ? name : undefined), 420);
   };
-  // Smooth step changes: current step slides/fades out, next slides in.
+  // Content dissolves up, the background morphs to the next color, new content rises in.
   const go = (next: Step) => {
-    setPhase('out');
-    setTimeout(() => { setStep(next); setPhase('in'); window.scrollTo({ top: 0 }); }, step === 'title' ? 380 : 260);
+    setOut(true);
+    setTimeout(() => { setStep(next); setOut(false); window.scrollTo({ top: 0 }); }, 300);
   };
-  const anim = phase === 'out' ? (step === 'title' ? 'title-out' : 'step-out') : 'step-in';
 
+  const top = (back: Step | null, at: number) => (
+    <div style={i(0)}>
+      <div className="onb-top">
+        {back ? <button className="back" aria-label="Back" onClick={() => go(back)}><Icon name="back" size={24} /></button> : <span />}
+        <button className="skip" onClick={finish}>Skip</button>
+      </div>
+      <Progress at={at} />
+    </div>
+  );
+
+  let content;
   if (step === 'title') {
-    return (
-      <div className={`title-screen ${leaving ? 'leaving' : phase === 'out' ? 'title-out' : ''}`}>
-        <WordWheel />
-        <div className="title-content">
+    content = (
+      <div className={`step ${out ? 'out' : ''}`} key="title">
+        <div style={i(0)}><WordWheel /></div>
+        <div className="title-content" style={i(1)}>
           <div className="app-mark">MM</div>
           <h1>Minimum effort,<br />maximum savings.</h1>
           <p>Forecast your finances with AI and get a plan to stay on top of everything.</p>
@@ -87,112 +101,98 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
         </div>
       </div>
     );
-  }
-
-  const top = (back: Step | null, at: number) => (
-    <>
-      <div className="onb-top">
-        {back ? (
-          <button className="back" aria-label="Back" onClick={() => go(back)}><Icon name="back" size={24} /></button>
-        ) : <span />}
-        <button className="skip" onClick={finish}>Skip</button>
-      </div>
-      <Progress at={at} />
-    </>
-  );
-
-  if (step === 'create') {
-    return (
-      <div className="onb blue" key="create">
-        <div className={anim} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-          {top('title', 0)}
-          <h1>Create your account</h1>
-          <p className="lead">Just the basics. Your bank login never lives here.</p>
-          <div className="field">
-            <label htmlFor="name">First name</label>
-            <input id="name" value={name} onChange={e => setName(e.target.value)} autoComplete="given-name" />
-          </div>
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
-          </div>
-          <div className="field">
-            <label htmlFor="pw">Password</label>
-            <input id="pw" type="password" defaultValue="minmax-demo" autoComplete="new-password" />
-          </div>
-          <div className="grow" />
-          <button className="btn" disabled={!name.trim()} onClick={() => { setCreated(true); go('bank'); }}>Create account</button>
+  } else if (step === 'create') {
+    content = (
+      <div className={`step ${out ? 'out' : ''}`} key="create">
+        {top('title', 0)}
+        <h1 className="ob" style={i(1)}>Create your account</h1>
+        <p className="lead" style={i(2)}>Just the basics. Your bank login never lives here.</p>
+        <div className="field" style={i(3)}>
+          <label htmlFor="name">First name</label>
+          <input id="name" value={name} onChange={e => setName(e.target.value)} autoComplete="given-name" />
+        </div>
+        <div className="field" style={i(4)}>
+          <label htmlFor="email">Email</label>
+          <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" />
+        </div>
+        <div className="field" style={i(5)}>
+          <label htmlFor="pw">Password</label>
+          <input id="pw" type="password" defaultValue="minmax-demo" autoComplete="new-password" />
+        </div>
+        <div className="ob-foot" style={i(6)}>
+          <button className="btn white" disabled={!name.trim()} onClick={() => { setCreated(true); go('bank'); }}>Create account</button>
         </div>
       </div>
     );
-  }
-
-  if (step === 'bank') {
+  } else if (step === 'bank') {
     const connect = () => {
       if (bank !== 'idle') return;
       setBank('connecting');
       setTimeout(() => setBank('done'), 1300);
     };
-    return (
-      <div className="onb purple" key="bank">
-        <div className={anim} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-          {top('create', 1)}
-          <h1>Connect your bank</h1>
-          <p className="lead">I use your balances and upcoming bills to forecast your next two weeks. Read-only, so nothing moves without you.</p>
-          <div className="stack">
-            <button className="bank-row" onClick={connect}>
-              <span className="bank-logo" style={{ background: '#004977' }}><Icon name="bank" size={22} /></span>
+    content = (
+      <div className={`step ${out ? 'out' : ''}`} key="bank">
+        {top('create', 1)}
+        <h1 className="ob" style={i(1)}>Connect your bank</h1>
+        <p className="lead" style={i(2)}>I use your balances and upcoming bills to forecast your next two weeks. Read-only, so nothing moves without you.</p>
+        <div className="stack" style={i(3)}>
+          <button className="bank-row" onClick={connect}>
+            <span className="bank-logo" style={{ background: '#004977' }}><Icon name="bank" size={22} /></span>
+            <span style={{ flex: 1 }}>
+              <strong style={{ display: 'block' }}>Capital One</strong>
+              <span className="small muted">{bank === 'done' ? 'Connected · checking, savings, card, auto loan' : 'Tap to connect (demo bank)'}</span>
+            </span>
+            {bank === 'connecting' && <span className="spinner" />}
+            {bank === 'done' && <span className="check" style={{ marginLeft: 0 }}><Icon name="check" size={16} stroke={3} /></span>}
+          </button>
+          {[{ n: 'PNC', c: '#e35205' }, { n: 'Chase', c: '#117aca' }].map(b => (
+            <div key={b.n} className="bank-row" style={{ opacity: 0.6 }}>
+              <span className="bank-logo" style={{ background: b.c }}><Icon name="bank" size={22} /></span>
               <span style={{ flex: 1 }}>
-                <strong style={{ display: 'block' }}>Capital One</strong>
-                <span className="small muted">{bank === 'done' ? 'Connected · checking, savings, card, auto loan' : 'Tap to connect (demo bank)'}</span>
+                <strong style={{ display: 'block' }}>{b.n}</strong>
+                <span className="small muted">Coming soon</span>
               </span>
-              {bank === 'connecting' && <span className="spinner" />}
-              {bank === 'done' && <span className="check" style={{ marginLeft: 0 }}><Icon name="check" size={16} stroke={3} /></span>}
-            </button>
-            {[{ n: 'PNC', c: '#e35205' }, { n: 'Chase', c: '#117aca' }].map(b => (
-              <div key={b.n} className="bank-row" style={{ opacity: 0.55 }}>
-                <span className="bank-logo" style={{ background: b.c }}><Icon name="bank" size={22} /></span>
-                <span style={{ flex: 1 }}>
-                  <strong style={{ display: 'block' }}>{b.n}</strong>
-                  <span className="small muted">Coming soon</span>
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="note" style={{ marginTop: 18 }}><Icon name="lock" size={16} /> Your password stays with your bank. I can only read.</div>
-          <div className="grow" style={{ minHeight: 24 }} />
-          <button className="btn" disabled={bank !== 'done'} onClick={() => go('ai')}>
+            </div>
+          ))}
+        </div>
+        <div className="ob-foot" style={i(4)}>
+          <div className="note"><Icon name="lock" size={16} /> Your password stays with your bank. I can only read.</div>
+          <button className="btn white" disabled={bank !== 'done'} onClick={() => go('ai')}>
             {bank === 'done' ? 'Continue' : 'Connect a bank to continue'}
           </button>
+        </div>
+      </div>
+    );
+  } else {
+    content = (
+      <div className={`step ${out ? 'out' : ''}`} key="ai">
+        {top('bank', 2)}
+        <div className="orb" style={{ margin: '4px 0 16px', ...i(1) }} />
+        <h1 className="ob" style={i(2)}>Hi, I'm Ben</h1>
+        <p className="lead" style={i(3)}>Your AI money coach. Ask me anything.</p>
+        <div className="ai-pill" aria-hidden="true" style={{ margin: '0 0 24px', width: '100%', ...i(4) }}><div>Can I afford dinner out on Friday?</div></div>
+        <div className="powers" style={i(5)}>
+          {[
+            ['See trouble coming', 'I forecast your balance every day until payday, so you know about a shortfall two weeks early.'],
+            ['Find the cheapest fix', 'I compare your bills, grocery stores and gas stations to find savings. No loans, ever.'],
+            ['You stay in control', 'I suggest, you decide. Nothing changes until you tap approve.'],
+          ].map(([t, d], k) => (
+            <div className="power" key={t} style={{ animationDelay: `${0.45 + k * 0.12}s` }}>
+              <span className="num">{k + 1}</span>
+              <div><h3>{t}</h3><p>{d}</p></div>
+            </div>
+          ))}
+        </div>
+        <div className="ob-foot" style={i(6)}>
+          <button className="btn white" onClick={finish}>Let's go</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`onb orange ${leaving ? 'leaving' : ''}`} key="ai">
-      <div className={anim} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-        {top('bank', 2)}
-        <div className="orb" style={{ margin: '4px 0 18px' }} />
-        <h1>Hi, I'm Ben</h1>
-        <p className="lead">Your AI money coach. Ask me anything.</p>
-        <div className="ai-pill" aria-hidden="true" style={{ margin: '4px 0 28px', width: '100%' }}><div>Can I afford dinner out on Friday?</div></div>
-        <h2 style={{ fontSize: 20, margin: '0 0 12px', letterSpacing: '-0.01em' }}>How I help you</h2>
-        <div className="powers">
-          {[
-            ['See trouble coming', 'I forecast your balance every day until payday, so you know about a shortfall two weeks early.'],
-            ['Find the cheapest fix', 'I compare your bills, grocery stores and gas stations to find savings. No loans, ever.'],
-            ['You stay in control', 'I suggest, you decide. Nothing changes until you tap approve.'],
-          ].map(([t, d], k) => (
-            <div className="power" key={t} style={{ animationDelay: `${0.15 + k * 0.15}s` }}>
-              <span className="num">{k + 1}</span>
-              <div><h3>{t}</h3><p>{d}</p></div>
-            </div>
-          ))}
-        </div>
-        <div className="grow" style={{ minHeight: 20 }} />
-        <button className="btn" onClick={finish}>Let's go</button>
-      </div>
+    <div className={`grad-screen ${COLOR[step]} ${leaving ? 'leaving' : ''}`}>
+      {content}
     </div>
   );
 }

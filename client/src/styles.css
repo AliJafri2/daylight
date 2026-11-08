@@ -622,3 +622,42 @@ input { font: inherit; }
 .ai-cta .chev { margin-left: auto; color: var(--ink-2); }
 .ai-cta.ok { border-color: var(--green); color: var(--green); }
 .ai-cta.ok .spark { background: var(--green); }
+
+/* ===================== Onboarding: one morphing gradient for every step ===================== */
+@property --c1 { syntax: '<color>'; inherits: true; initial-value: #1d6b47; }
+@property --c2 { syntax: '<color>'; inherits: true; initial-value: #2f8f5f; }
+@property --c3 { syntax: '<color>'; inherits: true; initial-value: #6fc79a; }
+@property --c4 { syntax: '<color>'; inherits: true; initial-value: #b9e6cc; }
+@property --c5 { syntax: '<color>'; inherits: true; initial-value: #eef8f2; }
+@property --c6 { syntax: '<color>'; inherits: true; initial-value: #7fd1a6; }
+
+.grad-screen {
+  min-height: 100dvh; display: flex; flex-direction: column; position: relative; overflow: hidden;
+  padding: 0 24px calc(28px + var(--safe-b));
+  background:
+    radial-gradient(120% 55% at 50% 100%, var(--c1) 15%, transparent 60%),
+    radial-gradient(90% 30% at 50% 74%, var(--c6) 0%, transparent 100%),
+    linear-gradient(180deg, #fff 0, #fff 42%, var(--c5) 50%, var(--c4) 57%, var(--c3) 66%, var(--c2) 82%, var(--c1) 100%);
+  transition: --c1 0.9s var(--ease-out), --c2 0.9s var(--ease-out), --c3 0.9s var(--ease-out),
+              --c4 0.9s var(--ease-out), --c5 0.9s var(--ease-out), --c6 0.9s var(--ease-out);
+}
+.grad-screen.g-green  { --c1: #1d6b47; --c2: #2f8f5f; --c3: #6fc79a; --c4: #b9e6cc; --c5: #eef8f2; --c6: #7fd1a6; --accent: #1d6b47; }
+.grad-screen.g-blue   { --c1: #1d3fa8; --c2: #2f5bd9; --c3: #6f9cf5; --c4: #bcd0fa; --c5: #eef3fe; --c6: #7fa7f5; --accent: #2f5bd9; }
+.grad-screen.g-purple { --c1: #42269e; --c2: #6343d8; --c3: #a58cf5; --c4: #d6cbfb; --c5: #f4f0fe; --c6: #b19af7; --accent: #6343d8; }
+.grad-screen.g-orange { --c1: #a8420f; --c2: #df641a; --c3: #f5a26b; --c4: #fbd4b6; --c5: #fff3ea; --c6: #f7b380; --accent: #df641a; }
+
+/* Step content: dissolve up with blur, next step rises in piece by piece */
+.step { display: flex; flex-direction: column; flex: 1; }
+.step > * { animation: riseIn 0.6s var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 70ms + 80ms); }
+@keyframes riseIn { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.step.out > * { animation: dissolveOut 0.32s ease forwards; animation-delay: 0s; }
+@keyframes dissolveOut { to { opacity: 0; transform: translateY(-14px); filter: blur(8px); } }
+
+.grad-screen .progress span.on { background: var(--accent); }
+.grad-screen h1.ob { font-size: 36px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.06; margin: 0 0 10px; }
+.grad-screen .lead { font-size: 17px; color: var(--ink-2); margin: 0 0 22px; }
+/* The bottom block sits on the color, like the title screen */
+.ob-foot { margin-top: auto; padding-top: 24px; color: #fff; }
+.ob-foot .note { color: rgba(255, 255, 255, 0.9); margin: 0 0 14px; justify-content: center; }
+.ob-foot .btn.white:disabled { opacity: 0.75; }
+.grad-screen .field input { background: #fff; }
