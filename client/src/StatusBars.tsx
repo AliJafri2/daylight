@@ -60,7 +60,7 @@ export default function StatusBars({ forecast }: { forecast: Forecast }) {
       <div className="sb-caption" key={`${range}-${sel}-${b.date}`}>
         <strong>{sel === 0 && range === '1D' ? 'Today' : day(b.date)}</strong>
         {b.short > 0 ? (
-          <> · {usd(b.due, { whole: true })} due, you can cover {usd(b.covered, { whole: true })} · <span className="red">{usd(b.short)} short</span></>
+          <> · {usd(b.due, { whole: true })} due, you can cover {usd(b.covered, { whole: true })}</>
         ) : b.due > 0 ? (
           <> · {usd(b.due, { whole: true })} due, all covered · <span className="green">{usd(b.extra, { whole: true })} extra</span></>
         ) : (

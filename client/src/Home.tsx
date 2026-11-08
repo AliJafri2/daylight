@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import StatusBars from './StatusBars';
-import { addDays } from '../../shared/forecast.ts';
+import CardDeck from './CardDeck';
+import { addDays, daysBetween } from '../../shared/forecast.ts';
 import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
 
@@ -76,13 +77,12 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         </div>,
         document.body
       )}
-      <div className="topbar" style={{ paddingBottom: 4 }}>
-        <span />
+      <div className="home-top rise" style={{ ['--i' as string]: 0 }}>
+        <div className="hero-hi">Hi, {name}!</div>
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
       </div>
 
-      <div className="rise" style={{ ['--i' as string]: 0 }}>
-        <div className="hero-hi">Hi, {name}!</div>
+      <div className="rise" style={{ ['--i' as string]: 0, marginTop: 14 }}>
         <div className="hero-you">You are</div>
         {sf ? (
           <>
@@ -128,20 +128,11 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
       </div>
 
       <div className="section-title">Coming up</div>
-      <p className="section-sub">Scheduled for the next two weeks. Nothing here has been paid yet.</p>
-      <div className="list">
-        {upcoming.map((e, k) => (
-          <div className="list-row rise" key={k} style={{ ['--i' as string]: 7 + k }}>
-            <Glyph name={e.kind === 'income' ? 'arrowUp' : e.label.startsWith('Gas') ? 'gas' : e.label.startsWith('Groceries') ? 'cart' : 'bill'}
-              color={e.kind === 'income' ? 'green' : e.label.startsWith('Gas') ? 'orange' : e.label.startsWith('Groceries') ? 'teal' : 'blue'} size={32} />
-            <div className="main">
-              <div className="name">{e.label}</div>
-              <div className="due">{e.kind === 'income' ? 'Arrives' : 'Due'} {day(e.date)}</div>
-            </div>
-            <div className={`amt ${e.amountCents > 0 ? 'pos' : 'scheduled'}`}>{e.amountCents > 0 ? usd(e.amountCents, { sign: true }) : usd(-e.amountCents)}</div>
-          </div>
-        ))}
-      </div>
+      <p className="section-sub">Scheduled for the next two weeks. Swipe to see each one.</p>
+      <CardDeck items={upcoming.map((e, k) => ({
+        key: `${e.date}-${k}`, label: e.label, date: e.date, amountCents: e.amountCents,
+        kind: e.kind, daysAway: daysBetween(f.asOf, e.date),
+      }))} />
 
       {why && createPortal(
         <>
