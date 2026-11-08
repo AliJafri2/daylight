@@ -18,16 +18,25 @@ layout, spacing and interaction patterns, never their logos, illustrations or br
 | 06-fuse-status-toast.jpg | Top status toast | built by eye |
 | 07-cleo-ai-home.jpg | Cleo AI's warm card + tab styling | built by eye |
 
-## Using screenshot-to-code (screenshottocode.com)
+## Using screenshot-to-code (screenshottocode.com): 4 runs, one image each
 
-1. Upload **one** image at a time (start with 01, 08, 09).
-2. Output stack: **HTML + CSS** (our app uses plain CSS). React + Tailwind is OK if HTML + CSS isn't offered.
-3. Paste this as the extra instruction:
+Do these one at a time (one image per run; several at once blends them together):
 
-   > Recreate this mobile screen's layout at 390px wide with exact spacing, font sizes, font weights,
-   > corner radii, shadows and colors. Put every color, font size, radius, spacing and shadow value in
-   > CSS custom properties at the top. Use plain text placeholders instead of logos, photos or
-   > illustrations. Don't add anything that isn't in the screenshot.
+| Run | Upload | Save the result as |
+|---|---|---|
+| 1 | `08-fuse-welcome.jpg` | `08-fuse-welcome.html` |
+| 2 | `01-fuse-home.jpg` | `01-fuse-home.html` |
+| 3 | `10-cleo-ai-onboarding.png` (screenshot it from the **Cleo AI** app on Mobbin) | `10-cleo-ai-onboarding.html` |
+| 4 | `11-cleo-ai-chat.png` (screenshot it from the **Cleo AI** app on Mobbin) | `11-cleo-ai-chat.html` |
 
-4. Save each result here as `NN-name.html` (e.g. `01-fuse-home.html`) and tell Claude.
-   Claude extracts the measurements and builds MinMax's own screens with them.
+For every run:
+- Output stack: **HTML + CSS** (React + Tailwind is OK if HTML + CSS isn't offered).
+- Paste this instruction:
+
+  > Recreate this mobile screen's layout at 390px wide with exact spacing, font sizes, font weights,
+  > corner radii, shadows and colors. Put every color, font size, radius, spacing and shadow value in
+  > CSS custom properties at the top. Use plain text placeholders instead of logos, photos or
+  > illustrations. Don't add anything that isn't in the screenshot.
+
+- Save the result into this folder with the name above, then tell Claude "done".
+Claude extracts the measurements and builds MinMax's own screens with them.
