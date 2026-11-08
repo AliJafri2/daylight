@@ -35,7 +35,7 @@ export function buildFacts(conn: DbConnection, question: string) {
     lines.push(`  ${day(d.date)}: ${d.events.map(e => `${e.label} ${usd(e.amountCents)}`).join(', ')} -> ${usd(d.balanceCents)}`);
   }
   if (plan.actions.length) {
-    lines.push(`Close the gap plan (needs the user's approval): ${plan.actions.map(a => {
+    lines.push(`"Stay in the green" plan (needs the user's approval): ${plan.actions.map(a => {
       if (a.kind === 'move_bill') return `pay ${a.payee} on ${day(a.toDate)} instead of ${day(a.fromDate)}, avoiding the ${usd(a.feeAvoidedCents)} fee`;
       if (a.kind === 'grocery_swap') return `buy the usual items at ${a.option.place} for ${usd(a.option.basketCents)} instead of ${usd(a.option.usualBasketCents)}, saving ${usd(a.savingsCents)}`;
       return `fill up at ${a.option.place}, saving ${usd(a.savingsCents)} after drive cost`;
@@ -55,26 +55,26 @@ export function buildFacts(conn: DbConnection, question: string) {
       : `If the user spends an extra ${usd(cents)} before payday, the lowest point would be ${usd(extra.lowPoint.balanceCents)} on ${day(extra.lowPoint.date)}, still above $0.`);
   }
 
-  return { facts: lines.join('\n'), summary: f.shortfall
-    ? { en: `Here's what I know: without changes you'd be ${usd(-f.shortfall.balanceCents)} short on ${day(f.shortfall.date)}. Tap Close the gap and I'll find a fix.`,
-        es: `Esto es lo que sé: sin cambios te faltarían ${usd(-f.shortfall.balanceCents)} el ${Number(f.shortfall.date.slice(8))} de noviembre. Toca Cerrar la brecha y buscaré una solución.` }
-    : { en: `Here's what I know: you stay above $0 until payday. Your lowest point is ${usd(f.lowPoint.balanceCents)} on ${day(f.lowPoint.date)}.`,
-        es: `Esto es lo que sé: te mantienes arriba de $0 hasta el día de pago. Tu punto más bajo es ${usd(f.lowPoint.balanceCents)}.` } };
+  return {
+    facts: lines.join('\n'),
+    summary: f.shortfall
+      ? `Here's what I know: without changes you'd be ${usd(-f.shortfall.balanceCents)} short on ${day(f.shortfall.date)}. Tap Stay in the green and I'll find a fix.`
+      : `Here's what I know: you stay above $0 until payday. Your lowest point is ${usd(f.lowPoint.balanceCents)} on ${day(f.lowPoint.date)}.`,
+  };
 }
 
 const CHAT_SYSTEM = `You are Ben, the calm, kind AI money coach inside the MinMax app, for people living paycheck to paycheck.
 Answer the user's question in at most 3 short sentences (max 60 words), in plain words.
 Use ONLY the numbers and dates in FACTS or in the question. Never calculate, estimate, or invent new numbers.
-If the answer needs a number that is not in FACTS, say what you do know and suggest tapping "Close the gap".
+If the answer needs a number that is not in FACTS, say what you do know and suggest tapping "Stay in the green".
 Never suggest payday loans, cash advances, or borrowing. Don't give investment, tax, or legal advice.
-Reply in LANGUAGE. Return plain text only.`;
+Return plain text only.`;
 
-export async function answerCoachQuestion(conn: DbConnection, msg: { id: bigint; text: string; language: string }) {
+export async function answerCoachQuestion(conn: DbConnection, msg: { id: bigint; text: string }) {
   const built = buildFacts(conn, msg.text);
-  const lang = msg.language === 'es' ? 'es' : 'en';
-  let reply = built ? built.summary[lang] : (lang === 'es' ? 'Todavía no tengo tus datos.' : "I don't have your numbers yet.");
+  let reply = built ? built.summary : "I don't have your numbers yet.";
   if (built) {
-    const prompt = `LANGUAGE: ${lang === 'es' ? 'Spanish' : 'English'}\nFACTS:\n${built.facts}\n\nQUESTION: ${msg.text}`;
+    const prompt = `FACTS:\n${built.facts}\n\nQUESTION: ${msg.text}`;
     const answer = await askGemini(CHAT_SYSTEM, prompt, `${built.facts}\n${msg.text}`);
     if (answer) reply = answer;
   }

@@ -25,7 +25,7 @@ const profile = table(
   {
     id: t.u64().primaryKey().autoInc(),
     displayName: t.string(),
-    language: t.string(), // 'en' | 'es'
+    language: t.string(), // legacy, unused (always 'en'); kept so the live DB needs no wipe
     asOfDate: t.string(), // the demo's "today"
     paydayIntervalDays: t.u32(),
     isDemo: t.bool(),
@@ -172,7 +172,7 @@ const planAction = table(
     savingsCents: t.i64(),
     feeAvoidedCents: t.i64(),
     whyEn: t.string(),
-    whyEs: t.string(),
+    whyEs: t.string(), // legacy, unused (always empty)
     status: t.string(), // 'proposed'|'approved'|'rejected'|'executed'|'failed'
     billId: t.option(t.u64()),
     newDate: t.option(t.string()),
@@ -193,7 +193,7 @@ const coachMessage = table(
     profileId: t.u64().index('btree'),
     role: t.string(), // 'user' | 'coach'
     text: t.string(),
-    language: t.string(), // 'en' | 'es'
+    language: t.string(), // legacy, unused (always 'en')
     status: t.string(), // user: 'pending' | 'answered'; coach: 'final'
     createdAt: t.timestamp(),
   }
@@ -481,12 +481,6 @@ export const approveAll = spacetimedb.reducer({ jobId: t.u64() }, (ctx, { jobId 
   }
 });
 
-export const setLanguage = spacetimedb.reducer({ language: t.string() }, (ctx, { language }) => {
-  if (language !== 'en' && language !== 'es') throw new SenderError('Language must be en or es');
-  const m = requireMember(ctx);
-  const p = ctx.db.profile.id.find(m.profileId);
-  if (p) ctx.db.profile.id.update({ ...p, language });
-});
 
 // Restores George's starting numbers between judge demos.
 export const resetDemo = spacetimedb.reducer(ctx => {
@@ -602,7 +596,7 @@ export const addStep = spacetimedb.reducer(
 export const addAction = spacetimedb.reducer(
   {
     jobId: t.u64(), kind: t.string(), title: t.string(), detail: t.string(),
-    savingsCents: t.i64(), feeAvoidedCents: t.i64(), whyEn: t.string(), whyEs: t.string(),
+    savingsCents: t.i64(), feeAvoidedCents: t.i64(), whyEn: t.string(),
     billId: t.option(t.u64()), newDate: t.option(t.string()),
     spendId: t.option(t.u64()), spendDeltaCents: t.option(t.i64()), newPlace: t.option(t.string()),
     sortOrder: t.u32(),
@@ -625,7 +619,7 @@ export const addAction = spacetimedb.reducer(
     if (a.savingsCents < 0n || a.feeAvoidedCents < 0n) throw new SenderError('Savings cannot be negative');
     ctx.db.planAction.insert({
       id: 0n, jobId: a.jobId, profileId: job.profileId, kind: a.kind, title: a.title, detail: a.detail,
-      savingsCents: a.savingsCents, feeAvoidedCents: a.feeAvoidedCents, whyEn: a.whyEn, whyEs: a.whyEs,
+      savingsCents: a.savingsCents, feeAvoidedCents: a.feeAvoidedCents, whyEn: a.whyEn, whyEs: '',
       status: 'proposed', billId: a.billId, newDate: a.newDate, nessieRef: undefined,
       spendId: a.spendId, spendDeltaCents: a.spendDeltaCents, newPlace: a.newPlace, sortOrder: a.sortOrder,
     });
@@ -693,17 +687,16 @@ export const ackNessieReset = spacetimedb.reducer(ctx => {
 
 // ---------- Coach chat ----------
 
-export const askCoach = spacetimedb.reducer({ text: t.string(), language: t.string() }, (ctx, { text, language }) => {
+export const askCoach = spacetimedb.reducer({ text: t.string() }, (ctx, { text }) => {
   const m = requireMember(ctx);
   const q = text.trim();
   if (!q) throw new SenderError('Ask a question');
   if (q.length > 500) throw new SenderError('Please keep questions under 500 characters');
-  const lang = language === 'es' ? 'es' : 'en';
   // Rate limit: one open question at a time per profile.
   for (const msg of ctx.db.coachMessage.profileId.filter(m.profileId)) {
     if (msg.role === 'user' && msg.status === 'pending') throw new SenderError('The coach is still answering');
   }
-  ctx.db.coachMessage.insert({ id: 0n, profileId: m.profileId, role: 'user', text: q, language: lang, status: 'pending', createdAt: ctx.timestamp });
+  ctx.db.coachMessage.insert({ id: 0n, profileId: m.profileId, role: 'user', text: q, language: 'en', status: 'pending', createdAt: ctx.timestamp });
 });
 
 export const addCoachReply = spacetimedb.reducer({ replyTo: t.u64(), text: t.string() }, (ctx, { replyTo, text }) => {
@@ -712,7 +705,7 @@ export const addCoachReply = spacetimedb.reducer({ replyTo: t.u64(), text: t.str
   if (!q || q.role !== 'user') throw new SenderError('Question not found');
   ctx.db.coachMessage.id.update({ ...q, status: 'answered' });
   ctx.db.coachMessage.insert({
-    id: 0n, profileId: q.profileId, role: 'coach', text: text.slice(0, 1200), language: q.language, status: 'final', createdAt: ctx.timestamp,
+    id: 0n, profileId: q.profileId, role: 'coach', text: text.slice(0, 1200), language: 'en', status: 'final', createdAt: ctx.timestamp,
   });
 });
 

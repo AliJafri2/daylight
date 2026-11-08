@@ -81,7 +81,7 @@ export async function runPlanJob(conn: DbConnection, jobId: bigint) {
     await step('forecast', `Re-checking your forecast with these fixes… You'd stay above $0 and end the pay period at ${usd(low)}.`);
 
     // 3. Coach agent (Gemini): plain-language "Why?" for each action, numbers supplied by the engine
-    await step('coach', 'Writing it up in plain English and Spanish…');
+    await step('coach', 'Writing it up in plain English…');
     const requests = plan.actions.map(a => whyRequest(a, f, plan.after));
     const { whys, source } = await explainAll(requests);
     log(`job ${jobId}: explanations from ${source}`);
@@ -111,7 +111,6 @@ function whyRequest(a: PlanAction, f: ReturnType<typeof buildForecast>, after: R
       facts: `Move ${a.payee} (${usd(a.amountCents)}) from ${day(a.fromDate)} to ${day(a.toDate)}. Payday is the day before ${day(a.toDate)}. Without changes the balance hits ${usd(sf.balanceCents)} on ${day(sf.date)} and the bank charges a ${usd(a.feeAvoidedCents || 3600)} overdraft fee. No late fee if paid by ${day(a.toDate)}.`,
       fallback: {
         en: `Paying ${a.payee} on ${day(a.toDate)}, right after payday, keeps ${usd(a.amountCents)} in your account when your car payment comes out. That avoids a ${usd(a.feeAvoidedCents || 3600)} overdraft fee, with no late fee.`,
-        es: `Pagar ${a.payee === 'Car insurance' ? 'el seguro del auto' : a.payee} el ${Number(a.toDate.slice(8))} de noviembre, justo después del día de pago, deja ${usd(a.amountCents)} en tu cuenta cuando sale el pago del auto. Así evitas un cargo por sobregiro de ${usd(a.feeAvoidedCents || 3600)}, sin recargo por atraso.`,
       },
     };
   }
@@ -121,7 +120,6 @@ function whyRequest(a: PlanAction, f: ReturnType<typeof buildForecast>, after: R
       facts: `Buy the usual ${o.items.length} items at ${o.place} instead of ${a.fromPlace} on ${day(a.date)}: ${usd(o.basketCents)} instead of ${usd(o.usualBasketCents)}. Extra driving costs ${usd(o.driveCostCents)}. Net savings ${usd(a.savingsCents)}.`,
       fallback: {
         en: `The same ${o.items.length} items cost ${usd(o.basketCents)} at ${o.place} instead of ${usd(o.usualBasketCents)} at ${a.fromPlace}. Even counting the drive, you keep ${usd(a.savingsCents)}.`,
-        es: `Los mismos ${o.items.length} productos cuestan ${usd(o.basketCents)} en ${o.place} en vez de ${usd(o.usualBasketCents)} en ${a.fromPlace}. Aun contando el viaje, te ahorras ${usd(a.savingsCents)}.`,
       },
     };
   }
@@ -130,15 +128,14 @@ function whyRequest(a: PlanAction, f: ReturnType<typeof buildForecast>, after: R
     facts: `Fill up at ${o.place} (${usd(o.priceCents)} per gallon) instead of ${a.fromPlace} on ${day(a.date)}. About ${o.gallons.toFixed(0)} gallons. Extra driving ${o.extraRoundTripMiles.toFixed(1)} miles costs ${usd(o.driveCostCents)}. Net savings ${usd(a.savingsCents)}. Ending balance after all fixes ${usd(after.lowPoint.balanceCents)}.`,
     fallback: {
       en: `${o.place} is ${usd(o.priceCents)} a gallon. After the ${o.extraRoundTripMiles.toFixed(1)} extra miles, you still save ${usd(a.savingsCents)} on this fill-up.`,
-      es: `${o.place} cuesta ${usd(o.priceCents)} por galón. Después de las ${o.extraRoundTripMiles.toFixed(1)} millas extra, aún ahorras ${usd(a.savingsCents)} en esta carga.`,
     },
   };
 }
 
-function actionRow(jobId: bigint, a: PlanAction, why: { en: string; es: string }, sortOrder: number) {
+function actionRow(jobId: bigint, a: PlanAction, why: { en: string }, sortOrder: number) {
   const base = {
     jobId, kind: a.kind, savingsCents: BigInt(a.savingsCents), feeAvoidedCents: BigInt(a.feeAvoidedCents),
-    whyEn: why.en, whyEs: why.es, sortOrder,
+    whyEn: why.en, sortOrder,
     billId: undefined as bigint | undefined, newDate: undefined as string | undefined,
     spendId: undefined as bigint | undefined, spendDeltaCents: undefined as bigint | undefined, newPlace: undefined as string | undefined,
   };

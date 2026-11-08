@@ -52,7 +52,6 @@ import RequestPlanReducer from "./request_plan_reducer";
 import ResetDemoReducer from "./reset_demo_reducer";
 import SetDisplayNameReducer from "./set_display_name_reducer";
 import SetJobStatusReducer from "./set_job_status_reducer";
-import SetLanguageReducer from "./set_language_reducer";
 import SetWorkerSecretReducer from "./set_worker_secret_reducer";
 import SyncAccountReducer from "./sync_account_reducer";
 import SyncBillReducer from "./sync_bill_reducer";
@@ -171,7 +170,6 @@ const reducersSchema = __reducers(
   __reducerSchema("reset_demo", ResetDemoReducer),
   __reducerSchema("set_display_name", SetDisplayNameReducer),
   __reducerSchema("set_job_status", SetJobStatusReducer),
-  __reducerSchema("set_language", SetLanguageReducer),
   __reducerSchema("set_worker_secret", SetWorkerSecretReducer),
   __reducerSchema("sync_account", SyncAccountReducer),
   __reducerSchema("sync_bill", SyncBillReducer),

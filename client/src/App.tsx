@@ -66,7 +66,6 @@ export default function App() {
   }
 
   const profile = m.profile;
-  const language = profile.language;
   const name = profile.displayName;
   const synced = profile.lastNessieSync ? Number(profile.lastNessieSync.microsSinceUnixEpoch / 1000n) : null;
   const syncedAgo = synced ? (() => { const min = Math.max(0, Math.round((now - synced) / 60000)); return min < 1 ? 'just now' : `${min} min ago`; })() : null;
@@ -79,8 +78,8 @@ export default function App() {
         <Home m={m} name={name} onOpenPlan={() => setTab('plan')} onSettings={() => setSettings(true)}
           onAsk={q => { setPendingQ(q); setTab('coach'); }} />
       )}
-      {tab === 'plan' && <Plan m={m} language={language} onDone={() => setTab('home')} />}
-      {tab === 'coach' && <Coach language={language} name={name} pending={pendingQ} onPendingSent={() => setPendingQ(null)} />}
+      {tab === 'plan' && <Plan m={m} onDone={() => setTab('home')} />}
+      {tab === 'coach' && <Coach name={name} pending={pendingQ} onPendingSent={() => setPendingQ(null)} />}
       {tab === 'accounts' && <Accounts m={m} syncedAgo={syncedAgo} />}
 
       <nav className="tabbar" aria-label="Main">

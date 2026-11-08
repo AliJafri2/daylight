@@ -8,8 +8,8 @@ import { Icon } from './ui';
 const time = (ts: { microsSinceUnixEpoch: bigint }) => Number(ts.microsSinceUnixEpoch / 1000n);
 
 
-export default function Coach({ language, name, pending, onPendingSent }: {
-  language: string; name: string; pending: string | null; onPendingSent: () => void;
+export default function Coach({ name, pending, onPendingSent }: {
+  name: string; pending: string | null; onPendingSent: () => void;
 }) {
   const { isActive, getConnection } = useSpacetimeDB();
   const conn = getConnection() as DbConnection | null;
@@ -17,7 +17,6 @@ export default function Coach({ language, name, pending, onPendingSent }: {
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const lang = language === 'es' ? 'es' : 'en';
 
   const sorted = useMemo(() => [...messages].sort((a, b) => time(a.createdAt) - time(b.createdAt)), [messages]);
   const waiting = sorted.some(m => m.role === 'user' && m.status === 'pending');
@@ -25,7 +24,7 @@ export default function Coach({ language, name, pending, onPendingSent }: {
   const ask = (q: string) => {
     if (!q.trim() || !conn || waiting) return;
     setError(null);
-    conn.reducers.askCoach({ text: q, language: lang }).catch(e => setError(String(e?.message ?? e)));
+    conn.reducers.askCoach({ text: q }).catch(e => setError(String(e?.message ?? e)));
     setText('');
   };
 

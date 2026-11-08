@@ -18,7 +18,6 @@ export default {
   savingsCents: __t.i64(),
   feeAvoidedCents: __t.i64(),
   whyEn: __t.string(),
-  whyEs: __t.string(),
   billId: __t.option(__t.u64()),
   newDate: __t.option(__t.string()),
   spendId: __t.option(__t.u64()),

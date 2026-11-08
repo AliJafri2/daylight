@@ -110,7 +110,7 @@ async function main() {
     if (a.status === 'approved') once(`act:${a.id}`, 'execute', () => executeAction(conn, a.id, sync));
   };
 
-  const onCoach = (msg: { id: bigint; role: string; status: string; text: string; language: string }) => {
+  const onCoach = (msg: { id: bigint; role: string; status: string; text: string }) => {
     if (msg.role === 'user' && msg.status === 'pending') once(`chat:${msg.id}`, 'coach', () => answerCoachQuestion(conn, msg));
   };
 

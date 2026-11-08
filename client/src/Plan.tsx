@@ -17,7 +17,7 @@ const KIND: Record<string, { icon: IconName; color: 'blue' | 'teal' | 'orange' }
 };
 const AGENT: Record<string, string> = { forecast: 'Forecast', savings: 'Savings', coach: 'Ben', executor: 'Bank' };
 
-export default function Plan({ m, language, onDone }: { m: Money; language: string; onDone: () => void }) {
+export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
   const { isActive, getConnection } = useSpacetimeDB();
   const conn = getConnection() as DbConnection | null;
   const [jobs] = useTable(tables.myJobs);
@@ -87,7 +87,7 @@ export default function Plan({ m, language, onDone }: { m: Money; language: stri
               {openWhy === key ? 'Hide' : 'Why?'}
             </button>
           </div>
-          {openWhy === key && <p style={{ background: 'var(--surface-2)', padding: 12, borderRadius: 14, marginTop: 10 }}>{language === 'es' ? a.whyEs : a.whyEn}</p>}
+          {openWhy === key && <p style={{ background: 'var(--surface-2)', padding: 12, borderRadius: 14, marginTop: 10 }}>{a.whyEn}</p>}
           {mode === 'review' && a.status === 'proposed' && (
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               <button className="pill" style={{ flex: 1, justifyContent: 'center' }}

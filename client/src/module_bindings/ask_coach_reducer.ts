@@ -12,5 +12,4 @@ import {
 
 export default {
   text: __t.string(),
-  language: __t.string(),
 };
