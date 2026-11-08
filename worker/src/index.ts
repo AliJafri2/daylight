@@ -144,7 +144,7 @@ async function main() {
       finally { writing = false; }
     }, 2000);
   };
-  for (const tbl of [conn.db.myAccounts, conn.db.myBills, conn.db.mySpend, conn.db.myActions, conn.db.myTransactions, conn.db.mySummary] as const) {
+  for (const tbl of [conn.db.myAccounts, conn.db.myBills, conn.db.mySpend, conn.db.myActions, conn.db.myJobs, conn.db.myTransactions, conn.db.mySummary] as const) {
     (tbl as any).onInsert(refreshSummary);
     (tbl as any).onUpdate?.(refreshSummary);
     (tbl as any).onDelete(refreshSummary);

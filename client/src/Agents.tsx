@@ -37,17 +37,20 @@ export default function Plan({ m, agent, setAgent, onDone, onAsk }: {
   // The guided journey: Forecasting -> "Begin my spending research" -> "See where to invest".
   // Going to the next agent this way starts it automatically.
   const [auto, setAuto] = useState<AgentKind | null>(null);
+  const [glow360, setGlow360] = useState(false);
   const back = () => setAgent(null);
   const goTo = (k: AgentKind) => { setAuto(k); setAgent(k); };
   if (agent === 'forecast') return <ForecastAgent m={m} onDone={onDone} onBack={back} onResearch={() => goTo('research')} />;
-  if (agent === 'research') return <AgentRun key="research" kind="research" m={m} onBack={back} onAsk={onAsk} autoRun={auto === 'research'} onAutoStarted={() => setAuto(null)} onNext={() => goTo('invest')} />;
-  if (agent === 'invest') return <AgentRun key="invest" kind="invest" m={m} onBack={back} onAsk={onAsk} autoRun={auto === 'invest'} onAutoStarted={() => setAuto(null)} />;
-  return <Hub m={m} open={setAgent} />;
+  if (agent === 'research') return <AgentRun key="research" kind="research" m={m} onBack={back} onAsk={onAsk} autoRun={auto === 'research'} onAutoStarted={() => setAuto(null)}
+    next={{ label: 'See where to invest', icon: 'trend', go: () => goTo('invest') }} />;
+  if (agent === 'invest') return <AgentRun key="invest" kind="invest" m={m} onBack={back} onAsk={onAsk} autoRun={auto === 'invest'} onAutoStarted={() => setAuto(null)}
+    next={{ label: 'Give me my 360° summary', icon: 'sun', go: () => { setGlow360(true); setAgent(null); } }} />;
+  return <Hub m={m} open={setAgent} glow360={glow360} onGlowDone={() => setGlow360(false)} />;
 }
 
 // ---------- The three tiles ----------
 
-function Hub({ m, open }: { m: Money; open: (a: AgentKind) => void }) {
+function Hub({ m, open, glow360 = false, onGlowDone }: { m: Money; open: (a: AgentKind) => void; glow360?: boolean; onGlowDone?: () => void }) {
   const [txns] = useTable(tables.myTransactions);
   const [actions] = useTable(tables.myActions);
   const fJob = useLatestJob('forecast');
@@ -80,7 +83,7 @@ function Hub({ m, open }: { m: Money; open: (a: AgentKind) => void }) {
   return (
     <div className="screen plan">
       <div className="topbar"><h1>Your plan</h1></div>
-      <Summary360 />
+      <Summary360 glow={glow360} onGlowDone={onGlowDone} />
       <div className="section-title">Your agents</div>
       <p className="hub-lead">Tap one to run it. Nothing changes until you approve.</p>
       <div className="agent-tiles" data-tour="agents">
@@ -107,9 +110,9 @@ function Hub({ m, open }: { m: Money; open: (a: AgentKind) => void }) {
 
 // ---------- Research / Investing agent screen: run, stream steps, show results ----------
 
-function AgentRun({ kind, m, onBack, onAsk, autoRun = false, onAutoStarted, onNext }: {
+function AgentRun({ kind, m, onBack, onAsk, autoRun = false, onAutoStarted, next }: {
   kind: 'research' | 'invest'; m: Money; onBack: () => void; onAsk: (q: string) => void;
-  autoRun?: boolean; onAutoStarted?: () => void; onNext?: () => void;
+  autoRun?: boolean; onAutoStarted?: () => void; next?: { label: string; icon: IconName; go: () => void };
 }) {
   const { isActive, getConnection } = useSpacetimeDB();
   const conn = getConnection() as DbConnection | null;
@@ -214,8 +217,8 @@ function AgentRun({ kind, m, onBack, onAsk, autoRun = false, onAutoStarted, onNe
             <button className="linkish" onClick={() => setShowSteps(v => !v)}>{showSteps ? 'Hide the details' : 'See how Ben figured this out'}</button>
           </div>
           {showSteps && stepList(false)}
-          {onNext && <button className="btn" style={{ marginTop: 18 }} onClick={onNext}><Icon name="trend" /> See where to invest</button>}
-          <button className="btn secondary" style={{ marginTop: onNext ? 10 : 18 }} disabled={!isActive} onClick={run}>Run again</button>
+          {next && <button className="btn" style={{ marginTop: 18 }} onClick={next.go}><Icon name={next.icon} /> {next.label}</button>}
+          <button className="btn secondary" style={{ marginTop: next ? 10 : 18 }} disabled={!isActive} onClick={run}>Run again</button>
         </>
       )}
       {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
@@ -225,8 +228,15 @@ function AgentRun({ kind, m, onBack, onAsk, autoRun = false, onAutoStarted, onNe
 
 // ---------- 360° summary (always fresh: the worker rewrites it whenever the numbers change) ----------
 
-function Summary360() {
+function Summary360({ glow = false, onGlowDone }: { glow?: boolean; onGlowDone?: () => void }) {
   const [rows] = useTable(tables.mySummary);
+  const [jobs] = useTable(tables.myJobs);
+  useEffect(() => {
+    if (!glow) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const t = setTimeout(() => onGlowDone?.(), 1800);
+    return () => clearTimeout(t);
+  }, [glow]); // eslint-disable-line react-hooks/exhaustive-deps
   const [, tick] = useState(0);
   useEffect(() => { const t = setInterval(() => tick(x => x + 1), 30_000); return () => clearInterval(t); }, []);
   const s = rows[0];
@@ -236,8 +246,14 @@ function Summary360() {
     { key: 'next', label: 'Next move', tone: 'green', text: s?.nextMove },
   ];
   const ago = s ? Math.max(0, Math.round((Date.now() - time(s.updatedAt)) / 60_000)) : 0;
+  // An agent just finished after the summary was written: Ben is rewriting it (capped at 25 s).
+  const latestJob = [...jobs].sort((a, b) => (a.id < b.id ? 1 : -1))[0];
+  const updating = !!s && !!latestJob && (latestJob.status === 'done' || latestJob.status === 'ready')
+    && time(latestJob.createdAt) > time(s.updatedAt) && Date.now() - time(latestJob.createdAt) < 25_000;
+  const [, tick2] = useState(0);
+  useEffect(() => { if (!updating) return; const t = setInterval(() => tick2(x => x + 1), 1000); return () => clearInterval(t); }, [updating]);
   return (
-    <section className="s360" aria-label="Daylight 360 degree summary" aria-live="polite" data-tour="s360">
+    <section className={`s360 ${glow ? 'glow' : ''} ${updating ? 'updating' : ''}`} aria-label="Daylight 360 degree summary" aria-live="polite" data-tour="s360">
       <div className="s360-head">
         <span className="s360-ico"><Icon name="sun" size={18} stroke={2.4} /></span>
         <span className="s360-title">Daylight 360° summary</span>
@@ -245,10 +261,10 @@ function Summary360() {
       {lines.map(l => (
         <div className="s360-row" key={l.key}>
           <span className={`s360-label ${l.tone}`}>{l.label}</span>
-          {l.text ? <span key={l.text} className="s360-text">{l.text}</span> : <span className="s360-skel" />}
+          {l.text && !updating ? <span key={l.text} className="s360-text">{l.text}</span> : <span className="s360-skel" />}
         </div>
       ))}
-      <div className="s360-foot">{s ? `Written by Ben from your numbers · ${ago < 1 ? 'just now' : `${ago} min ago`}` : 'Ben is reading your accounts…'}</div>
+      <div className="s360-foot">{updating ? 'Ben is updating your summary…' : s ? `Written by Ben from your numbers · ${ago < 1 ? 'just now' : `${ago} min ago`}` : 'Ben is reading your accounts…'}</div>
     </section>
   );
 }
