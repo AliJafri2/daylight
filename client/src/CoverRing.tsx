@@ -92,7 +92,19 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
             </>
           )}
         </svg>
-        <span className="ring-arrow" aria-hidden="true" style={{ opacity: p > 0.02 ? 1 : 0 }}><Icon name="arrowRight" size={20} stroke={3} /></span>
+        {(() => {
+          // Arrow rides the tip of the green line, pointing clockwise (the way the ring fills).
+          const frac = closed ? p : Math.min(p, greenEnd);
+          const a = (frac % 1 || (frac > 0 ? 1 : 0)) * 2 * Math.PI - (closed ? 14 : 18) / r;
+          const x = c + r * Math.sin(a);
+          const y = c - r * Math.cos(a);
+          return (
+            <span className="ring-arrow" aria-hidden="true"
+              style={{ left: x, top: y, transform: `translate(-50%, -50%) rotate(${(a * 180) / Math.PI}deg)`, opacity: p > 0.04 ? 1 : 0 }}>
+              <Icon name="arrowRight" size={20} stroke={3} />
+            </span>
+          );
+        })()}
         <div className="ring-center">
           {closed ? (
             <>
