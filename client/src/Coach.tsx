@@ -1,6 +1,7 @@
 // Coach: Bevel-style greeting (soft aura, orb, "Here for you"), suggestion cards, chat bubbles,
 // frosted input. Answers come from the worker (Gemini) using only engine-computed numbers.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables, type DbConnection } from './module_bindings';
 import { Icon } from './ui';
@@ -37,7 +38,8 @@ export default function Coach({ name, pending, onPendingSent }: {
   const today = new Date(`${'2026-11-07'}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
-    <div className="screen aura" style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+    <div className="screen" style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      {createPortal(<div className="ben-bg" aria-hidden="true" />, document.body)}
       <div className="topbar">
         <h1>Ben</h1>
         {sorted.length > 0 && (

@@ -754,3 +754,13 @@ input { font: inherit; }
 /* Typing example questions on the Ben intro (static caret, so it doesn't look like an input) */
 .typed { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .typed-caret { display: inline-block; width: 2px; height: 1.05em; background: var(--ink-3); margin-left: 2px; vertical-align: -0.15em; border-radius: 1px; opacity: 0.6; }
+
+/* Ben chat: same orange gradient as the "Hi, I'm Ben!" intro, rising from the bottom (fixed behind the chat) */
+.ben-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(120% 55% at 50% 100%, #a8420f 15%, transparent 60%),
+    radial-gradient(90% 30% at 50% 74%, #f7b380 0%, transparent 100%),
+    linear-gradient(180deg, #fff 0, #fff 42%, #fff3ea 50%, #fbd4b6 57%, #f5a26b 66%, #df641a 82%, #a8420f 100%);
+  animation: fade 0.5s ease both;
+}
