@@ -25,4 +25,8 @@ export default __t.row({
   billId: __t.option(__t.u64()).name("bill_id"),
   newDate: __t.option(__t.string()).name("new_date"),
   nessieRef: __t.option(__t.string()).name("nessie_ref"),
+  spendId: __t.option(__t.u64()).name("spend_id"),
+  spendDeltaCents: __t.option(__t.i64()).name("spend_delta_cents"),
+  newPlace: __t.option(__t.string()).name("new_place"),
+  sortOrder: __t.u32().name("sort_order"),
 });

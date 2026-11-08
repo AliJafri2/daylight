@@ -108,6 +108,10 @@ export const PlanAction = __t.object("PlanAction", {
   billId: __t.option(__t.u64()),
   newDate: __t.option(__t.string()),
   nessieRef: __t.option(__t.string()),
+  spendId: __t.option(__t.u64()),
+  spendDeltaCents: __t.option(__t.i64()),
+  newPlace: __t.option(__t.string()),
+  sortOrder: __t.u32(),
 });
 export type PlanAction = __Infer<typeof PlanAction>;
 
@@ -148,6 +152,7 @@ export const Profile = __t.object("Profile", {
   vehicleMpg: __t.f64(),
   usualGallons: __t.f64(),
   lastNessieSync: __t.option(__t.timestamp()),
+  needsNessieReset: __t.bool(),
 });
 export type Profile = __Infer<typeof Profile>;
 

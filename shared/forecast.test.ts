@@ -1,7 +1,7 @@
 // Locks in the demo numbers from CLAUDE.md section 7. Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildForecast, gasOptions, healthIndicators, planFixes, OVERDRAFT_FEE_CENTS } from './forecast.ts';
+import { buildForecast, gasOptions, groceryOptions, healthIndicators, planFixes, OVERDRAFT_FEE_CENTS } from './forecast.ts';
 import * as demo from './demo-fixture.ts';
 
 const ctx = { accounts: demo.accounts, gasPrices: demo.gasPrices, groceryPrices: demo.groceryPrices, vehicle: demo.vehicle };
@@ -46,18 +46,28 @@ test('gas: Murphy USA wins on NET savings; Costco is cheaper per gallon but the 
   assert.ok(opts.find(o => o.place === 'Exxon')!.netSavingsCents < 0, 'Exxon costs more');
 });
 
-test('Close the gap plan: move insurance, $18 groceries, ~$3 gas, ends ~+$96, avoids $36 fee', () => {
+test('groceries: Aldi is cheapest for the usual items after drive cost; H-E-B store brand is $18', () => {
+  const opts = groceryOptions('H-E-B', demo.groceryPrices, demo.vehicle, 359);
+  assert.equal(opts[0].place, 'Aldi');
+  assert.equal(opts[0].usualBasketCents, 7747);
+  assert.equal(opts[0].netSavingsCents, 2393);
+  assert.equal(opts.find(o => o.place === 'H-E-B')!.netSavingsCents, 1800);
+  assert.ok(opts.find(o => o.place === 'Walmart Supercenter')!.driveCostCents > 0);
+});
+
+test('Close the gap plan: move insurance, Aldi groceries, Murphy gas, ends ~+$102, avoids $36 fee', () => {
   const p = planFixes(demo.forecastInput, ctx);
   assert.deepEqual(p.actions.map(a => a.kind), ['move_bill', 'grocery_swap', 'gas_switch']);
 
   const move = p.actions[0];
   assert.equal(move.kind === 'move_bill' && `${move.payee} ${move.fromDate}->${move.toDate}`, 'Car insurance 2026-11-14->2026-11-21');
   assert.equal(move.feeAvoidedCents, OVERDRAFT_FEE_CENTS);
-  assert.equal(p.actions[1].savingsCents, 1800);
+  assert.equal(p.actions[1].savingsCents, 2393);
+  assert.ok(p.actions[1].kind === 'grocery_swap' && p.actions[1].option.place === 'Aldi');
   assert.ok(p.actions[2].kind === 'gas_switch' && p.actions[2].option.place === 'Murphy USA');
 
   assert.equal(p.after.shortfall, undefined);
-  assert.equal(Math.round(bal(p.after, '2026-11-17') / 100), 96);
+  assert.equal(Math.round(bal(p.after, '2026-11-17') / 100), 102);
   assert.equal(p.feesAvoidedCents, OVERDRAFT_FEE_CENTS);
   // Moving the bill never causes a new shortfall later.
   assert.ok(p.after.days.every(d => d.balanceCents >= 0), 'no negative day after the plan');

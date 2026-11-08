@@ -35,17 +35,33 @@ export const gasPrices: GasPrice[] = [
   { place: 'Costco', priceCents: 329, lat: 33.07, lng: -96.82 },
 ];
 
-export const groceryPrices: GroceryPrice[] = [
-  ['Cereal, 2-pack', 898, 548],
-  ['Ground beef, 3 lb', 1647, 1347],
-  ['Milk, 2 gallons', 758, 558],
-  ['Shredded cheese, 2 lb', 998, 698],
-  ['Diapers, 80 ct', 2799, 2199],
-  ['Pasta and sauce', 647, 597],
-].flatMap(([item, name, store]) => [
-  { item: item as string, variant: 'name_brand', priceCents: name as number },
-  { item: item as string, variant: 'store_brand', priceCents: store as number },
-]);
+// Bill's usual items. Columns: H-E-B name brand, H-E-B store brand, Aldi, Walmart (store brand), Kroger (store brand).
+// Keep in sync with seedPrices() in spacetimedb/src/index.ts.
+export const GROCERY_TABLE: Array<[string, number, number, number, number, number]> = [
+  ['Cereal, 2-pack', 898, 548, 449, 512, 529],
+  ['Ground beef, 3 lb', 1647, 1347, 1299, 1324, 1399],
+  ['Milk, 2 gallons', 758, 558, 518, 536, 578],
+  ['Shredded cheese, 2 lb', 998, 698, 598, 648, 698],
+  ['Diapers, 80 ct', 2799, 2199, 1999, 2097, 2249],
+  ['Pasta and sauce', 647, 597, 485, 504, 589],
+];
+export const GROCERY_STORES = {
+  'H-E-B': { lat: 32.996, lng: -96.762 },
+  Aldi: { lat: 32.98, lng: -96.77 },
+  'Walmart Supercenter': { lat: 32.968, lng: -96.7 },
+  Kroger: { lat: 32.948, lng: -96.715 },
+} as const;
+
+export const groceryPrices: GroceryPrice[] = GROCERY_TABLE.flatMap(([item, hebName, hebStore, aldi, walmart, kroger]) => {
+  const row = (place: keyof typeof GROCERY_STORES, variant: string, priceCents: number) => ({ place, item, variant, priceCents, ...GROCERY_STORES[place] });
+  return [
+    row('H-E-B', 'name_brand', hebName),
+    row('H-E-B', 'store_brand', hebStore),
+    row('Aldi', 'store_brand', aldi),
+    row('Walmart Supercenter', 'store_brand', walmart),
+    row('Kroger', 'store_brand', kroger),
+  ];
+});
 
 export const vehicle: Vehicle = { homeLat: 32.9857, homeLng: -96.7502, mpg: 25 };
 

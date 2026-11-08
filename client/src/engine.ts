@@ -46,7 +46,7 @@ export function useMoney(adjustments?: Adjustments) {
       .map(p => ({ place: p.place, priceCents: n(p.priceCents), lat: p.lat, lng: p.lng }));
     const groceryPrices: GroceryPrice[] = priceRows
       .filter(p => p.kind === 'grocery')
-      .map(p => ({ item: p.item, variant: p.variant, priceCents: n(p.priceCents) }));
+      .map(p => ({ place: p.place, item: p.item, variant: p.variant, priceCents: n(p.priceCents), lat: p.lat, lng: p.lng }));
     const vehicle: Vehicle = { homeLat: profile.homeLat, homeLng: profile.homeLng, mpg: profile.vehicleMpg };
 
     const forecast = buildForecast(input, adjustments);

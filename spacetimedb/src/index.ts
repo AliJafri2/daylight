@@ -34,6 +34,7 @@ const profile = table(
     vehicleMpg: t.f64(),
     usualGallons: t.f64(),
     lastNessieSync: t.option(t.timestamp()).default(undefined), // shown in UI: "Synced from your bank 2 min ago"
+    needsNessieReset: t.bool().default(false), // set by reset_demo; worker restores bill dates in Nessie
   }
 );
 
@@ -176,6 +177,11 @@ const planAction = table(
     billId: t.option(t.u64()),
     newDate: t.option(t.string()),
     nessieRef: t.option(t.string()),
+    // grocery_swap / gas_switch: which projected trip changes, by how much, and where to go instead
+    spendId: t.option(t.u64()).default(undefined),
+    spendDeltaCents: t.option(t.i64()).default(undefined),
+    newPlace: t.option(t.string()).default(undefined),
+    sortOrder: t.u32().default(0),
   }
 );
 
@@ -294,20 +300,35 @@ function seedPrices(ctx: Ctx) {
   gas('Murphy USA', 3.35, 32.9980, -96.7585);
   gas('Costco', 3.29, 33.0700, -96.8200);
 
-  const groc = (item: string, nameBrand: number, storeBrand: number) => {
-    for (const [variant, dollars] of [['name_brand', nameBrand], ['store_brand', storeBrand]] as const) {
-      ctx.db.price.insert({
-        id: 0n, kind: 'grocery', place: 'H-E-B', item, variant, priceCents: $(dollars),
-        lat: 32.9960, lng: -96.7620, updatedAt: ctx.timestamp, reporter: undefined,
-      });
-    }
-  };
-  groc('Cereal, 2-pack', 8.98, 5.48); // 3.50
-  groc('Ground beef, 3 lb', 16.47, 13.47); // 3.00
-  groc('Milk, 2 gallons', 7.58, 5.58); // 2.00
-  groc('Shredded cheese, 2 lb', 9.98, 6.98); // 3.00
-  groc('Diapers, 80 ct', 27.99, 21.99); // 6.00
-  groc('Pasta and sauce', 6.47, 5.97); // 0.50  => total 18.00
+  // Bill's usual items at 4 stores. Keep in sync with GROCERY_TABLE in shared/demo-fixture.ts.
+  // Usual (H-E-B name brand) = $77.47. Aldi $53.48 (net $23.93 after drive) wins; H-E-B store brand saves $18.
+  const stores = {
+    'H-E-B': [32.9960, -96.7620],
+    Aldi: [32.9800, -96.7700],
+    'Walmart Supercenter': [32.9680, -96.7000],
+    Kroger: [32.9480, -96.7150],
+  } as const;
+  const row = (place: keyof typeof stores, item: string, variant: string, dollars: number) =>
+    ctx.db.price.insert({
+      id: 0n, kind: 'grocery', place, item, variant, priceCents: $(dollars),
+      lat: stores[place][0], lng: stores[place][1], updatedAt: ctx.timestamp, reporter: undefined,
+    });
+  const table: Array<[string, number, number, number, number, number]> = [
+    // item, H-E-B name, H-E-B store, Aldi, Walmart, Kroger
+    ['Cereal, 2-pack', 8.98, 5.48, 4.49, 5.12, 5.29],
+    ['Ground beef, 3 lb', 16.47, 13.47, 12.99, 13.24, 13.99],
+    ['Milk, 2 gallons', 7.58, 5.58, 5.18, 5.36, 5.78],
+    ['Shredded cheese, 2 lb', 9.98, 6.98, 5.98, 6.48, 6.98],
+    ['Diapers, 80 ct', 27.99, 21.99, 19.99, 20.97, 22.49],
+    ['Pasta and sauce', 6.47, 5.97, 4.85, 5.04, 5.89],
+  ];
+  for (const [item, hebName, hebStore, aldi, walmart, kroger] of table) {
+    row('H-E-B', item, 'name_brand', hebName);
+    row('H-E-B', item, 'store_brand', hebStore);
+    row('Aldi', item, 'store_brand', aldi);
+    row('Walmart Supercenter', item, 'store_brand', walmart);
+    row('Kroger', item, 'store_brand', kroger);
+  }
 }
 
 function wipeProfileData(ctx: Ctx, profileId: bigint) {
@@ -336,6 +357,7 @@ export const init = spacetimedb.init(ctx => {
     vehicleMpg: 25,
     usualGallons: 15,
     lastNessieSync: undefined,
+    needsNessieReset: false,
   });
   seedDemoFinances(ctx, p.id);
   seedPrices(ctx);
@@ -452,6 +474,7 @@ export const resetDemo = spacetimedb.reducer(ctx => {
   if (!p || !p.isDemo) throw new SenderError('Only the demo profile can be reset');
   wipeProfileData(ctx, p.id);
   seedDemoFinances(ctx, p.id);
+  ctx.db.profile.id.update({ ...p, needsNessieReset: true, lastNessieSync: undefined });
   // Restore seeded prices (keeps nothing reported live by judges' phones from the last demo).
   for (const r of [...ctx.db.price.iter()]) ctx.db.price.id.delete(r.id);
   seedPrices(ctx);
@@ -524,4 +547,125 @@ export const markNessieSynced = spacetimedb.reducer(ctx => {
   requireWorker(ctx);
   const p = ctx.db.profile.id.find(requireDemoProfile(ctx));
   if (p) ctx.db.profile.id.update({ ...p, lastNessieSync: ctx.timestamp });
+});
+
+// ---------- Worker reducers: Close the gap (agent jobs) ----------
+// Flow: user request_plan -> worker claim_job -> add_step* -> add_action* -> set_job_status('ready')
+//       -> user approve_* -> worker executes in Nessie -> mark_action_executed (applies the change here)
+
+const JOB_STATUSES = new Set(['pending', 'running', 'ready', 'executing', 'done', 'failed']);
+const TERMINAL_ACTION = new Set(['executed', 'rejected', 'failed']);
+
+function requireJob(ctx: Ctx, jobId: bigint) {
+  const job = ctx.db.planJob.id.find(jobId);
+  if (!job) throw new SenderError('Job not found');
+  return job;
+}
+
+export const claimJob = spacetimedb.reducer({ jobId: t.u64() }, (ctx, { jobId }) => {
+  requireWorker(ctx);
+  const job = requireJob(ctx, jobId);
+  if (job.status !== 'pending') throw new SenderError(`Job is ${job.status}`);
+  ctx.db.planJob.id.update({ ...job, status: 'running', claimedBy: ctx.sender });
+});
+
+export const addStep = spacetimedb.reducer(
+  { jobId: t.u64(), agent: t.string(), message: t.string() },
+  (ctx, { jobId, agent, message }) => {
+    requireWorker(ctx);
+    const job = requireJob(ctx, jobId);
+    ctx.db.agentStep.insert({ id: 0n, jobId, profileId: job.profileId, agent, message: message.slice(0, 500), createdAt: ctx.timestamp });
+  }
+);
+
+export const addAction = spacetimedb.reducer(
+  {
+    jobId: t.u64(), kind: t.string(), title: t.string(), detail: t.string(),
+    savingsCents: t.i64(), feeAvoidedCents: t.i64(), whyEn: t.string(), whyEs: t.string(),
+    billId: t.option(t.u64()), newDate: t.option(t.string()),
+    spendId: t.option(t.u64()), spendDeltaCents: t.option(t.i64()), newPlace: t.option(t.string()),
+    sortOrder: t.u32(),
+  },
+  (ctx, a) => {
+    requireWorker(ctx);
+    const job = requireJob(ctx, a.jobId);
+    if (job.status !== 'running') throw new SenderError('Job is not running');
+    // Guardrails: an action may only touch rows owned by the job's profile, and never pay more.
+    if (a.billId !== undefined) {
+      const b = ctx.db.bill.id.find(a.billId);
+      if (!b || b.profileId !== job.profileId) throw new SenderError('Bill not in this profile');
+      if (b.latestSafeDate && a.newDate && a.newDate > b.latestSafeDate) throw new SenderError('Bill cannot move past its latest safe date');
+    }
+    if (a.spendId !== undefined) {
+      const s = ctx.db.scheduledSpend.id.find(a.spendId);
+      if (!s || s.profileId !== job.profileId) throw new SenderError('Spend not in this profile');
+      if (a.spendDeltaCents !== undefined && a.spendDeltaCents > 0n) throw new SenderError('A fix cannot increase spending');
+    }
+    if (a.savingsCents < 0n || a.feeAvoidedCents < 0n) throw new SenderError('Savings cannot be negative');
+    ctx.db.planAction.insert({
+      id: 0n, jobId: a.jobId, profileId: job.profileId, kind: a.kind, title: a.title, detail: a.detail,
+      savingsCents: a.savingsCents, feeAvoidedCents: a.feeAvoidedCents, whyEn: a.whyEn, whyEs: a.whyEs,
+      status: 'proposed', billId: a.billId, newDate: a.newDate, nessieRef: undefined,
+      spendId: a.spendId, spendDeltaCents: a.spendDeltaCents, newPlace: a.newPlace, sortOrder: a.sortOrder,
+    });
+  }
+);
+
+export const setJobStatus = spacetimedb.reducer(
+  { jobId: t.u64(), status: t.string(), gapCents: t.i64(), gapDate: t.string() },
+  (ctx, { jobId, status, gapCents, gapDate }) => {
+    requireWorker(ctx);
+    if (!JOB_STATUSES.has(status)) throw new SenderError('Bad status');
+    const job = requireJob(ctx, jobId);
+    ctx.db.planJob.id.update({ ...job, status, gapCents, gapDate });
+  }
+);
+
+// Called by the worker after it carried out an approved action (e.g. moved the bill in Nessie).
+// Applies the effect to Spacetime in the same transaction, so every screen updates at once.
+export const markActionExecuted = spacetimedb.reducer(
+  { actionId: t.u64(), ok: t.bool(), nessieRef: t.option(t.string()) },
+  (ctx, { actionId, ok, nessieRef }) => {
+    requireWorker(ctx);
+    const a = ctx.db.planAction.id.find(actionId);
+    if (!a) throw new SenderError('Action not found');
+    if (a.status !== 'approved') throw new SenderError(`Action is ${a.status}, not approved`);
+    if (ok) {
+      if (a.kind === 'move_bill' && a.billId !== undefined && a.newDate) {
+        const b = ctx.db.bill.id.find(a.billId);
+        if (b) ctx.db.bill.id.update({ ...b, dueDate: a.newDate });
+      }
+      if ((a.kind === 'grocery_swap' || a.kind === 'gas_switch') && a.spendId !== undefined) {
+        const s = ctx.db.scheduledSpend.id.find(a.spendId);
+        if (s) {
+          const amount = s.amountCents + (a.spendDeltaCents ?? 0n);
+          ctx.db.scheduledSpend.id.update({ ...s, amountCents: amount < 0n ? 0n : amount, place: a.newPlace ?? s.place });
+        }
+      }
+    }
+    ctx.db.planAction.id.update({ ...a, status: ok ? 'executed' : 'failed', nessieRef });
+    // Close the job once every action is settled.
+    const all = [...ctx.db.planAction.jobId.filter(a.jobId)];
+    const job = ctx.db.planJob.id.find(a.jobId);
+    if (job && all.every(x => x.id === a.id || TERMINAL_ACTION.has(x.status))) {
+      ctx.db.planJob.id.update({ ...job, status: 'done' });
+    }
+  }
+);
+
+// Rejecting the last open action also closes the job.
+export const closeJobIfSettled = spacetimedb.reducer({ jobId: t.u64() }, (ctx, { jobId }) => {
+  const m = requireMember(ctx);
+  const job = requireJob(ctx, jobId);
+  if (job.profileId !== m.profileId) throw new SenderError('Plan not found');
+  const all = [...ctx.db.planAction.jobId.filter(jobId)];
+  if (job.status === 'ready' && all.every(x => TERMINAL_ACTION.has(x.status))) {
+    ctx.db.planJob.id.update({ ...job, status: 'done' });
+  }
+});
+
+export const ackNessieReset = spacetimedb.reducer(ctx => {
+  requireWorker(ctx);
+  const p = ctx.db.profile.id.find(requireDemoProfile(ctx));
+  if (p) ctx.db.profile.id.update({ ...p, needsNessieReset: false });
 });

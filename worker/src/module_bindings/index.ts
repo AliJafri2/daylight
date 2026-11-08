@@ -34,13 +34,20 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AckNessieResetReducer from "./ack_nessie_reset_reducer";
+import AddActionReducer from "./add_action_reducer";
+import AddStepReducer from "./add_step_reducer";
 import ApproveActionReducer from "./approve_action_reducer";
 import ApproveAllReducer from "./approve_all_reducer";
+import ClaimJobReducer from "./claim_job_reducer";
+import CloseJobIfSettledReducer from "./close_job_if_settled_reducer";
+import MarkActionExecutedReducer from "./mark_action_executed_reducer";
 import MarkNessieSyncedReducer from "./mark_nessie_synced_reducer";
 import RegisterWorkerReducer from "./register_worker_reducer";
 import RejectActionReducer from "./reject_action_reducer";
 import RequestPlanReducer from "./request_plan_reducer";
 import ResetDemoReducer from "./reset_demo_reducer";
+import SetJobStatusReducer from "./set_job_status_reducer";
 import SetLanguageReducer from "./set_language_reducer";
 import SetWorkerSecretReducer from "./set_worker_secret_reducer";
 import SyncAccountReducer from "./sync_account_reducer";
@@ -134,13 +141,20 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("ack_nessie_reset", AckNessieResetReducer),
+  __reducerSchema("add_action", AddActionReducer),
+  __reducerSchema("add_step", AddStepReducer),
   __reducerSchema("approve_action", ApproveActionReducer),
   __reducerSchema("approve_all", ApproveAllReducer),
+  __reducerSchema("claim_job", ClaimJobReducer),
+  __reducerSchema("close_job_if_settled", CloseJobIfSettledReducer),
+  __reducerSchema("mark_action_executed", MarkActionExecutedReducer),
   __reducerSchema("mark_nessie_synced", MarkNessieSyncedReducer),
   __reducerSchema("register_worker", RegisterWorkerReducer),
   __reducerSchema("reject_action", RejectActionReducer),
   __reducerSchema("request_plan", RequestPlanReducer),
   __reducerSchema("reset_demo", ResetDemoReducer),
+  __reducerSchema("set_job_status", SetJobStatusReducer),
   __reducerSchema("set_language", SetLanguageReducer),
   __reducerSchema("set_worker_secret", SetWorkerSecretReducer),
   __reducerSchema("sync_account", SyncAccountReducer),

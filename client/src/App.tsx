@@ -4,6 +4,7 @@ import { tables } from './module_bindings';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import type { DbConnection } from './module_bindings';
 import { useMoney } from './engine';
+import CloseTheGap from './CloseTheGap';
 
 const money = (cents: bigint) =>
   (Number(cents) / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -56,6 +57,8 @@ export default function App() {
           </div>
         </section>
       )}
+
+      <CloseTheGap language={profile?.language ?? 'en'} />
 
       <h2>Accounts</h2>
       {!accountsReady && <p>Loading…</p>}

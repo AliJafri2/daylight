@@ -22,4 +22,5 @@ export default __t.row({
   vehicleMpg: __t.f64().name("vehicle_mpg"),
   usualGallons: __t.f64().name("usual_gallons"),
   lastNessieSync: __t.option(__t.timestamp()).name("last_nessie_sync"),
+  needsNessieReset: __t.bool().name("needs_nessie_reset"),
 });

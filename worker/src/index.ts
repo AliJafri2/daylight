@@ -1,8 +1,14 @@
 // Minimum agent worker: a normal Spacetime client that holds the secrets (Nessie, Gemini)
 // and does the work the browser can't. Run: npm start --prefix worker   (or: npm run sync for one pass)
+//
+// It reacts to rows, never to direct calls from the app:
+//   plan_job 'pending'      -> run the agents (stream agent_step rows, write plan_action rows)
+//   plan_action 'approved'  -> execute in Nessie, then mark executed (screens turn green)
+//   profile needsNessieReset -> put moved bills back in Nessie (demo reset)
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { DbConnection } from './module_bindings/index.ts';
+import { DbConnection, tables } from './module_bindings/index.ts';
+import { executeAction, restoreNessieBills, runPlanJob } from './agents.ts';
 import { hideKey } from './nessie.ts';
 import { loadNessieIds, syncFromNessie } from './sync.ts';
 
@@ -37,14 +43,16 @@ function connect(): Promise<DbConnection> {
   });
 }
 
-async function syncOnce(conn: DbConnection, ids: ReturnType<typeof loadNessieIds>) {
-  try {
-    const r = await syncFromNessie(conn, ids);
-    log(`synced from Nessie: ${r.accounts} accounts, ${r.bills} bills`);
-  } catch (err) {
-    // Nessie down? The app keeps running from the last synced copy in Spacetime.
-    log('sync failed (app keeps using last synced data):', hideKey(String(err)));
-  }
+function subscribe(conn: DbConnection): Promise<void> {
+  return new Promise(resolve => {
+    conn
+      .subscriptionBuilder()
+      .onApplied(() => resolve())
+      .subscribe([
+        tables.myProfile, tables.myAccounts, tables.myBills, tables.myIncome, tables.mySpend,
+        tables.myJobs, tables.myActions, tables.price,
+      ]);
+  });
 }
 
 async function main() {
@@ -52,13 +60,67 @@ async function main() {
   const conn = await connect();
   await conn.reducers.registerWorker({ secret: SECRET });
   log('registered as worker');
+  await subscribe(conn);
+  log('subscribed to live data');
 
-  await syncOnce(conn, ids);
+  // One thing at a time keeps Nessie writes and Spacetime updates in a clean order.
+  let chain: Promise<void> = Promise.resolve();
+  const queue = (label: string, fn: () => Promise<unknown>) => {
+    chain = chain
+      .then(async () => void (await fn()))
+      .catch(err => log(`${label} failed:`, hideKey(String(err))));
+    return chain;
+  };
+
+  const sync = async () => {
+    const profile = [...conn.db.myProfile.iter()][0];
+    if (profile?.needsNessieReset) {
+      const moved = await restoreNessieBills(conn, ids.accounts.checking);
+      log(`demo reset: restored ${moved} bill date(s) in Nessie`);
+    }
+    try {
+      const r = await syncFromNessie(conn, ids);
+      log(`synced from Nessie: ${r.accounts} accounts, ${r.bills} bills`);
+    } catch (err) {
+      // Nessie down? The app keeps running from the last synced copy in Spacetime.
+      log('sync failed (app keeps using last synced data):', hideKey(String(err)));
+    }
+  };
+
+  await queue('sync', sync);
   if (ONCE) {
+    await chain;
     conn.disconnect();
     return;
   }
-  setInterval(() => void syncOnce(conn, ids), SYNC_EVERY_MS);
+
+  const inFlight = new Set<string>();
+  const once = (key: string, label: string, fn: () => Promise<unknown>) => {
+    if (inFlight.has(key)) return;
+    inFlight.add(key);
+    void queue(label, fn);
+  };
+
+  const onJob = (job: { id: bigint; status: string }) => {
+    if (job.status === 'pending') once(`job:${job.id}`, 'plan', () => runPlanJob(conn, job.id));
+  };
+  const onAction = (a: { id: bigint; status: string }) => {
+    if (a.status === 'approved') once(`act:${a.id}`, 'execute', () => executeAction(conn, a.id, sync));
+  };
+
+  conn.db.myJobs.onInsert((_ctx, job) => onJob(job));
+  conn.db.myJobs.onUpdate((_ctx, _old, job) => onJob(job));
+  conn.db.myActions.onUpdate((_ctx, _old, a) => onAction(a));
+  conn.db.myProfile.onUpdate((_ctx, old, p) => {
+    if (p.needsNessieReset && !old.needsNessieReset) void queue('reset', sync);
+  });
+
+  // Catch up on anything that happened while the worker was offline.
+  for (const job of conn.db.myJobs.iter()) onJob(job);
+  for (const a of conn.db.myActions.iter()) onAction(a);
+
+  setInterval(() => void queue('sync', sync), SYNC_EVERY_MS);
+  log('worker ready: waiting for plan requests and approvals');
 }
 
 main().catch(err => {

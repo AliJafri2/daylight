@@ -16,7 +16,14 @@ export type Income = { id: string; source: string; amountCents: number; nextDate
 export type Spend = { id: string; category: 'groceries' | 'gas' | string; place: string; amountCents: number; date: string };
 export type Account = { kind: string; nickname: string; balanceCents: number; creditLimitCents?: number };
 export type GasPrice = { place: string; priceCents: number; lat: number; lng: number };
-export type GroceryPrice = { item: string; variant: 'name_brand' | 'store_brand' | string; priceCents: number };
+export type GroceryPrice = {
+  place: string;
+  item: string;
+  variant: 'name_brand' | 'store_brand' | string;
+  priceCents: number;
+  lat: number;
+  lng: number;
+};
 export type Vehicle = { homeLat: number; homeLng: number; mpg: number };
 
 export type ForecastInput = {
@@ -203,11 +210,62 @@ export function gasOptions(usualPlace: string, fillCents: number, prices: GasPri
 
 export const MIN_GAS_NET_CENTS = 100;
 
+// ---------- Groceries: the usual basket across stores, net of drive cost ----------
+
+export type GroceryOption = {
+  place: string;
+  usualBasketCents: number; // the usual items, name brand, at the usual store
+  basketCents: number; // same items, cheapest version at this store
+  extraRoundTripMiles: number;
+  driveCostCents: number;
+  netSavingsCents: number;
+  items: { item: string; fromCents: number; toCents: number }[];
+};
+
+/**
+ * For each store, price Bill's usual items at their cheapest version there (store brand counts),
+ * subtract extra driving vs the usual store. Includes "same store, store brand" as an option.
+ * Only items every store carries are compared, so totals are apples to apples.
+ */
+export function groceryOptions(usualPlace: string, prices: GroceryPrice[], v: Vehicle, fuelPriceCents: number): GroceryOption[] {
+  const usualRows = prices.filter(p => p.place === usualPlace);
+  if (!usualRows.length) return [];
+  const stores = [...new Set(prices.map(p => p.place))];
+  const cheapest = (place: string, item: string) => {
+    const rows = prices.filter(p => p.place === place && p.item === item);
+    return rows.length ? Math.min(...rows.map(r => r.priceCents)) : undefined;
+  };
+  const items = [...new Set(usualRows.map(p => p.item))].filter(item => stores.every(s => cheapest(s, item) !== undefined));
+  const usualPrice = (item: string) =>
+    usualRows.find(p => p.item === item && p.variant === 'name_brand')?.priceCents ?? cheapest(usualPlace, item)!;
+  const usualBasket = items.reduce((s, i) => s + usualPrice(i), 0);
+  const loc = (place: string) => prices.find(p => p.place === place)!;
+  const usualMiles = milesBetween(v.homeLat, v.homeLng, loc(usualPlace).lat, loc(usualPlace).lng);
+
+  return stores
+    .map(place => {
+      const rows = items.map(item => ({ item, fromCents: usualPrice(item), toCents: cheapest(place, item)! }));
+      const basket = rows.reduce((s, r) => s + r.toCents, 0);
+      const extra = place === usualPlace ? 0 : Math.max(0, milesBetween(v.homeLat, v.homeLng, loc(place).lat, loc(place).lng) - usualMiles) * 2;
+      const drive = Math.round((extra / v.mpg) * fuelPriceCents);
+      return {
+        place,
+        usualBasketCents: usualBasket,
+        basketCents: basket,
+        extraRoundTripMiles: extra,
+        driveCostCents: drive,
+        netSavingsCents: usualBasket - basket - drive,
+        items: rows.filter(r => r.toCents < r.fromCents),
+      };
+    })
+    .sort((a, b) => b.netSavingsCents - a.netSavingsCents);
+}
+
 // ---------- Planner (the savings agent's deterministic core) ----------
 
 export type PlanAction =
   | { kind: 'move_bill'; billId: string; payee: string; fromDate: string; toDate: string; amountCents: number; savingsCents: 0; feeAvoidedCents: number }
-  | { kind: 'grocery_swap'; spendId: string; date: string; place: string; swaps: { item: string; fromCents: number; toCents: number }[]; savingsCents: number; feeAvoidedCents: number }
+  | { kind: 'grocery_swap'; spendId: string; date: string; fromPlace: string; option: GroceryOption; savingsCents: number; feeAvoidedCents: number }
   | { kind: 'gas_switch'; spendId: string; date: string; fromPlace: string; option: GasOption; savingsCents: number; feeAvoidedCents: number };
 
 export type Plan = {
@@ -257,25 +315,18 @@ export function planFixes(
     }
   }
 
-  // 2. Store-brand swaps on the last grocery trip before the shortfall.
+  // 2. Cheapest store for the usual grocery items on the last trip before the shortfall (net of drive).
+  const fill = input.spend.filter(s => s.category === 'gas' && s.date <= shortfall.date).sort((a, b) => b.date.localeCompare(a.date))[0];
+  const fuelPrice = ctx.gasPrices.find(p => p.place === fill?.place)?.priceCents ?? ctx.gasPrices[0]?.priceCents ?? 350;
   const trip = input.spend.filter(s => s.category === 'groceries' && s.date <= shortfall.date).sort((a, b) => b.date.localeCompare(a.date))[0];
   if (trip && !done()) {
-    const byItem = new Map<string, { name?: number; store?: number }>();
-    for (const p of ctx.groceryPrices) {
-      const e = byItem.get(p.item) ?? {};
-      if (p.variant === 'name_brand') e.name = p.priceCents;
-      if (p.variant === 'store_brand') e.store = p.priceCents;
-      byItem.set(p.item, e);
+    const best = groceryOptions(trip.place, ctx.groceryPrices, ctx.vehicle, fuelPrice)[0];
+    if (best && best.netSavingsCents > 0) {
+      actions.push({ kind: 'grocery_swap', spendId: trip.id, date: trip.date, fromPlace: trip.place, option: best, savingsCents: Math.min(best.netSavingsCents, trip.amountCents), feeAvoidedCents: 0 });
     }
-    const swaps = [...byItem.entries()]
-      .filter(([, e]) => e.name !== undefined && e.store !== undefined && e.store < e.name)
-      .map(([item, e]) => ({ item, fromCents: e.name!, toCents: e.store! }));
-    const savings = swaps.reduce((s, x) => s + x.fromCents - x.toCents, 0);
-    if (savings > 0) actions.push({ kind: 'grocery_swap', spendId: trip.id, date: trip.date, place: trip.place, swaps, savingsCents: Math.min(savings, trip.amountCents), feeAvoidedCents: 0 });
   }
 
   // 3. Cheaper gas on the last fill-up before the shortfall, by NET savings.
-  const fill = input.spend.filter(s => s.category === 'gas' && s.date <= shortfall.date).sort((a, b) => b.date.localeCompare(a.date))[0];
   if (fill && !done()) {
     const best = gasOptions(fill.place, fill.amountCents, ctx.gasPrices, ctx.vehicle)[0];
     if (best && best.netSavingsCents > MIN_GAS_NET_CENTS) {

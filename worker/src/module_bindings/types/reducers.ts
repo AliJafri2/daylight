@@ -6,25 +6,39 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AckNessieResetReducer from "../ack_nessie_reset_reducer";
+import AddActionReducer from "../add_action_reducer";
+import AddStepReducer from "../add_step_reducer";
 import ApproveActionReducer from "../approve_action_reducer";
 import ApproveAllReducer from "../approve_all_reducer";
+import ClaimJobReducer from "../claim_job_reducer";
+import CloseJobIfSettledReducer from "../close_job_if_settled_reducer";
+import MarkActionExecutedReducer from "../mark_action_executed_reducer";
 import MarkNessieSyncedReducer from "../mark_nessie_synced_reducer";
 import RegisterWorkerReducer from "../register_worker_reducer";
 import RejectActionReducer from "../reject_action_reducer";
 import RequestPlanReducer from "../request_plan_reducer";
 import ResetDemoReducer from "../reset_demo_reducer";
+import SetJobStatusReducer from "../set_job_status_reducer";
 import SetLanguageReducer from "../set_language_reducer";
 import SetWorkerSecretReducer from "../set_worker_secret_reducer";
 import SyncAccountReducer from "../sync_account_reducer";
 import SyncBillReducer from "../sync_bill_reducer";
 
+export type AckNessieResetParams = __Infer<typeof AckNessieResetReducer>;
+export type AddActionParams = __Infer<typeof AddActionReducer>;
+export type AddStepParams = __Infer<typeof AddStepReducer>;
 export type ApproveActionParams = __Infer<typeof ApproveActionReducer>;
 export type ApproveAllParams = __Infer<typeof ApproveAllReducer>;
+export type ClaimJobParams = __Infer<typeof ClaimJobReducer>;
+export type CloseJobIfSettledParams = __Infer<typeof CloseJobIfSettledReducer>;
+export type MarkActionExecutedParams = __Infer<typeof MarkActionExecutedReducer>;
 export type MarkNessieSyncedParams = __Infer<typeof MarkNessieSyncedReducer>;
 export type RegisterWorkerParams = __Infer<typeof RegisterWorkerReducer>;
 export type RejectActionParams = __Infer<typeof RejectActionReducer>;
 export type RequestPlanParams = __Infer<typeof RequestPlanReducer>;
 export type ResetDemoParams = __Infer<typeof ResetDemoReducer>;
+export type SetJobStatusParams = __Infer<typeof SetJobStatusReducer>;
 export type SetLanguageParams = __Infer<typeof SetLanguageReducer>;
 export type SetWorkerSecretParams = __Infer<typeof SetWorkerSecretReducer>;
 export type SyncAccountParams = __Infer<typeof SyncAccountReducer>;
