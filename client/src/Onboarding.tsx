@@ -45,6 +45,36 @@ function WordWheel() {
   );
 }
 
+// Types an example question, erases it, types the next one. Decorative (not an input).
+const PROMPTS = [
+  'Can I afford dinner out on Friday?',
+  'Why am I short before payday?',
+  "Where's the cheapest gas near me?",
+  'When do I get paid next?',
+];
+function TypedPrompts() {
+  const [k, setK] = useState(0);
+  const [text, setText] = useState('');
+  const [phase, setPhase] = useState<'type' | 'hold' | 'erase'>('type');
+  useEffect(() => {
+    const full = PROMPTS[k];
+    let t: ReturnType<typeof setTimeout>;
+    if (phase === 'type') {
+      t = text.length < full.length
+        ? setTimeout(() => setText(full.slice(0, text.length + 1)), 45)
+        : setTimeout(() => setPhase('hold'), 0);
+    } else if (phase === 'hold') {
+      t = setTimeout(() => setPhase('erase'), 1700);
+    } else {
+      t = text.length > 0
+        ? setTimeout(() => setText(text.slice(0, -1)), 22)
+        : setTimeout(() => { setK((k + 1) % PROMPTS.length); setPhase('type'); }, 350);
+    }
+    return () => clearTimeout(t);
+  }, [text, phase, k]);
+  return <span className="typed">{text}<span className="typed-caret" /></span>;
+}
+
 function Progress({ at }: { at: number }) {
   return (
     <div className="progress" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
@@ -168,9 +198,9 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
       <div className={`step ${out ? 'out' : ''}`} key="ai">
         {top('bank', 2)}
         <div className="orb" style={{ margin: '4px 0 16px', ...i(1) }} />
-        <h1 className="ob" style={i(2)}>Hi, I'm Ben</h1>
+        <h1 className="ob" style={i(2)}>Hi, I'm Ben!</h1>
         <p className="lead" style={i(3)}>Your AI money coach. Ask me anything.</p>
-        <div className="ai-pill" aria-hidden="true" style={{ margin: '0 0 24px', width: '100%', ...i(4) }}><div>Can I afford dinner out on Friday?</div></div>
+        <div className="ai-pill" aria-hidden="true" style={{ margin: '0 0 24px', width: '100%', ...i(4) }}><div><TypedPrompts /></div></div>
         <div className="powers" style={i(5)}>
           {[
             ['See trouble coming', "I forecast your balance every day until payday, so you'll know 2 weeks early if you'll be behind on a payment."],

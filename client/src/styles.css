@@ -750,3 +750,7 @@ input { font: inherit; }
 @keyframes gapPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 .ring-wrap.red .ring-big { animation: gapText 1.6s ease-in-out infinite; }
 @keyframes gapText { 50% { text-shadow: 0 0 18px rgba(255, 59, 48, 0.35); } }
+
+/* Typing example questions on the Ben intro (static caret, so it doesn't look like an input) */
+.typed { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.typed-caret { display: inline-block; width: 2px; height: 1.05em; background: var(--ink-3); margin-left: 2px; vertical-align: -0.15em; border-radius: 1px; opacity: 0.6; }
