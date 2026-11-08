@@ -8,10 +8,10 @@ layout, spacing and interaction patterns, never their logos, illustrations or br
 |---|---|---|
 | 08-fuse-welcome.jpg | **Title screen**: word "wheel" (Gas · Groceries · Bills · Savings), gradient, Get started + subtle Log in | ✅ credit 1 |
 | 09-fuse-email-signup.jpg | **Create account**: big title, rounded input, pill button | built by eye |
-| 10-cleo-ai-onboarding.jpg | **"Here's what I do"**: AI explains itself (save from Cleo AI, not Cleo) | ✅ credit 2 |
+| 10-cleo-ai-onboarding.jpg | (skipped: "Here's what I do" built from 08 + 15) | — |
 | 01-fuse-home.jpg | **Home**: big number with greyed cents, thin chart, 2x2 tiles | ✅ credit 3 |
-| 11-bevel-ai-chat-thinking-steps.jpg | **Coach + Plan**: pastel glow, "Thought for Xs" step list, result card, frosted input | ✅ credit 4 |
-| 15-bevel-ai-greeting.jpg | Coach empty state ("Here for you, Bill.") + suggestion cards | built by eye |
+| 11-bevel-ai-chat-thinking-steps.jpg | **Plan**: "Thought for Xs" step list, result card, frosted input | built by eye |
+| 15-bevel-ai-greeting.jpg | **Coach** (chosen): pastel glow, mascot, "Here for you, Bill.", suggestion cards, frosted input | ✅ credit 3 |
 | 16-wabi-plan-progress-card.jpg | Plan card with step checklist filling in | built by eye |
 | 17-cleo-ai-chat-backup.jpg | Backup chat style (Cleo AI) | built by eye |
 | 12-perplexity-agent-card.jpg | **Plan**: "running tasks" + interactive card with Skip/Continue | optional credit 5, else by eye |
@@ -30,11 +30,10 @@ Do these one at a time (one image per run; several at once blends them together)
 
 | Run | Upload | Save the result as |
 |---|---|---|
-| 1 | `08-fuse-welcome.jpg` | `08-fuse-welcome.html` |
-| 2 | `01-fuse-home.jpg` | `01-fuse-home.html` |
-| 3 | `10-cleo-ai-onboarding.png` (screenshot it from the **Cleo AI** app on Mobbin) | `10-cleo-ai-onboarding.html` |
-| 4 | `11-bevel-ai-chat-thinking-steps.jpg` | `11-bevel-ai-chat.html` |
-| 5 (optional) | `12-perplexity-agent-card.jpg` | `12-perplexity-agent-card.html` |
+| 1 ✅ | `08-fuse-welcome.jpg` | `08-fuse-welcome.html` |
+| 2 ✅ | `01-fuse-home.jpg` | `01-fuse-home.html` |
+| 3 | `15-bevel-ai-greeting.jpg` | `15-bevel-ai-greeting.html` |
+| 4 (optional) | `12-perplexity-agent-card.jpg` | `12-perplexity-agent-card.html` |
 
 For every run:
 - Output stack: **HTML + CSS** (React + Tailwind is OK if HTML + CSS isn't offered).
