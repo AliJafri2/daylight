@@ -2,7 +2,7 @@
 // (tap = Why?), the "I found a fix" card, and what's coming up. Reference: Fuse home.
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import StatusBars from './StatusBars';
+import CoverRing from './CoverRing';
 import CardDeck from './CardDeck';
 import { addDays, daysBetween } from '../../shared/forecast.ts';
 import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
@@ -65,6 +65,13 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
     },
   ];
 
+  // Ring: payments due from today up to (not including) payday vs money available until then.
+  const ring = (() => {
+    const before = f.days.slice(1).filter(d => !f.nextPayday || d.date < f.nextPayday);
+    const due = before.flatMap(d => d.events).filter(e => e.amountCents < 0).reduce((a, e) => a - e.amountCents, 0);
+    const income = before.flatMap(d => d.events).filter(e => e.amountCents > 0).reduce((a, e) => a + e.amountCents, 0);
+    return { due, have: f.days[0].balanceCents + income };
+  })();
   const upcoming = f.days.slice(1).filter(d => d.date <= addDays(f.asOf, 14)).flatMap(d => d.events.map(e => ({ ...e, date: d.date })));
 
   return (
@@ -89,7 +96,9 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         )}
       </div>
 
-      <div className="rise" style={{ ['--i' as string]: 1 }}><StatusBars forecast={f} /></div>
+      <div className="rise" style={{ ['--i' as string]: 1 }}>
+        <CoverRing dueCents={ring.due} haveCents={ring.have} payday={f.nextPayday} />
+      </div>
 
       <button className={`ai-cta rise ${sf ? '' : 'ok'}`} style={{ ['--i' as string]: 2 }} onClick={onOpenPlan}>
         <span className="spark"><Icon name={sf ? 'sparkle' : 'check'} size={22} stroke={sf ? 2 : 3} /></span>
