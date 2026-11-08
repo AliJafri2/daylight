@@ -37,17 +37,19 @@ export default function Accounts({ m, syncedAgo }: { m: Money; syncedAgo: string
       <div className="topbar"><h1>Accounts</h1></div>
 
       <div className="tiles" style={{ marginBottom: 6 }}>
-        <div className="tile" style={{ minHeight: 96 }}>
-          <span className="label">You have</span>
-          <span className="value">{usd(have, { whole: true })}</span>
+        <div className="tile t-green" style={{ minHeight: 110 }}>
+          <span className="label" style={{ fontWeight: 600 }}>You have</span>
+          <span className="value" style={{ fontSize: 28, color: 'var(--green)' }}>{usd(have, { whole: true })}</span>
+          <span className="label">cash, savings, IRA, CD</span>
         </div>
-        <div className="tile" style={{ minHeight: 96 }}>
-          <span className="label">You owe</span>
-          <span className="value">{usd(owe, { whole: true })}</span>
+        <div className="tile t-red" style={{ minHeight: 110 }}>
+          <span className="label" style={{ fontWeight: 600 }}>You owe</span>
+          <span className="value" style={{ fontSize: 28 }}>{usd(owe, { whole: true })}</span>
+          <span className="label">credit card, car loan</span>
         </div>
       </div>
-      <div className="note" style={{ marginTop: 8 }}>
-        <Icon name="refresh" size={14} /> {syncedAgo ? `Synced from Capital One ${syncedAgo}` : 'Connected to Capital One (demo)'}
+      <div className="note" style={{ marginTop: 10 }}>
+        <Icon name="refresh" size={14} /> {syncedAgo ? `Live from Capital One · updated ${syncedAgo}` : 'Connected to Capital One (demo)'}
       </div>
 
       <div className="section-title">All accounts</div>
@@ -61,7 +63,7 @@ export default function Accounts({ m, syncedAgo }: { m: Money; syncedAgo: string
               <div className="main">
                 <div className="name">{a.nickname}</div>
                 <div className="sub">
-                  {k.label}
+                  {k.label} · {a.kind === 'ira' || a.kind === 'cd' ? 'added by you' : 'from Capital One'}
                   {a.creditLimitCents ? ` · ${Math.round((a.balanceCents / a.creditLimitCents) * 100)}% of ${usd(a.creditLimitCents, { whole: true })}` : ''}
                 </div>
               </div>

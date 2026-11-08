@@ -14,7 +14,7 @@ type Tab = 'home' | 'plan' | 'coach' | 'accounts';
 const TABS: Array<{ id: Tab; label: string; icon: IconName }> = [
   { id: 'home', label: 'Home', icon: 'home' },
   { id: 'plan', label: 'Plan', icon: 'plan' },
-  { id: 'coach', label: 'Coach', icon: 'chat' },
+  { id: 'coach', label: 'Ben', icon: 'chat' },
   { id: 'accounts', label: 'Accounts', icon: 'wallet' },
 ];
 
@@ -47,7 +47,7 @@ export default function App() {
   const toast = actions.some(a => a.status === 'approved')
     ? 'Making the changes in your bank…'
     : latestJob && (latestJob.status === 'pending' || latestJob.status === 'running') && tab !== 'plan'
-      ? 'MinMax is working on your plan…'
+      ? 'Ben is working on your plan…'
       : null;
 
   if (!onboarded) {

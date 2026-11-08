@@ -1,7 +1,7 @@
-// Plan / Close the gap. Agent steps stream live like Bevel's "thinking" list, the plan arrives as
-// cards (Wabi/Fuse), and a floating pill bar approves everything (Fuse). Nothing moves without a tap.
-import { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+// Plan: one clear state at a time (tester feedback: "too many words").
+//   1. What's wrong + "Find a fix"   2. Ben is working (live)   3. Here's the fix + "Fix it"   4. Done
+// The agents' full step list stays one tap away ("See how I figured this out") for judges.
+import { useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables, type DbConnection } from './module_bindings';
 import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
@@ -10,17 +10,12 @@ import type { useMoney } from './engine';
 type Money = Extract<ReturnType<typeof useMoney>, { ready: boolean; forecast: unknown }>;
 const time = (ts: { microsSinceUnixEpoch: bigint }) => Number(ts.microsSinceUnixEpoch / 1000n);
 
-const AGENT: Record<string, { icon: IconName; label: string }> = {
-  forecast: { icon: 'calendar', label: 'Forecast' },
-  savings: { icon: 'tag', label: 'Savings' },
-  coach: { icon: 'sparkle', label: 'Coach' },
-  executor: { icon: 'bank', label: 'Bank' },
-};
 const KIND: Record<string, { icon: IconName; color: 'blue' | 'teal' | 'orange' }> = {
   move_bill: { icon: 'calendar', color: 'blue' },
   grocery_swap: { icon: 'cart', color: 'teal' },
   gas_switch: { icon: 'gas', color: 'orange' },
 };
+const AGENT: Record<string, string> = { forecast: 'Forecast', savings: 'Savings', coach: 'Ben', executor: 'Bank' };
 
 export default function Plan({ m, language, onDone }: { m: Money; language: string; onDone: () => void }) {
   const { isActive, getConnection } = useSpacetimeDB();
@@ -28,8 +23,9 @@ export default function Plan({ m, language, onDone }: { m: Money; language: stri
   const [jobs] = useTable(tables.myJobs);
   const [steps] = useTable(tables.mySteps);
   const [actions] = useTable(tables.myActions);
+  const [showSteps, setShowSteps] = useState(false);
+  const [review, setReview] = useState(false);
   const [openWhy, setOpenWhy] = useState<string | null>(null);
-  const [stepsOpen, setStepsOpen] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const job = useMemo(() => [...jobs].sort((a, b) => (a.id < b.id ? 1 : -1))[0], [jobs]);
@@ -41,146 +37,163 @@ export default function Plan({ m, language, onDone }: { m: Money; language: stri
     () => (job ? actions.filter(a => a.jobId === job.id).sort((a, b) => a.sortOrder - b.sortOrder) : []),
     [actions, job]
   );
-  const working = !!job && (job.status === 'pending' || job.status === 'running');
-  const done = !!job && job.status === 'done' && jobActions.length > 0;
-  const open = jobActions.filter(a => a.status === 'proposed');
-  const fees = jobActions.reduce((s, a) => s + Number(a.feeAvoidedCents), 0);
-  const saved = jobActions.reduce((s, a) => s + Number(a.savingsCents), 0);
-  const sf = m.forecast.shortfall;
-
-  // Collapse the thinking list once the plan is ready (like Bevel's "Thought for 8 seconds").
-  useEffect(() => { if (job?.status === 'ready') setStepsOpen(false); }, [job?.status]);
 
   const call = (p: Promise<unknown> | undefined) => {
     setError(null);
     void p?.catch(e => setError(String(e?.message ?? e)));
   };
-  const start = () => call(conn?.reducers.requestPlan({}));
-  const seconds = jobSteps.length > 1 ? Math.max(1, Math.round((time(jobSteps[jobSteps.length - 1].createdAt) - time(jobSteps[0].createdAt)) / 1000)) : 0;
 
-  return (
-    <div className="screen aura">
-      <div className="topbar"><h1>Close the gap</h1></div>
+  const sf = m.forecast.shortfall;
+  const working = !!job && (job.status === 'pending' || job.status === 'running');
+  const proposed = jobActions.filter(a => a.status === 'proposed');
+  const executing = jobActions.some(a => a.status === 'approved');
+  const executed = jobActions.filter(a => a.status === 'executed');
+  const ready = !!job && job.status === 'ready' && proposed.length > 0 && !executing;
+  const done = !!job && job.status === 'done' && executed.length > 0;
+  const fees = jobActions.reduce((s, a) => s + Number(a.feeAvoidedCents), 0);
+  const saved = jobActions.reduce((s, a) => s + Number(a.savingsCents), 0);
+  const latestStep = jobSteps[jobSteps.length - 1];
+  const gapDate = job?.gapDate || sf?.date;
+  const gapCents = job && job.gapCents > 0n ? -Number(job.gapCents) : sf?.balanceCents ?? 0;
 
-      {/* Before: what's wrong, one button */}
-      {!job || (job.status === 'done' && !done) || job.status === 'failed' ? (
-        <>
-          {sf ? (
-            <>
-              <div className="eyebrow">Without changes</div>
-              <BigMoney cents={-sf.balanceCents} tone="red" suffix="short" />
-              <div className="hero-sub">on {day(sf.date)}. I'll look at your bills, groceries and gas to find the cheapest fix. Nothing changes until you approve.</div>
-              <div style={{ height: 20 }} />
-              <button className="btn" disabled={!isActive} onClick={start}><Icon name="sparkle" /> Close the gap</button>
-            </>
-          ) : (
-            <div className="summary">
-              <strong>You're covered until payday.</strong>
-              <div>Your lowest point is {usd(m.forecast.lowPoint.balanceCents)} on {day(m.forecast.lowPoint.date)}.</div>
+  const stepsList = (label: string) => jobSteps.length > 0 && (
+    <div style={{ marginTop: 20 }}>
+      <button className="linkish" onClick={() => setShowSteps(v => !v)}>{showSteps ? 'Hide the details' : label}</button>
+      {showSteps && (
+        <div className="card" style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {jobSteps.map(s => (
+            <div key={String(s.id)} style={{ fontSize: 15, color: 'var(--ink-2)', animation: 'bubbleIn 0.3s ease both' }}>
+              <strong style={{ color: 'var(--ink)' }}>{AGENT[s.agent] ?? s.agent}:</strong> {s.message}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const card = (a: (typeof jobActions)[number], k: number, mode: 'propose' | 'review' | 'status') => {
+    const key = String(a.id);
+    const kind = KIND[a.kind] ?? { icon: 'sparkle' as IconName, color: 'blue' as const };
+    const chip = a.feeAvoidedCents > 0n ? `Avoids a ${usd(Number(a.feeAvoidedCents), { whole: true })} fee` : `Saves ${usd(Number(a.savingsCents))}`;
+    return (
+      <div className="fix" key={key} style={{ animationDelay: `${k * 0.08}s` }}>
+        <Glyph name={kind.icon} color={kind.color} size={40} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3>{a.title}</h3>
+          <p>{a.detail}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span className="chip-save">{chip}</span>
+            <button className="linkish" style={{ marginTop: 8 }} onClick={() => setOpenWhy(openWhy === key ? null : key)}>
+              {openWhy === key ? 'Hide' : 'Why?'}
+            </button>
+          </div>
+          {openWhy === key && <p style={{ background: 'var(--surface-2)', padding: 12, borderRadius: 14, marginTop: 10 }}>{language === 'es' ? a.whyEs : a.whyEn}</p>}
+          {mode === 'review' && a.status === 'proposed' && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button className="pill" style={{ flex: 1, justifyContent: 'center' }}
+                onClick={() => call(conn?.reducers.rejectAction({ actionId: a.id }).then(() => conn?.reducers.closeJobIfSettled({ jobId: a.jobId })))}>Skip</button>
+              <button className="pill dark" style={{ flex: 1, justifyContent: 'center' }} onClick={() => call(conn?.reducers.approveAction({ actionId: a.id }))}>Approve</button>
             </div>
           )}
-          {job?.status === 'failed' && <p className="small" style={{ color: 'var(--red)' }}>Something went wrong. Tap Close the gap to try again.</p>}
-        </>
-      ) : null}
-
-      {/* During / after: the agents' thinking list */}
-      {job && jobSteps.length > 0 && (
-        <div className="card" style={{ marginBottom: 14 }}>
-          <button onClick={() => setStepsOpen(o => !o)} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
-            {working ? <span className="spinner" /> : <Icon name="sparkle" size={18} />}
-            <strong style={{ flex: 1, textAlign: 'left' }}>
-              {working ? 'Working on it…' : `Worked through ${jobSteps.length} steps${seconds ? ` in ${seconds}s` : ''}`}
-            </strong>
-            <span style={{ transform: stepsOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', color: 'var(--ink-3)' }}><Icon name="chevron" size={18} /></span>
-          </button>
-          {stepsOpen && (
-            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {jobSteps.map(s => (
-                <div key={String(s.id)} style={{ display: 'flex', gap: 10, animation: 'bubbleIn 0.35s ease both' }}>
-                  <span style={{ color: 'var(--ink-3)', marginTop: 2 }}><Icon name={AGENT[s.agent]?.icon ?? 'sparkle'} size={16} /></span>
-                  <span style={{ fontSize: 15, color: 'var(--ink-2)' }}>
-                    <strong style={{ color: 'var(--ink)' }}>{AGENT[s.agent]?.label ?? s.agent}.</strong> {s.message}
-                  </span>
-                </div>
-              ))}
-              {working && <div className="typing"><i /><i /><i /></div>}
+          {mode !== 'propose' && a.status !== 'proposed' && (
+            <div className="status-done" style={{ marginTop: 10, color: a.status === 'executed' ? 'var(--green)' : 'var(--ink-3)' }}>
+              {a.status === 'executed' ? <><Icon name="check" size={18} stroke={3} /> Done</> : a.status === 'approved' ? <><span className="spinner" /> Doing it…</> : a.status === 'rejected' ? 'Skipped' : "Couldn't do this one"}
             </div>
           )}
         </div>
-      )}
+      </div>
+    );
+  };
 
-      {/* The plan */}
-      {jobActions.length > 0 && (
+  // 4. Done
+  if (done) {
+    return (
+      <div className="screen">
+        <div className="topbar"><h1>Your plan</h1></div>
+        <div className="done-hero">
+          <div className="check-big"><Icon name="check" size={40} stroke={3} /></div>
+          <div className="plan-head">Done!</div>
+          <p className="plan-sub">
+            You'll have <strong style={{ color: 'var(--green)' }}>{usd(m.forecast.lowPoint.balanceCents)}</strong> on {day(gapDate ?? m.forecast.lowPoint.date)} instead of {usd(gapCents)}.
+            {fees > 0 && <> No {usd(fees, { whole: true })} overdraft fee.</>} No loan.
+          </p>
+        </div>
+        {jobActions.map((a, k) => card(a, k, 'status'))}
+        <div style={{ height: 16 }} />
+        <button className="btn green" onClick={onDone}>See my new forecast</button>
+        {stepsList('See how I figured this out')}
+      </div>
+    );
+  }
+
+  // 3. Ready (or executing)
+  if (ready || executing) {
+    return (
+      <div className="screen">
+        <div className="topbar"><h1>Your plan</h1></div>
+        <div className="plan-head">{executing ? 'Making the changes…' : "Here's how to fix it"}</div>
+        <p className="plan-sub">
+          {jobActions.length} small change{jobActions.length === 1 ? '' : 's'}. You'll have{' '}
+          <strong style={{ color: 'var(--green)' }}>{usd(m.plan.after.lowPoint.balanceCents)}</strong> on {day(gapDate ?? '')} instead of {usd(gapCents)}.
+        </p>
+        {jobActions.map((a, k) => card(a, k, review || executing ? 'review' : 'propose'))}
+        <div style={{ height: 18 }} />
+        {!executing && !review && (
+          <>
+            <button className="btn" onClick={() => job && call(conn?.reducers.approveAll({ jobId: job.id }))}>
+              <Icon name="check" stroke={3} /> Fix it ({fees > 0 ? `avoid a ${usd(fees, { whole: true })} fee, ` : ''}save {usd(saved)})
+            </button>
+            <p className="small muted" style={{ textAlign: 'center', margin: '10px 0 0' }}>
+              Nothing changes until you tap. <button className="linkish" onClick={() => setReview(true)}>Review each one</button>
+            </p>
+          </>
+        )}
+        {stepsList('See how I figured this out')}
+        {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
+      </div>
+    );
+  }
+
+  // 2. Working
+  if (working) {
+    return (
+      <div className="screen">
+        <div className="topbar"><h1>Your plan</h1></div>
+        <div style={{ textAlign: 'center', padding: '40px 0 10px' }}>
+          <div className="orb" style={{ width: 84, height: 84 }} />
+          <div className="plan-head" style={{ marginTop: 22 }}>Ben is finding the cheapest fix…</div>
+          <p className="plan-sub" key={latestStep ? String(latestStep.id) : 'start'} style={{ animation: 'bubbleIn 0.35s ease both', minHeight: 48 }}>
+            {latestStep?.message ?? 'Starting…'}
+          </p>
+        </div>
+        {stepsList("See how I'm figuring this out")}
+      </div>
+    );
+  }
+
+  // 1. Start
+  return (
+    <div className="screen">
+      <div className="topbar"><h1>Your plan</h1></div>
+      {sf ? (
         <>
-          <div className={`summary ${done ? '' : ''}`}>
-            {done ? (
-              <>
-                <strong>Gap closed. You'll end at {usd(m.forecast.lowPoint.balanceCents, { sign: true })}.</strong>
-                <div>Avoided a {usd(fees, { whole: true })} overdraft fee and saved {usd(saved)}. No loan, no fee.</div>
-              </>
-            ) : (
-              <>
-                <strong>Avoid a {usd(fees, { whole: true })} fee + save {usd(saved)}</strong>
-                <div>End the pay period at {usd(m.plan.after.lowPoint.balanceCents, { sign: true })} instead of {usd(sf?.balanceCents ?? 0)}.</div>
-              </>
-            )}
-          </div>
-
-          {jobActions.map((a, k) => {
-            const key = String(a.id);
-            const kind = KIND[a.kind] ?? { icon: 'sparkle' as IconName, color: 'blue' as const };
-            return (
-              <div className="plan-card" key={key} style={{ animationDelay: `${k * 0.08}s` }}>
-                <div className="row">
-                  <Glyph name={kind.icon} color={kind.color} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3>{a.title}</h3>
-                    <div className="detail">{a.detail}</div>
-                  </div>
-                  <div className="save">
-                    {a.feeAvoidedCents > 0n ? usd(Number(a.feeAvoidedCents), { whole: true }) : usd(Number(a.savingsCents))}
-                    <small>{a.feeAvoidedCents > 0n ? 'fee avoided' : 'saved'}</small>
-                  </div>
-                </div>
-                {openWhy === key && <div className="why">{language === 'es' ? a.whyEs : a.whyEn}</div>}
-                <div className="actions">
-                  <button className="pill" onClick={() => setOpenWhy(openWhy === key ? null : key)}>
-                    <Icon name="sparkle" size={16} /> {openWhy === key ? 'Hide' : 'Why?'}
-                  </button>
-                  {a.status === 'proposed' ? (
-                    <>
-                      <button className="pill" onClick={() => call(conn?.reducers.rejectAction({ actionId: a.id }).then(() => conn?.reducers.closeJobIfSettled({ jobId: a.jobId })))}>Skip</button>
-                      <button className="pill dark" onClick={() => call(conn?.reducers.approveAction({ actionId: a.id }))}>Approve</button>
-                    </>
-                  ) : (
-                    <span className="status-done" style={{ flex: 1, justifyContent: 'center', color: a.status === 'executed' ? 'var(--green)' : 'var(--ink-3)' }}>
-                      {a.status === 'executed' ? <><Icon name="check" size={18} stroke={3} /> Done</> : a.status === 'approved' ? <><span className="spinner" /> Doing it…</> : a.status === 'rejected' ? 'Skipped' : 'Failed'}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-
-          {done && (
-            <div style={{ marginTop: 16 }}>
-              <button className="btn green" onClick={onDone}>See my new forecast</button>
-            </div>
-          )}
-        </>
-      )}
-
-      {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
-
-      {/* Floating approve bar (Fuse) */}
-      {open.length > 1 && job && createPortal(
-        <div style={{ position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: 'calc(88px + var(--safe-b))', width: 'min(440px, calc(100% - 24px))', zIndex: 15 }}>
-          <button className="btn" style={{ boxShadow: '0 12px 30px rgba(17,17,17,0.25)' }} onClick={() => call(conn?.reducers.approveAll({ jobId: job.id }))}>
-            <Icon name="check" stroke={3} /> Approve all {open.length}
+          <div className="eyebrow">Without changes</div>
+          <BigMoney cents={sf.balanceCents} tone="red" />
+          <div className="plan-head" style={{ fontSize: 24, marginTop: 10 }}>You'll be {usd(-sf.balanceCents, { whole: true })} short on {day(sf.date)}.</div>
+          <p className="plan-sub">That's {sf.daysBeforePayday} days before payday. I can find a fix in a few seconds, and nothing changes until you say so.</p>
+          <button className="btn" disabled={!isActive} onClick={() => { setShowSteps(false); setReview(false); call(conn?.reducers.requestPlan({})); }}>
+            <Icon name="sparkle" /> Find a fix
           </button>
-        </div>,
-        document.body
+          {job?.status === 'failed' && <p className="small" style={{ color: 'var(--red)' }}>Something went wrong. Tap Find a fix to try again.</p>}
+        </>
+      ) : (
+        <div className="done-hero">
+          <div className="check-big"><Icon name="check" size={40} stroke={3} /></div>
+          <div className="plan-head">You're covered</div>
+          <p className="plan-sub">The least you'll have before payday is {usd(m.forecast.lowPoint.balanceCents)} on {day(m.forecast.lowPoint.date)}. Nothing to fix right now.</p>
+        </div>
       )}
+      {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
     </div>
   );
 }

@@ -2,17 +2,17 @@
    Calm and kind: red/green are used ONLY for money status. */
 
 :root {
-  --bg: #f8f6f2; /* warm off-white (Cleo AI) */
+  --bg: #ffffff; /* white (tester feedback: consistent, clean) */
   --glow-peach: rgba(244, 214, 178, 0.85); /* Bevel aura */
   --glow-pink: rgba(240, 206, 234, 0.85);
   --warm-shadow: 0 6px 20px rgba(120, 90, 110, 0.08);
   --surface: #ffffff;
-  --surface-2: #f1efea;
+  --surface-2: #f4f4f2;
   --ink: #111111;
   --ink-2: #3f3f3f; /* body text: darker than typical fintech greys for readability */
   --ink-3: #6a6a6a; /* labels: still >= 4.5:1 on white */
   --ink-cents: #9b9b9b; /* greyed cents on big numbers only (large text) */
-  --line: #e7e4dd;
+  --line: #ececea;
   --red: #d64545;
   --red-soft: #fdeceb;
   --green: #1d8f53;
@@ -370,3 +370,62 @@ input { font: inherit; }
 .bank-row { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 20px; background: var(--surface); box-shadow: var(--shadow); width: 100%; text-align: left; }
 .bank-logo { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-weight: 800; flex: none; }
 .note { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink-3); margin-top: 14px; }
+
+
+/* ===================== Tester-feedback polish ===================== */
+/* Cards on white: light border + soft shadow (Fuse) */
+.card, .tile, .list, .plan-card, .fix-card, .bank-row { border: 1px solid var(--line); }
+
+/* Onboarding: each step has its own soft gradient at the bottom (Fuse-style color cycling) */
+.onb { position: relative; isolation: isolate; background: #fff; }
+.onb::after {
+  content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 46vh; z-index: -1; pointer-events: none;
+  background: radial-gradient(120% 70% at 50% 100%, var(--step-color, #3b6ff5) 0%, transparent 70%);
+  opacity: 0.22; transition: background 0.5s;
+}
+.onb.blue { --step-color: #3b6ff5; }
+.onb.purple { --step-color: #7c5cf2; }
+.onb.orange { --step-color: #f2771e; }
+.onb .progress span.on { background: var(--step-color, var(--ink)); }
+.step-in { animation: stepIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes stepIn { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+.step-out { animation: stepOut 0.28s ease both; }
+@keyframes stepOut { to { opacity: 0; transform: translateX(-28px); } }
+.title-out { animation: titleOut 0.4s ease both; }
+@keyframes titleOut { to { opacity: 0; transform: translateY(-20px) scale(0.98); } }
+.onb .stack { gap: 14px; }
+.bank-row { padding: 18px; }
+
+/* Home: whole-screen status glow (green = covered, red = short) */
+.status-glow { position: fixed; inset: 0; pointer-events: none; z-index: 0; transition: box-shadow 1.2s ease; }
+.status-glow.red { box-shadow: inset 0 0 120px rgba(214, 69, 69, 0.16); }
+.status-glow.green { box-shadow: inset 0 0 120px rgba(29, 143, 83, 0.16); }
+.screen { position: relative; z-index: 1; }
+
+.section-title { font-size: 22px; margin: 32px 0 4px; }
+.section-sub { font-size: 15px; color: var(--ink-3); margin: 0 0 12px; }
+
+/* Health tiles: tinted, with a visible tap cue */
+.tile { position: relative; min-height: 132px; }
+.tile .tap { position: absolute; top: 12px; right: 12px; font-size: 13px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border-radius: 999px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 2px; }
+.tile.t-red { background: #fff6f5; }
+.tile.t-green { background: #f3fbf6; }
+.tile.t-blue { background: #f4f7ff; }
+.tile.t-orange { background: #fff8f1; }
+.tile.t-purple { background: #f7f4ff; }
+.tile.t-teal { background: #f0fbf9; }
+
+.due { font-size: 14px; color: var(--ink-3); }
+.amt.scheduled { color: var(--ink-2); font-weight: 600; }
+
+/* Plan (simplified) */
+.plan-head { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin: 4px 0 8px; }
+.plan-sub { font-size: 17px; color: var(--ink-2); margin: 0 0 20px; }
+.fix { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: var(--radius); background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); animation: bubbleIn 0.4s ease both; }
+.fix + .fix { margin-top: 12px; }
+.fix h3 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+.fix p { margin: 4px 0 0; font-size: 15px; color: var(--ink-2); }
+.fix .chip-save { display: inline-flex; margin-top: 8px; font-size: 14px; font-weight: 700; color: var(--green); background: var(--green-soft); border-radius: 999px; padding: 4px 10px; }
+.linkish { color: var(--ink-2); font-weight: 600; font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+.done-hero { text-align: center; padding: 20px 0 8px; }
+.done-hero .check-big { width: 72px; height: 72px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; margin: 0 auto 14px; animation: pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }

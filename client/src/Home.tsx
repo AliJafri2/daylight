@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import BalanceLine from './BalanceLine';
+import { addDays } from '../../shared/forecast.ts';
 import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
 
@@ -63,10 +64,11 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
     },
   ];
 
-  const upcoming = f.days.slice(1).flatMap(d => d.events.map(e => ({ ...e, date: d.date }))).slice(0, 5);
+  const upcoming = f.days.slice(1).filter(d => d.date <= addDays(f.asOf, 14)).flatMap(d => d.events.map(e => ({ ...e, date: d.date })));
 
   return (
     <div className="screen">
+      <div className={`status-glow ${sf ? 'red' : 'green'}`} aria-hidden="true" />
       <div className="topbar">
         <h1>Hi, {name}!</h1>
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
@@ -75,13 +77,13 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
       <div className="eyebrow">Before payday · {f.nextPayday ? day(f.nextPayday) : '—'}</div>
       {sf ? (
         <>
-          <BigMoney cents={-sf.balanceCents} tone="red" suffix="short" />
-          <div className="hero-sub">on {day(sf.date)}, {sf.daysBeforePayday} days before payday</div>
+          <BigMoney cents={sf.balanceCents} tone="red" />
+          <div className="hero-sub">Your balance on {day(sf.date)}, {sf.daysBeforePayday} days before payday. You'd be ${(-sf.balanceCents / 100).toFixed(0)} short.</div>
         </>
       ) : (
         <>
           <BigMoney cents={low.balanceCents} tone="green" suffix="left" />
-          <div className="hero-sub">at your lowest point ({day(low.date)}). You're covered.</div>
+          <div className="hero-sub">The least you'll have before payday ({day(low.date)}). You're covered.</div>
         </>
       )}
 
@@ -101,9 +103,11 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
       )}
 
       <div className="section-title">Your health</div>
+      <p className="section-sub">Tap any card to see why.</p>
       <div className="tiles">
         {tiles.map(t => (
-          <button key={t.label} className="tile" onClick={() => setWhy(t.why)}>
+          <button key={t.label} className={`tile t-${t.color}`} onClick={() => setWhy(t.why)} aria-label={`${t.value} ${t.label}. Tap for why`}>
+            <span className="tap">Why? <Icon name="chevron" size={14} /></span>
             <Glyph name={t.icon} color={t.color} />
             <span style={{ marginTop: 'auto' }}>
               <span className="value" style={{ display: 'block' }}>{t.value}</span>
@@ -114,6 +118,7 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
       </div>
 
       <div className="section-title">Coming up</div>
+      <p className="section-sub">Scheduled for the next two weeks. Nothing here has been paid yet.</p>
       <div className="list">
         {upcoming.map((e, k) => (
           <div className="list-row" key={k}>
@@ -121,9 +126,9 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
               color={e.kind === 'income' ? 'green' : e.label.startsWith('Gas') ? 'orange' : e.label.startsWith('Groceries') ? 'teal' : 'blue'} size={32} />
             <div className="main">
               <div className="name">{e.label}</div>
-              <div className="sub">{day(e.date)}</div>
+              <div className="due">{e.kind === 'income' ? 'Arrives' : 'Due'} {day(e.date)}</div>
             </div>
-            <div className={`amt ${e.amountCents > 0 ? 'pos' : ''}`}>{usd(e.amountCents, { sign: e.amountCents > 0 })}</div>
+            <div className={`amt ${e.amountCents > 0 ? 'pos' : 'scheduled'}`}>{e.amountCents > 0 ? usd(e.amountCents, { sign: true }) : usd(-e.amountCents)}</div>
           </div>
         ))}
       </div>
@@ -140,7 +145,7 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
             <h2>{why.title}</h2>
             <p style={{ color: 'var(--ink-2)', fontSize: 17, marginTop: 0 }}>{why.body}</p>
             <div className="stack">
-              <button className="btn" onClick={() => { onAsk(why.ask); setWhy(null); }}>Ask MinMax: "{why.ask}"</button>
+              <button className="btn" onClick={() => { onAsk(why.ask); setWhy(null); }}>Ask Ben: "{why.ask}"</button>
               <button className="btn secondary" onClick={() => setWhy(null)}>Got it</button>
             </div>
           </div>

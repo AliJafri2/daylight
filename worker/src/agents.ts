@@ -142,15 +142,33 @@ function actionRow(jobId: bigint, a: PlanAction, why: { en: string; es: string }
     billId: undefined as bigint | undefined, newDate: undefined as string | undefined,
     spendId: undefined as bigint | undefined, spendDeltaCents: undefined as bigint | undefined, newPlace: undefined as string | undefined,
   };
+  const weekday = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
   if (a.kind === 'move_bill') {
-    return { ...base, title: `Pay ${a.payee.toLowerCase()} on ${day(a.toDate)}`, detail: `${usd(a.amountCents)} · moves from ${day(a.fromDate)} to the day after payday`, billId: BigInt(a.billId), newDate: a.toDate };
+    const days = Math.round((Date.parse(a.toDate) - Date.parse(a.fromDate)) / 86_400_000);
+    const later = days % 7 === 0 ? `${days / 7} week${days === 7 ? '' : 's'} later` : `${days} days later`;
+    return {
+      ...base,
+      title: `Pay ${a.payee.toLowerCase()} ${later}`,
+      detail: `On ${day(a.toDate)}, the day after payday, instead of ${day(a.fromDate)}. No late fee.`,
+      billId: BigInt(a.billId), newDate: a.toDate,
+    };
   }
   if (a.kind === 'grocery_swap') {
     const o = a.option;
-    return { ...base, title: `Shop at ${o.place} on ${day(a.date)}`, detail: `Your ${o.items.length} usual items: ${usd(o.basketCents)} instead of ${usd(o.usualBasketCents)} at ${a.fromPlace}`, spendId: BigInt(a.spendId), spendDeltaCents: BigInt(-a.savingsCents), newPlace: o.place };
+    return {
+      ...base,
+      title: `Shop at ${o.place} on ${weekday(a.date)}`,
+      detail: `Same ${o.items.length} groceries for ${usd(o.basketCents)} instead of ${usd(o.usualBasketCents)} at ${a.fromPlace}, even counting the drive.`,
+      spendId: BigInt(a.spendId), spendDeltaCents: BigInt(-a.savingsCents), newPlace: o.place,
+    };
   }
   const o = a.option;
-  return { ...base, title: `Fill up at ${o.place} on ${day(a.date)}`, detail: `${usd(o.priceCents)}/gal vs ${a.fromPlace} · ${o.extraRoundTripMiles.toFixed(1)} extra miles counted`, spendId: BigInt(a.spendId), spendDeltaCents: BigInt(-a.savingsCents), newPlace: o.place };
+  return {
+    ...base,
+    title: `Get gas at ${o.place} on ${weekday(a.date)}`,
+    detail: `${usd(o.priceCents)} a gallon instead of ${usd(Math.round(o.priceCents + (o.grossSavingsCents / o.gallons)))} at ${a.fromPlace}, even counting the drive.`,
+    spendId: BigInt(a.spendId), spendDeltaCents: BigInt(-a.savingsCents), newPlace: o.place,
+  };
 }
 
 // ---------- Executor (only after the user's approval) ----------

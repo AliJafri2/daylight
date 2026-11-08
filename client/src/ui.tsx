@@ -66,7 +66,7 @@ export function BigMoney({ cents, tone, suffix }: { cents: number; tone?: 'red' 
   const c = String(abs % 100).padStart(2, '0');
   return (
     <div className={`big-money ${tone ?? ''}`}>
-      {tone === 'green' && cents > 0 ? '+' : ''}${dollars}
+      {cents < 0 ? '−' : ''}${dollars}
       <span className="cents">.{c}</span>
       {suffix && <span className="big-suffix">{suffix}</span>}
     </div>
