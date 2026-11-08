@@ -728,7 +728,7 @@ input { font: inherit; }
 .ring-wrap { display: flex; flex-direction: column; align-items: center; margin: 22px 0 6px; }
 .ring-box { position: relative; }
 .ring-box svg { display: block; overflow: visible; }
-.ring-wrap.red .ring-track { stroke: #fde4e3; transition: stroke 0.8s; }
+.ring-wrap.red .ring-track { stroke: #e9f5ee; transition: stroke 0.8s; }
 .ring-wrap.green .ring-track { stroke: #dcf3e6; transition: stroke 0.8s; }
 .ring-arrow { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: #fff; display: grid; place-items: center; }
 .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -741,3 +741,12 @@ input { font: inherit; }
 .ring-stat-v { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink-2); }
 .ring-wrap.red .ring-col { color: var(--red); }
 .ring-wrap.green .ring-col { color: var(--green); }
+
+/* Missing part of the ring: glowing, pulsing red warning */
+.ring-gap { animation: fade 0.4s ease both; }
+.ring-gap-core { animation: gapCore 1.6s ease-in-out infinite; }
+.ring-gap-halo { animation: gapHalo 1.6s ease-in-out infinite; }
+@keyframes gapCore { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@keyframes gapHalo { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.85; } }
+.ring-wrap.red .ring-big { animation: gapText 1.6s ease-in-out infinite; }
+@keyframes gapText { 50% { text-shadow: 0 0 18px rgba(255, 59, 48, 0.35); } }

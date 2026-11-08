@@ -57,6 +57,9 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
             <linearGradient id="ring-green" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stopColor="#3ccf87" /><stop offset="1" stopColor="#1d8f53" />
             </linearGradient>
+            <filter id="ring-gap-glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="7" />
+            </filter>
             <filter id="ring-end" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="0" stdDeviation={THICK * 0.14} floodColor="rgba(0,0,0,0.45)" />
             </filter>
@@ -65,8 +68,17 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
           <circle cx={c} cy={c} r={r} fill="none" className="ring-track" strokeWidth={THICK} />
           <g transform={`rotate(-90 ${c} ${c})`}>
             {/* first lap */}
-            <circle cx={c} cy={c} r={r} fill="none" stroke={`url(#ring-${tone})`} strokeWidth={THICK}
+            <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
               strokeLinecap="round" strokeDasharray={`${Math.max(0.0001, first) * C} ${C}`} />
+            {/* the missing part: a red arc that glows and pulses (only once the fill has arrived) */}
+            {!closed && p >= target - 0.002 && (
+              <g className="ring-gap" style={{ ['--gap-off' as string]: `${-target * C}` }}>
+                <circle cx={c} cy={c} r={r} fill="none" stroke="#ff3b30" strokeWidth={THICK + 10}
+                  strokeDasharray={`${(1 - target) * C} ${C}`} strokeDashoffset={-target * C} filter="url(#ring-gap-glow)" className="ring-gap-halo" />
+                <circle cx={c} cy={c} r={r} fill="none" stroke="#ff3b30" strokeWidth={THICK}
+                  strokeDasharray={`${(1 - target) * C} ${C}`} strokeDashoffset={-target * C} className="ring-gap-core" />
+              </g>
+            )}
             {/* overflow lap: money left over */}
             {p > 1 && (
               <circle cx={c} cy={c} r={r} fill="none" stroke={`url(#ring-${tone})`} strokeWidth={THICK}
@@ -74,7 +86,7 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
             )}
           </g>
         </svg>
-        <span className="ring-arrow" aria-hidden="true"><Icon name="arrowRight" size={20} stroke={3} /></span>
+        <span className="ring-arrow" aria-hidden="true" style={{ opacity: p > 0.02 ? 1 : 0 }}><Icon name="arrowRight" size={20} stroke={3} /></span>
         <div className="ring-center">
           {closed ? (
             <>
