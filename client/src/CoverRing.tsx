@@ -34,8 +34,11 @@ function useRingProgress(target: number) {
 
 export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: number; haveCents: number; payday?: string }) {
   const target = dueCents > 0 ? haveCents / dueCents : 2;
-  const p = useRingProgress(target);
   const closed = target >= 1;
+  const redFrac = closed ? 0 : Math.max(1 - target, 0.07); // red block is at least 7% so it's visible
+  const greenEnd = 1 - redFrac;
+  const p = useRingProgress(closed ? target : greenEnd);
+  const filled = !closed && p >= greenEnd - 0.002;
   const r = (SIZE - THICK) / 2;
   const c = SIZE / 2;
   const C = 2 * Math.PI * r;
@@ -64,23 +67,29 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
               <feDropShadow dx="0" dy="0" stdDeviation={THICK * 0.14} floodColor="rgba(0,0,0,0.45)" />
             </filter>
           </defs>
-          {/* track */}
-          <circle cx={c} cy={c} r={r} fill="none" className="ring-track" strokeWidth={THICK} />
-          <g transform={`rotate(-90 ${c} ${c})`}>
-            {/* first lap */}
-            <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
-              strokeLinecap="round" strokeDasharray={`${Math.max(0.0001, first) * C} ${C}`} />
-            {/* overflow lap: money left over */}
-            {p > 1 && (
-              <circle cx={c} cy={c} r={r} fill="none" stroke={`url(#ring-${tone})`} strokeWidth={THICK}
-                strokeLinecap="round" strokeDasharray={`${lap * C} ${C}`} filter="url(#ring-end)" />
-            )}
-          </g>
-          {/* The missing part: a rounded-square ring segment drawn on top (hides the green caps),
-              glowing in its own shape and pulsing. Minimum 7% so a small gap is still visible. */}
-          {!closed && p >= target - 0.002 && (
-            <path className="ring-gap" d={gapPath(c, r, THICK, Math.min(target, 0.93))} fill="#ff3b30"
-              stroke="#ff3b30" strokeWidth={8} strokeLinejoin="round" filter="url(#ring-gap-glow)" />
+          {/* track (hidden once the red block appears, so nothing sits under the red) */}
+          <circle cx={c} cy={c} r={r} fill="none" className="ring-track" strokeWidth={THICK}
+            style={{ opacity: filled ? 0 : 1, transition: 'opacity 0.3s' }} />
+          {closed ? (
+            <g transform={`rotate(-90 ${c} ${c})`}>
+              {/* first lap */}
+              <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
+                strokeLinecap="round" strokeDasharray={`${Math.max(0.0001, first) * C} ${C}`} />
+              {/* overflow lap: money left over */}
+              {p > 1 && (
+                <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
+                  strokeLinecap="round" strokeDasharray={`${lap * C} ${C}`} filter="url(#ring-end)" />
+              )}
+            </g>
+          ) : (
+            <>
+              {/* Short: two segments that never overlap. Green = covered, red = missing. */}
+              {p > 0.01 && <path d={sector(c, r, THICK, 0, Math.min(p, greenEnd))} fill="url(#ring-green)" stroke="url(#ring-green)" strokeWidth={8} strokeLinejoin="round" />}
+              {filled && (
+                <path className="ring-gap" d={sector(c, r, THICK, greenEnd, 1)} fill="#ff3b30"
+                  stroke="#ff3b30" strokeWidth={8} strokeLinejoin="round" filter="url(#ring-gap-glow)" />
+              )}
+            </>
           )}
         </svg>
         <span className="ring-arrow" aria-hidden="true" style={{ opacity: p > 0.02 ? 1 : 0 }}><Icon name="arrowRight" size={20} stroke={3} /></span>
@@ -121,19 +130,16 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
   );
 }
 
-/** Annulus sector from `fromFrac` of the way round (clockwise from 12 o'clock) back to the top.
- *  Shrunk by 4px on every side; the 8px round-joined stroke then gives it rounded-square corners. */
-function gapPath(c: number, r: number, thick: number, fromFrac: number) {
+/** Ring segment from `from` to `to` (fractions of the way round, clockwise from 12 o'clock).
+ *  Shrunk 4px on every side; the 8px round-joined stroke gives rounded-square corners and leaves
+ *  a thin seam between neighbouring segments. */
+function sector(c: number, r: number, thick: number, from: number, to: number) {
   const inset = 4;
   const ro = r + thick / 2 - inset;
   const ri = r - thick / 2 + inset;
-  const a1 = fromFrac * 2 * Math.PI + inset / r;
-  const a2 = 2 * Math.PI - inset / r;
-  const pt = (rad: number, a: number) => {
-    const x = c + rad * Math.sin(a);
-    const y = c - rad * Math.cos(a);
-    return `${x.toFixed(2)} ${y.toFixed(2)}`;
-  };
+  const a1 = from * 2 * Math.PI + (inset + 2) / r;
+  const a2 = Math.max(a1 + 0.001, to * 2 * Math.PI - (inset + 2) / r);
+  const pt = (rad: number, a: number) => `${(c + rad * Math.sin(a)).toFixed(2)} ${(c - rad * Math.cos(a)).toFixed(2)}`;
   const large = a2 - a1 > Math.PI ? 1 : 0;
   return `M ${pt(ro, a1)} A ${ro} ${ro} 0 ${large} 1 ${pt(ro, a2)} L ${pt(ri, a2)} A ${ri} ${ri} 0 ${large} 0 ${pt(ri, a1)} Z`;
 }
