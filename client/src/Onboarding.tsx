@@ -204,7 +204,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
         <div className="powers" style={i(5)}>
           {[
             ['See trouble coming', "I forecast your balance every day until payday, so you'll know 2 weeks early if you'll be behind on a payment."],
-            ['Find the cheapest fix', 'I compare your bills, grocery stores and gas stations to find you savings.'],
+            ['Find the easy fixes', 'I compare your bills, grocery stores and gas stations to find you savings.'],
             ['You stay in control', 'I suggest, you decide. Nothing changes until you tap approve.'],
           ].map(([t, d], k) => (
             <div className="power" key={t} style={{ animationDelay: `${0.45 + k * 0.12}s` }}>
