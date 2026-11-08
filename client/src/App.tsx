@@ -84,6 +84,8 @@ export default function App() {
       {tab === 'accounts' && <Accounts m={m} syncedAgo={syncedAgo} />}
 
       <nav className="tabbar" aria-label="Main">
+        <span className="tab-indicator" aria-hidden="true"
+          style={{ transform: `translateX(calc(${TABS.findIndex(t => t.id === tab)} * (100% + 8px)))` }} />
         {TABS.map(t => (
           <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}>
             <Icon name={t.icon} size={22} />

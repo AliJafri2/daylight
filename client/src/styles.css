@@ -429,3 +429,77 @@ input { font: inherit; }
 .linkish { color: var(--ink-2); font-weight: 600; font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
 .done-hero { text-align: center; padding: 20px 0 8px; }
 .done-hero .check-big { width: 72px; height: 72px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; margin: 0 auto 14px; animation: pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+
+/* ===================== Motion polish ===================== */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);      /* silky deceleration */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* tiny overshoot */
+}
+
+/* Screen change: soft fade + rise, no jank */
+.screen { animation: screenIn 0.45s var(--ease-out) backwards; }
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.995); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Staggered entrance: give children style={{'--i': n}} */
+.rise { animation: rise 0.55s var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* Pressable surfaces: gentle press + spring back */
+.tile, .fix-card, .bank-row, .card, .pill, .chip, .btn, .icon-btn, .tab {
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s var(--ease-out), background 0.25s, opacity 0.2s;
+}
+.tile:active, .fix-card:active, .bank-row:active, .pill:active, .chip:active, .icon-btn:active { transform: scale(0.97); }
+.btn:active { transform: scale(0.98); }
+@media (hover: hover) {
+  .tile:hover, .fix-card:hover, .bank-row:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(17,17,17,0.04), 0 12px 28px rgba(120, 90, 110, 0.10); }
+  .btn:hover { transform: translateY(-1px); }
+}
+
+/* Tab bar: sliding glass indicator behind the active tab */
+.tabbar { overflow: hidden; }
+.tab-indicator {
+  position: absolute; top: 6px; bottom: 6px; width: calc(25% - 8px); left: 4px;
+  border-radius: 22px; background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 10px rgba(17, 17, 17, 0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+  transition: transform 0.45s var(--ease-spring);
+}
+.tab { position: relative; z-index: 1; }
+.tab.active svg { animation: tabPop 0.4s var(--ease-spring); }
+@keyframes tabPop { 40% { transform: scale(1.18) translateY(-1px); } }
+
+/* Chart: line draws itself in, dot pulses */
+.chart .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.1s var(--ease-out) 0.15s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.chart .low-dot { transform-box: fill-box; transform-origin: center; animation: dotIn 0.5s var(--ease-spring) 1s both; }
+.chart .low-pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.4s ease-out 1.2s infinite; }
+@keyframes dotIn { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(3.2); opacity: 0; } }
+
+/* Big number: smooth color shift when red turns green */
+.big-money, .big-money .cents { transition: color 0.8s var(--ease-out); }
+
+/* Sheets: blurred backdrop + spring */
+.backdrop { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); background: rgba(17, 17, 17, 0.18); }
+.sheet { animation: sheetIn 0.5s var(--ease-out) both; }
+
+/* Done celebration: soft green rings expanding from the check */
+.celebrate { position: relative; width: 72px; height: 72px; margin: 0 auto 14px; }
+.celebrate .check-big { margin: 0; position: relative; z-index: 1; }
+.celebrate i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--green); opacity: 0; animation: ring 1.6s var(--ease-out) forwards; }
+.celebrate i:nth-child(2) { animation-delay: 0.25s; }
+.celebrate i:nth-child(3) { animation-delay: 0.5s; }
+@keyframes ring { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.6); opacity: 0; } }
+
+/* Status glow breathes very slightly */
+.status-glow { animation: breathe 5s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: 0.75; } }
+
+/* Toast slides with spring */
+.toast { animation: toastIn 0.45s var(--ease-spring) both; }
+
+/* Typing dots + bubbles already animate; make bubbles springier */
+.bubble { animation: bubbleIn 0.45s var(--ease-spring) both; }
+.fix, .plan-card, .power { animation-timing-function: var(--ease-out); }

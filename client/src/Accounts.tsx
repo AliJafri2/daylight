@@ -54,11 +54,11 @@ export default function Accounts({ m, syncedAgo }: { m: Money; syncedAgo: string
 
       <div className="section-title">All accounts</div>
       <div className="list">
-        {m.accounts.map(a => {
+        {m.accounts.map((a, idx) => {
           const k = KIND[a.kind] ?? { icon: 'wallet' as IconName, color: 'blue' as const, label: a.kind };
           const isDebt = debt.has(a.kind);
           return (
-            <div className="list-row" key={a.nickname}>
+            <div className="list-row rise" key={a.nickname} style={{ ['--i' as string]: idx }}>
               <Glyph name={k.icon} color={k.color} size={36} />
               <div className="main">
                 <div className="name">{a.nickname}</div>

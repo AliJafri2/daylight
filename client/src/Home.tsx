@@ -74,6 +74,7 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
       </div>
 
+      <div className="rise" style={{ ['--i' as string]: 0 }}>
       <div className="eyebrow">Before payday · {f.nextPayday ? day(f.nextPayday) : '—'}</div>
       {sf ? (
         <>
@@ -87,10 +88,12 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         </>
       )}
 
-      <BalanceLine forecast={f} />
+      </div>
+
+      <div className="rise" style={{ ['--i' as string]: 1 }}><BalanceLine forecast={f} /></div>
 
       {sf && plan.actions.length > 0 && (
-        <button className="fix-card" onClick={onOpenPlan}>
+        <button className="fix-card rise" style={{ ['--i' as string]: 2 }} onClick={onOpenPlan}>
           <Glyph name="sparkle" color="green" />
           <span>
             <span className="title">I found a fix</span>
@@ -105,8 +108,8 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
       <div className="section-title">Your health</div>
       <p className="section-sub">Tap any card to see why.</p>
       <div className="tiles">
-        {tiles.map(t => (
-          <button key={t.label} className={`tile t-${t.color}`} onClick={() => setWhy(t.why)} aria-label={`${t.value} ${t.label}. Tap for why`}>
+        {tiles.map((t, k) => (
+          <button key={t.label} className={`tile t-${t.color} rise`} style={{ ['--i' as string]: 3 + k }} onClick={() => setWhy(t.why)} aria-label={`${t.value} ${t.label}. Tap for why`}>
             <span className="tap">Why? <Icon name="chevron" size={14} /></span>
             <Glyph name={t.icon} color={t.color} />
             <span style={{ marginTop: 'auto' }}>
@@ -121,7 +124,7 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
       <p className="section-sub">Scheduled for the next two weeks. Nothing here has been paid yet.</p>
       <div className="list">
         {upcoming.map((e, k) => (
-          <div className="list-row" key={k}>
+          <div className="list-row rise" key={k} style={{ ['--i' as string]: 7 + k }}>
             <Glyph name={e.kind === 'income' ? 'arrowUp' : e.label.startsWith('Gas') ? 'gas' : e.label.startsWith('Groceries') ? 'cart' : 'bill'}
               color={e.kind === 'income' ? 'green' : e.label.startsWith('Gas') ? 'orange' : e.label.startsWith('Groceries') ? 'teal' : 'blue'} size={32} />
             <div className="main">

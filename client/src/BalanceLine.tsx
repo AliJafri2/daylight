@@ -57,9 +57,10 @@ export default function BalanceLine({ forecast }: { forecast: Forecast }) {
         </defs>
         <path d={`${path} L${x(vals.length - 1)},${H} L${x(0)},${H} Z`} fill="url(#fillG)" clipPath="url(#above)" />
         <line x1="0" x2={W} y1={zeroY} y2={zeroY} stroke="#cfcac1" strokeDasharray="3 4" strokeWidth="1" />
-        <path d={path} fill="none" stroke={negative ? '#111' : '#1d8f53'} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" clipPath="url(#above)" style={{ transition: 'stroke 0.6s' }} />
-        <path d={path} fill="none" stroke="#d64545" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" clipPath="url(#below)" />
-        <circle cx={x(lowIdx)} cy={y(vals[lowIdx])} r="4.5" fill={vals[lowIdx] < 0 ? '#d64545' : '#1d8f53'} stroke="#fff" strokeWidth="2" />
+        <path className="draw" pathLength={1} d={path} fill="none" stroke={negative ? '#111' : '#1d8f53'} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" clipPath="url(#above)" style={{ transition: 'stroke 0.6s' }} />
+        <path className="draw" pathLength={1} d={path} fill="none" stroke="#d64545" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" clipPath="url(#below)" />
+        <circle className="low-pulse" cx={x(lowIdx)} cy={y(vals[lowIdx])} r="4.5" fill={vals[lowIdx] < 0 ? '#d64545' : '#1d8f53'} />
+        <circle className="low-dot" cx={x(lowIdx)} cy={y(vals[lowIdx])} r="4.5" fill={vals[lowIdx] < 0 ? '#d64545' : '#1d8f53'} stroke="#fff" strokeWidth="2" />
       </svg>
       <div className="chart-legend">
         <span>Today</span>

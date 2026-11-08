@@ -111,7 +111,7 @@ export default function Plan({ m, language, onDone }: { m: Money; language: stri
       <div className="screen">
         <div className="topbar"><h1>Your plan</h1></div>
         <div className="done-hero">
-          <div className="check-big"><Icon name="check" size={40} stroke={3} /></div>
+          <div className="celebrate"><i /><i /><i /><div className="check-big"><Icon name="check" size={40} stroke={3} /></div></div>
           <div className="plan-head">Done!</div>
           <p className="plan-sub">
             You'll have <strong style={{ color: 'var(--green)' }}>{usd(m.forecast.lowPoint.balanceCents)}</strong> on {day(gapDate ?? m.forecast.lowPoint.date)} instead of {usd(gapCents)}.

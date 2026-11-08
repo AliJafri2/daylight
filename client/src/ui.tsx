@@ -1,5 +1,5 @@
 // Small shared UI pieces: icons (inline SVG, no icon library), money formatting, big number.
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 const P = {
   home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
@@ -59,14 +59,37 @@ export const usd = (cents: number, opts: { sign?: boolean; whole?: boolean } = {
   return opts.sign ? `+${s}` : s;
 };
 
-/** Fuse-style big number: bold dollars, greyed cents. */
+/** Smoothly animates a number toward its target (count-up on mount, glide on change). */
+export function useAnimatedNumber(target: number, ms = 900) {
+  const [val, setVal] = useState(0);
+  const from = useRef(0);
+  useEffect(() => {
+    const start = performance.now();
+    const a = from.current;
+    let raf = 0;
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - start) / ms);
+      const e = 1 - Math.pow(1 - k, 4);
+      const v = a + (target - a) * e;
+      setVal(v);
+      from.current = v;
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms]);
+  return val;
+}
+
+/** Fuse-style big number: bold dollars, greyed cents. Counts up/down smoothly. */
 export function BigMoney({ cents, tone, suffix }: { cents: number; tone?: 'red' | 'green'; suffix?: ReactNode }) {
-  const abs = Math.abs(cents);
+  const shown = Math.round(useAnimatedNumber(cents));
+  const abs = Math.abs(shown);
   const dollars = Math.floor(abs / 100).toLocaleString('en-US');
   const c = String(abs % 100).padStart(2, '0');
   return (
-    <div className={`big-money ${tone ?? ''}`}>
-      {cents < 0 ? '−' : ''}${dollars}
+    <div className={`big-money ${tone ?? ''}`} aria-label={usd(cents)}>
+      {shown < 0 ? '−' : ''}${dollars}
       <span className="cents">.{c}</span>
       {suffix && <span className="big-suffix">{suffix}</span>}
     </div>
