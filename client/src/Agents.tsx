@@ -71,8 +71,8 @@ function Hub({ m, open }: { m: Money; open: (a: AgentKind) => void }) {
       : rJob?.status === 'done' ? { text: `Found +${usd(habits, { whole: true })} a month`, tone: 'green' }
         : { text: 'Not run yet', tone: 'muted' },
     invest: running(iJob) ? { text: 'Working…', tone: 'busy' }
-      : iJob?.status === 'done' && actions.some(x => x.jobId === iJob.id && x.kind === 'transfer' && x.status === 'executed')
-        ? { text: `${actions.find(x => x.jobId === iJob.id && x.kind === 'transfer' && x.status === 'executed')!.title}: scheduled`, tone: 'green' }
+      : actions.some(x => x.kind === 'transfer' && x.status === 'executed')
+        ? { text: `${actions.find(x => x.kind === 'transfer' && x.status === 'executed')!.title}: scheduled`, tone: 'green' }
       : iJob?.status === 'done' ? (nm.move ? { text: nm.move.title, tone: 'green' } : { text: sf ? 'Close the gap first' : 'Nothing spare yet', tone: 'muted' })
         : { text: 'Not run yet', tone: 'muted' },
   };
@@ -255,7 +255,19 @@ function Summary360() {
 
 // Investing agent result headline (with the same reveal as Research).
 function InvestHead({ m, reveal }: { m: Money; reveal: boolean }) {
+  const [actions] = useTable(tables.myActions);
   const nm = useMemo(() => nextBestMove(m.input, m.accounts), [m.input, m.accounts]);
+  const scheduled = actions.find(x => x.kind === 'transfer' && (x.status === 'executed' || x.status === 'approved'));
+  if (scheduled) {
+    return (
+      <div className={`agent-result-head ${reveal ? 'reveal' : ''}`}>
+        {reveal && <span className="reveal-glow" aria-hidden="true" />}
+        <div className="reveal-kicker">Ben's next move</div>
+        <div className="plan-head reveal-num"><span className="reveal-unit">Move </span>+<CountUp to={Number(scheduled.savingsCents)} animate={reveal} delay={350} ms={1000} /> <span className="reveal-unit">to savings</span></div>
+        <p className="plan-sub">Already scheduled with your bank. Next up: the card, then investing.</p>
+      </div>
+    );
+  }
   const blocked = !!m.forecast.shortfall || !nm.move;
   return (
     <div className={`agent-result-head ${reveal ? 'reveal' : ''}`}>

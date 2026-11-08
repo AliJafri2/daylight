@@ -649,8 +649,8 @@ export const scheduleMove = spacetimedb.reducer(
     const jobs = [...ctx.db.planJob.profileId.filter(m.profileId)].filter(j => j.kind === 'invest').sort((a, b) => (a.id < b.id ? 1 : -1));
     const job = jobs[0];
     if (!job || job.status !== 'done') throw new SenderError('Run the Investing agent first');
-    for (const a of ctx.db.planAction.jobId.filter(job.id)) {
-      if (a.kind === 'transfer' && a.status !== 'failed' && a.status !== 'rejected') throw new SenderError('Already scheduled');
+    for (const a of ctx.db.planAction.profileId.filter(m.profileId)) {
+      if (a.kind === 'transfer' && (a.status === 'approved' || a.status === 'executed')) throw new SenderError('A move to savings is already scheduled');
     }
     const dollars = (amountCents / 100n).toString();
     ctx.db.planAction.insert({

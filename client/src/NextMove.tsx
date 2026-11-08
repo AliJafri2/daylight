@@ -26,8 +26,9 @@ export default function NextMove({ m, jobId, reveal = false }: { m: Money; jobId
     [txns, m.input.asOf]
   );
   const nm = useMemo(() => nextBestMove(m.input, m.accounts, { habitsMonthlyCents: habits }), [m.input, m.accounts, habits]);
+  // Any move already scheduled (from this run or an earlier one) wins over a fresh suggestion.
   const scheduled = jobId === undefined ? undefined
-    : [...actions].filter(a => a.jobId === jobId && a.kind === 'transfer').sort((a, b) => (a.id < b.id ? 1 : -1))[0];
+    : [...actions].filter(a => a.kind === 'transfer' && a.status !== 'rejected').sort((a, b) => (a.id < b.id ? 1 : -1))[0];
 
   const schedule = () => {
     if (!nm.move) return;
@@ -43,9 +44,22 @@ export default function NextMove({ m, jobId, reveal = false }: { m: Money; jobId
       <div className={`nm-hero ${reveal ? 'reveal-in' : ''}`} style={reveal ? { animationDelay: '1.0s', ['--sweep' as string]: '1.4s' } : undefined}>
         <div className="nm-title">{scheduled.title}</div>
         <div className="nm-detail">{scheduled.newDate ? `On ${day(scheduled.newDate)}, the day after payday.` : ''}</div>
-        <div className={`nm-status ${doneNow ? 'ok' : ''}`}>
-          {doneNow ? <><Icon name="check" size={16} stroke={3} /> Scheduled in your bank</> : <><span className="spinner" /> Scheduling with your bank…</>}
-        </div>
+        {doneNow ? (
+          <div className="nm-receipt">
+            <div className="nm-receipt-h"><Icon name="check" size={16} stroke={3} /> Scheduled with Capital One</div>
+            <div className="nm-receipt-row">
+              <span>{m.accounts.find(x => x.kind === 'checking')?.nickname ?? 'Checking'}</span>
+              <Icon name="arrowRight" size={14} />
+              <span>{m.accounts.find(x => x.kind === 'savings')?.nickname ?? 'Savings'}</span>
+            </div>
+            <div className="nm-receipt-meta">
+              {usd(Number(scheduled.savingsCents), { whole: true })}{scheduled.newDate ? ` · ${day(scheduled.newDate)}` : ''}
+              {scheduled.nessieRef ? ` · Confirmation ${scheduled.nessieRef.slice(-6).toUpperCase()}` : ''}
+            </div>
+          </div>
+        ) : (
+          <div className="nm-status"><span className="spinner" /> Scheduling with your bank…</div>
+        )}
       </div>
     );
   } else if (nm.move) {
