@@ -5,6 +5,7 @@ import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import type { DbConnection } from './module_bindings';
 import { useMoney } from './engine';
 import CloseTheGap from './CloseTheGap';
+import Coach from './Coach';
 
 const money = (cents: bigint) =>
   (Number(cents) / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -59,6 +60,12 @@ export default function App() {
       )}
 
       <CloseTheGap language={profile?.language ?? 'en'} />
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <button onClick={() => void conn?.reducers.setLanguage({ language: 'en' })} disabled={profile?.language === 'en'}>English</button>
+        <button onClick={() => void conn?.reducers.setLanguage({ language: 'es' })} disabled={profile?.language === 'es'}>Español</button>
+      </div>
+      <Coach language={profile?.language ?? 'en'} />
 
       <h2>Accounts</h2>
       {!accountsReady && <p>Loading…</p>}
