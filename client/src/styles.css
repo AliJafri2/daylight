@@ -764,3 +764,11 @@ input { font: inherit; }
     linear-gradient(180deg, #fff 0, #fff 42%, #fff3ea 50%, #fbd4b6 57%, #f5a26b 66%, #df641a 82%, #a8420f 100%);
   animation: fade 0.5s ease both;
 }
+
+/* Ring stats: two equal centered columns with a thin divider */
+.ring-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0; width: min(320px, 100%); margin: 20px auto 0; }
+.ring-stats > div { text-align: center; padding: 4px 8px; }
+.ring-stats > div + div { border-left: 1px solid var(--line); }
+.ring-stat-l { margin-bottom: 2px; }
+.ring-stats { width: min(340px, 100%); grid-template-columns: 1.35fr 1fr; }
+.ring-stat-l { white-space: nowrap; font-size: 12.5px; }
