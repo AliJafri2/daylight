@@ -1,4 +1,4 @@
-// MinMax: SpacetimeDB module. This is the ENTIRE backend.
+// Daylight: SpacetimeDB module. This is the ENTIRE backend.
 //
 // Plain-English map:
 // - A "profile" is one person's finances (the demo persona, George).
@@ -522,7 +522,7 @@ export const registerWorker = spacetimedb.reducer({ secret: t.string() }, (ctx, 
 
 // ---------- Worker reducers: Nessie -> Spacetime sync ----------
 // Upserts match on the Nessie ID first, then link an unlinked seeded row of the same
-// kind/payee, so MinMax-only fields (movable, latest_safe_date, credit limit) survive.
+// kind/payee, so Daylight-only fields (movable, latest_safe_date, credit limit) survive.
 
 export const syncAccount = spacetimedb.reducer(
   { nessieId: t.string(), kind: t.string(), nickname: t.string(), balanceCents: t.i64() },

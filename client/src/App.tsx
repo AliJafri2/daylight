@@ -1,4 +1,4 @@
-// MinMax app shell: onboarding gate, 4 tabs (glassy static bar), status toasts, settings sheet.
+// Daylight app shell: onboarding gate, 4 tabs (glassy static bar), status toasts, settings sheet.
 import { useEffect, useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables, type DbConnection } from './module_bindings';
@@ -18,7 +18,7 @@ const TABS: Array<{ id: Tab; label: string; icon: IconName }> = [
   { id: 'accounts', label: 'Accounts', icon: 'wallet' },
 ];
 
-const ONB_KEY = 'minmax:onboarded';
+const ONB_KEY = 'daylight:onboarded';
 // ?skip-intro jumps straight to the app (handy for judges' QR codes); ?tab=plan opens a tab.
 const params = new URLSearchParams(window.location.search);
 const readOnboarded = () => {

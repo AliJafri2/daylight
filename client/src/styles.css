@@ -1,4 +1,4 @@
-/* MinMax design system: Fuse-style calm minimalism + Cleo-style AI bubbles.
+/* Daylight design system: Fuse-style calm minimalism + Cleo-style AI bubbles.
    Calm and kind: red/green are used ONLY for money status. */
 
 :root {
@@ -908,3 +908,6 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .check-item.done { color: var(--ink-3); }
 .ci-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; flex: none; animation: pop 0.35s var(--ease-spring) both; }
 .check-item .spinner { width: 20px; height: 20px; flex: none; }
+.title-content .app-mark.sun { background: linear-gradient(160deg, #ffcf5c, #ff7a2f); color: #fff; box-shadow: 0 6px 18px rgba(255, 122, 47, 0.35); }
+.title-content .brand { display: flex; align-items: center; gap: 10px; }
+.title-content .brand span { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }

@@ -113,7 +113,7 @@ export default function Accounts({ m, syncedAgo }: { m: Money; syncedAgo: string
           </div>
         ))}
       </div>
-      <p className="small muted" style={{ marginTop: 10 }}>Sample prices for the demo. In production MinMax uses a licensed price feed.</p>
+      <p className="small muted" style={{ marginTop: 10 }}>Sample prices for the demo. In production Daylight uses a licensed price feed.</p>
     </div>
   );
 }

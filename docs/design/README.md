@@ -1,4 +1,4 @@
-# MinMax design references
+# Daylight design references
 
 Reference screens downloaded from Mobbin (full resolution). The images are **not committed**
 (they belong to Mobbin / the app makers); they're local references only. We use them for
@@ -45,4 +45,4 @@ For every run:
   > illustrations. Don't add anything that isn't in the screenshot.
 
 - Save the result into this folder with the name above, then tell Claude "done".
-Claude extracts the measurements and builds MinMax's own screens with them.
+Claude extracts the measurements and builds Daylight's own screens with them.

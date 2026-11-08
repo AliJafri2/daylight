@@ -1,4 +1,4 @@
-// Onboarding (UI only, no real auth): Title -> Create account -> Connect bank -> "I'm MinMax".
+// Onboarding (UI only, no real auth): Title -> Create account -> Connect bank -> "Hi, I'm Ben!".
 // References: Fuse welcome (word wheel), Fuse sign-up, Cleo AI "I'm Cleo AI" screen.
 import { useEffect, useState } from 'react';
 import { Icon, type IconName } from './ui';
@@ -123,7 +123,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
       <div className={`step ${out ? 'out' : ''}`} key="title">
         <div style={i(0)}><WordWheel /></div>
         <div className="title-content" style={i(1)}>
-          <div className="app-mark">MM</div>
+          <div className="brand"><div className="app-mark sun"><Icon name="sun" size={26} stroke={2.4} /></div><span>Daylight</span></div>
           <h1>Minimum effort,<br />maximum savings.</h1>
           <p>Forecast your finances with AI and get a plan to stay on top of everything.</p>
           <button className="btn white" onClick={() => go('create')}>Get started</button>
@@ -147,7 +147,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
         </div>
         <div className="field" style={i(5)}>
           <label htmlFor="pw">Password</label>
-          <input id="pw" type="password" defaultValue="minmax-demo" autoComplete="new-password" />
+          <input id="pw" type="password" defaultValue="daylight-demo" autoComplete="new-password" />
         </div>
         <div className="ob-foot" style={i(6)}>
           <button className="btn white" disabled={!name.trim()} onClick={() => { setCreated(true); go('bank'); }}>Create account</button>
