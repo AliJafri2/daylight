@@ -1,97 +1,126 @@
-// Temporary "is the data live?" screen. The real dashboard replaces this in step 3.
-import { useMemo } from 'react';
-import { tables } from './module_bindings';
+// MinMax app shell: onboarding gate, 4 tabs (glassy static bar), status toasts, settings sheet.
+import { useEffect, useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
-import type { DbConnection } from './module_bindings';
+import { tables, type DbConnection } from './module_bindings';
 import { useMoney } from './engine';
-import CloseTheGap from './CloseTheGap';
+import Onboarding from './Onboarding';
+import Home from './Home';
+import Plan from './Plan';
 import Coach from './Coach';
+import Accounts from './Accounts';
+import { Icon, type IconName } from './ui';
 
-const money = (cents: bigint) =>
-  (Number(cents) / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+type Tab = 'home' | 'plan' | 'coach' | 'accounts';
+const TABS: Array<{ id: Tab; label: string; icon: IconName }> = [
+  { id: 'home', label: 'Home', icon: 'home' },
+  { id: 'plan', label: 'Plan', icon: 'plan' },
+  { id: 'coach', label: 'Coach', icon: 'chat' },
+  { id: 'accounts', label: 'Accounts', icon: 'wallet' },
+];
+
+const ONB_KEY = 'minmax:onboarded';
+// ?skip-intro jumps straight to the app (handy for judges' QR codes); ?tab=plan opens a tab.
+const params = new URLSearchParams(window.location.search);
+const readOnboarded = () => {
+  if (params.has('skip-intro')) return true;
+  try { return localStorage.getItem(ONB_KEY) === '1'; } catch { return false; }
+};
+const initialTab = (['home', 'plan', 'coach', 'accounts'] as const).find(t => t === params.get('tab')) ?? 'home';
+const writeOnboarded = (v: boolean) => { try { if (v) localStorage.setItem(ONB_KEY, '1'); else localStorage.removeItem(ONB_KEY); } catch { /* private mode */ } };
 
 export default function App() {
   const { isActive, getConnection } = useSpacetimeDB();
   const conn = getConnection() as DbConnection | null;
-
-  const [profiles] = useTable(tables.myProfile);
-  const [accounts, accountsReady] = useTable(tables.myAccounts);
-  const [bills] = useTable(tables.myBills);
-  const [income] = useTable(tables.myIncome);
-  const [spend] = useTable(tables.mySpend);
-  const [prices] = useTable(tables.price);
-
-  const upcoming = useMemo(() => {
-    const rows = [
-      ...bills.map(b => ({ key: `b${b.id}`, date: b.dueDate, label: b.payee, cents: -b.amountCents })),
-      ...spend.map(s => ({ key: `s${s.id}`, date: s.date, label: `${s.category} (${s.place})`, cents: -s.amountCents })),
-      ...income.map(i => ({ key: `i${i.id}`, date: i.nextDate, label: i.source, cents: i.amountCents })),
-    ];
-    return rows.sort((a, b) => a.date.localeCompare(b.date));
-  }, [bills, spend, income]);
-
-  const profile = profiles[0];
+  const [onboarded, setOnboarded] = useState(readOnboarded);
+  const [tab, setTab] = useState<Tab>(initialTab);
+  const [settings, setSettings] = useState(false);
+  const [pendingQ, setPendingQ] = useState<string | null>(null);
+  const [now, setNow] = useState(Date.now());
   const m = useMoney();
+  const [jobs] = useTable(tables.myJobs);
+  const [actions] = useTable(tables.myActions);
+
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [tab]);
+
+  const latestJob = useMemo(() => [...jobs].sort((a, b) => (a.id < b.id ? 1 : -1))[0], [jobs]);
+  const toast = actions.some(a => a.status === 'approved')
+    ? 'Making the changes in your bank…'
+    : latestJob && (latestJob.status === 'pending' || latestJob.status === 'running') && tab !== 'plan'
+      ? 'MinMax is working on your plan…'
+      : null;
+
+  if (!onboarded) {
+    return <div className="app" style={{ minHeight: '100dvh' }}><Onboarding onDone={() => { writeOnboarded(true); setOnboarded(true); setTab('home'); }} /></div>;
+  }
+
+  if (!m.ready || !('forecast' in m)) {
+    return (
+      <div className="app" style={{ display: 'grid', placeItems: 'center', minHeight: '100dvh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="orb" />
+          <p className="muted" style={{ marginTop: 16 }}>{isActive ? 'Loading your money…' : 'Connecting…'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const profile = m.profile;
+  const language = profile.language;
+  const name = profile.displayName;
+  const synced = profile.lastNessieSync ? Number(profile.lastNessieSync.microsSinceUnixEpoch / 1000n) : null;
+  const syncedAgo = synced ? (() => { const min = Math.max(0, Math.round((now - synced) / 60000)); return min < 1 ? 'just now' : `${min} min ago`; })() : null;
 
   return (
-    <main style={{ maxWidth: 480, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
-      <h1 style={{ marginBottom: 4 }}>MinMax</h1>
-      <p style={{ marginTop: 0, color: isActive ? 'green' : 'crimson' }}>
-        {isActive ? 'Live' : 'Connecting…'}
-        {profile && ` · ${profile.displayName} · as of ${profile.asOfDate}`}
-      </p>
+    <div className="app">
+      {toast && <div className="toast"><span className="spinner" />{toast}</div>}
 
-      {m.ready && (
-        <section style={{ padding: 12, borderRadius: 12, background: m.forecast.shortfall ? '#fdecea' : '#e8f5e9', marginBottom: 16 }}>
-          <strong style={{ fontSize: 22 }}>
-            {m.forecast.shortfall
-              ? `${money(BigInt(-m.forecast.shortfall.balanceCents))} short on ${m.forecast.shortfall.date.slice(5)}`
-              : `You're okay until payday`}
-          </strong>
-          <div style={{ fontSize: 14, marginTop: 6 }}>
-            Runway {m.health.runwayDays} days · Card {Math.round((m.health.creditUtilization ?? 0) * 100)}% used ·
-            Overdraft risk {m.health.overdraftRisk} · Savings {money(BigInt(m.health.savingsCents))}
-          </div>
-          <div style={{ fontSize: 14, marginTop: 6, color: '#555' }}>
-            Engine's plan: {m.plan.actions.map(a => a.kind).join(' + ') || 'none'} → low point{' '}
-            {money(BigInt(m.plan.after.lowPoint.balanceCents))}, fees avoided {money(BigInt(m.plan.feesAvoidedCents))}
-          </div>
-        </section>
+      {tab === 'home' && (
+        <Home m={m} name={name} onOpenPlan={() => setTab('plan')} onSettings={() => setSettings(true)}
+          onAsk={q => { setPendingQ(q); setTab('coach'); }} />
       )}
+      {tab === 'plan' && <Plan m={m} language={language} onDone={() => setTab('home')} />}
+      {tab === 'coach' && <Coach language={language} name={name} pending={pendingQ} onPendingSent={() => setPendingQ(null)} />}
+      {tab === 'accounts' && <Accounts m={m} syncedAgo={syncedAgo} />}
 
-      <CloseTheGap language={profile?.language ?? 'en'} />
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <button onClick={() => void conn?.reducers.setLanguage({ language: 'en' })} disabled={profile?.language === 'en'}>English</button>
-        <button onClick={() => void conn?.reducers.setLanguage({ language: 'es' })} disabled={profile?.language === 'es'}>Español</button>
-      </div>
-      <Coach language={profile?.language ?? 'en'} />
-
-      <h2>Accounts</h2>
-      {!accountsReady && <p>Loading…</p>}
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {accounts.map(a => (
-          <li key={String(a.id)} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
-            <span>{a.nickname}</span>
-            <strong>{money(a.balanceCents)}</strong>
-          </li>
+      <nav className="tabbar" aria-label="Main">
+        {TABS.map(t => (
+          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}>
+            <Icon name={t.icon} size={22} />
+            {t.label}
+            <span className="dot" />
+          </button>
         ))}
-      </ul>
+      </nav>
 
-      <h2>Upcoming</h2>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {upcoming.map(r => (
-          <li key={r.key} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-            <span>{r.date.slice(5)} · {r.label}</span>
-            <span style={{ color: r.cents < 0n ? 'inherit' : 'green' }}>{money(r.cents)}</span>
-          </li>
-        ))}
-      </ul>
-
-      <p style={{ color: '#666' }}>{prices.length} live prices loaded.</p>
-      <button disabled={!isActive} onClick={() => void conn?.reducers.resetDemo({}).catch(console.error)}>
-        Reset demo data
-      </button>
-    </main>
+      {settings && (
+        <>
+          <div className="backdrop" onClick={() => setSettings(false)} />
+          <div className="sheet" role="dialog" aria-label="Settings">
+            <div className="grabber" />
+            <h2>Settings</h2>
+            <div className="stack">
+              <button className="btn secondary" disabled={!isActive}
+                onClick={() => { void conn?.reducers.resetDemo({}).catch(console.error); setSettings(false); setTab('home'); }}>
+                <Icon name="refresh" /> Reset demo
+              </button>
+              <button className="btn secondary" onClick={() => { writeOnboarded(false); setOnboarded(false); setSettings(false); }}>
+                Replay intro
+              </button>
+              <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Language</span>
+                <span style={{ display: 'flex', gap: 6 }}>
+                  {(['en', 'es'] as const).map(l => (
+                    <button key={l} className={`pill ${language === l ? 'dark' : ''}`} onClick={() => void conn?.reducers.setLanguage({ language: l })}>
+                      {l === 'en' ? 'English' : 'Español'}
+                    </button>
+                  ))}
+                </span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }

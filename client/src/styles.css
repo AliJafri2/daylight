@@ -2,7 +2,10 @@
    Calm and kind: red/green are used ONLY for money status. */
 
 :root {
-  --bg: #f7f6f2; /* warm off-white */
+  --bg: #f8f6f2; /* warm off-white (Cleo AI) */
+  --glow-peach: rgba(244, 214, 178, 0.85); /* Bevel aura */
+  --glow-pink: rgba(240, 206, 234, 0.85);
+  --warm-shadow: 0 6px 20px rgba(120, 90, 110, 0.08);
   --surface: #ffffff;
   --surface-2: #f1efea;
   --ink: #111111;
@@ -18,9 +21,9 @@
   --orange: #f2771e;
   --purple: #7c5cf2;
   --teal: #0f9d8a;
-  --radius: 20px;
+  --radius: 22px;
   --radius-sm: 14px;
-  --shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 8px 24px rgba(17, 17, 17, 0.05);
+  --shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 6px 20px rgba(120, 90, 110, 0.07);
   --tab-h: 76px;
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
@@ -281,3 +284,89 @@ input { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ===================== Reference-driven additions ===================== */
+
+/* Soft aura background (Bevel): peach + pink glow over warm off-white */
+.aura { position: relative; isolation: isolate; }
+.aura::before {
+  content: ""; position: fixed; inset: -20% -20% auto -20%; height: 70vh; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(45% 45% at 25% 30%, var(--glow-peach), transparent 70%),
+    radial-gradient(40% 40% at 80% 20%, var(--glow-pink), transparent 70%);
+  filter: blur(30px); opacity: 0.75;
+}
+
+/* Title screen (Fuse welcome): word wheel + gradient + two buttons */
+.title-screen {
+  min-height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden;
+  background:
+    radial-gradient(120% 55% at 50% 100%, #1f6b4a 15%, rgba(31, 107, 74, 0) 60%),
+    radial-gradient(90% 30% at 50% 74%, #7fd1a6 0%, rgba(127, 209, 166, 0) 100%),
+    linear-gradient(180deg, #fff 0, #fff 42%, #eef8f2 50%, #b9e6cc 57%, #6fc79a 66%, #2f8f5f 82%, #1d6b47 100%);
+  padding: 0 24px calc(28px + var(--safe-b));
+}
+.wheel { margin-top: 72px; height: 360px; position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent); mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent); }
+.wheel-track { transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.wheel-word {
+  height: 72px; display: flex; align-items: center; gap: 14px;
+  font-size: 44px; font-weight: 500; letter-spacing: -1px; color: #ececec;
+  transition: color 0.4s, transform 0.4s;
+}
+.wheel-word.active { color: var(--ink); font-size: 46px; }
+.wheel-word .wglyph { width: 40px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: #fff; flex: none; }
+.title-content { margin-top: auto; }
+.title-content .app-mark { width: 44px; height: 44px; border-radius: 12px; background: #fff; color: var(--ink); display: grid; place-items: center; font-weight: 800; font-size: 15px; letter-spacing: -0.04em; }
+.title-content h1 { color: #fff; font-size: 34px; line-height: 1.08; font-weight: 700; letter-spacing: -0.03em; margin: 16px 0 10px; }
+.title-content p { color: rgba(225, 248, 235, 0.92); font-size: 16px; margin: 0 0 28px; font-weight: 500; }
+.btn.white { background: #fff; color: var(--ink); box-shadow: 0 4px 14px rgba(10, 60, 30, 0.15); height: 55px; min-height: 55px; }
+.btn.ghost { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.28); color: #fff; height: 55px; min-height: 55px; margin-top: 10px; }
+
+/* Onboarding forms (Fuse sign-up) */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.field input {
+  height: 56px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface);
+  padding: 0 16px; font-size: 17px; color: var(--ink);
+}
+.field input:focus { outline: 2px solid var(--ink); border-color: transparent; }
+.social { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.divider { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 13px; margin: 18px 0; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.back { width: 40px; height: 40px; display: grid; place-items: center; margin-left: -8px; }
+.onb-top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.skip { font-size: 15px; font-weight: 600; color: var(--ink-3); }
+
+/* Glowing AI input pill (Cleo AI) */
+.ai-pill {
+  margin: 36px auto; width: min(260px, 72%); height: 60px; border-radius: 999px; padding: 2px;
+  background: linear-gradient(110deg, #e8a76f, #f6e2cf 60%, #e8a76f);
+  box-shadow: 0 10px 40px rgba(232, 167, 111, 0.35);
+  animation: pillGlow 3s ease-in-out infinite;
+}
+.ai-pill > div { height: 100%; border-radius: 999px; background: #fff; display: flex; align-items: center; padding: 0 22px; font-size: 15px; color: var(--ink-2); }
+.ai-pill .caret { width: 2px; height: 18px; background: var(--ink); margin-left: 2px; animation: caret 1s steps(1) infinite; }
+@keyframes pillGlow { 50% { box-shadow: 0 10px 50px rgba(232, 167, 111, 0.55); } }
+@keyframes caret { 50% { opacity: 0; } }
+
+/* Numbered "powers" card (Cleo AI) */
+.powers { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; }
+.power { display: flex; gap: 14px; align-items: flex-start; padding: 16px; animation: bubbleIn 0.4s ease both; }
+.power + .power { border-top: 1px solid var(--line); }
+.power .num { width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-weight: 700; font-size: 14px; flex: none; }
+.power h3 { margin: 0 0 2px; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+.power p { margin: 0; font-size: 15px; color: var(--ink-2); line-height: 1.35; }
+
+/* AI orb (Bevel / Cleo AI voice) */
+.orb {
+  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto;
+  background: radial-gradient(circle at 35% 30%, #fff 0, #ffd9b8 30%, #f6b9a0 60%, #e9a7c9 100%);
+  box-shadow: 0 0 40px rgba(244, 190, 160, 0.7), inset 0 -6px 12px rgba(200, 120, 140, 0.25);
+  animation: orbFloat 4s ease-in-out infinite;
+}
+@keyframes orbFloat { 50% { transform: translateY(-4px) scale(1.03); } }
+
+/* Bank connect row */
+.bank-row { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 20px; background: var(--surface); box-shadow: var(--shadow); width: 100%; text-align: left; }
+.bank-logo { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-weight: 800; flex: none; }
+.note { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink-3); margin-top: 14px; }

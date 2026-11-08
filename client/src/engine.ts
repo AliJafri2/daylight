@@ -58,6 +58,9 @@ export function useMoney(adjustments?: Adjustments) {
       forecast,
       health: healthIndicators(forecast, accounts),
       plan: planFixes(input, { accounts, gasPrices, groceryPrices, vehicle }),
+      gasPrices,
+      groceryPrices,
+      vehicle,
     };
   }, [profiles, accountRows, billRows, incomeRows, spendRows, priceRows, accountsReady, billsReady, adjustments]);
 }
