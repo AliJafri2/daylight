@@ -134,7 +134,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
       <div className={`step ${out ? 'out' : ''}`} key="bank">
         {top('create', 1)}
         <h1 className="ob" style={i(1)}>Connect your bank</h1>
-        <p className="lead" style={i(2)}>I use your balances and upcoming bills to forecast your next two weeks. Read-only, so nothing moves without you.</p>
+        <p className="lead" style={i(2)}>I'll forecast your next 2 weeks using your balances and upcoming bills.</p>
         <div className="stack" style={i(3)}>
           <button className="bank-row" onClick={connect}>
             <span className="bank-logo" style={{ background: '#004977' }}><Icon name="bank" size={22} /></span>
