@@ -14,7 +14,7 @@ const STEPS: Array<{ tab: TourTab; target: string; title: string; body: string }
   { tab: 'home', target: 'green', title: 'Stay in the green', body: 'Tap here and Ben finds easy fixes. Nothing changes until you approve.' },
   { tab: 'home', target: 'tiles', title: 'Your financial health', body: 'Tap any tile to see why, in plain words, using your own numbers.' },
   { tab: 'plan', target: 's360', title: 'Daylight 360° summary', body: 'Your whole money picture in three lines. It rewrites itself whenever anything changes.' },
-  { tab: 'plan', target: 'agents', title: 'Your agents', body: 'Forecasting fixes this pay period, Research finds habits to change, Investing says where spare money goes. Tap one to run it.' },
+  { tab: 'plan', target: 'agents', title: 'Your agents', body: 'Three agents, three time horizons: this pay period, this month, and your future. Tap one to run it.' },
   { tab: 'coach', target: 'ask', title: 'Ask Ben', body: 'Ask me anything about your money. I only use your real numbers.' },
   { tab: 'accounts', target: 'acct', title: 'Accounts', body: 'Everything you have and owe, in one place, live from your bank.' },
 ];

@@ -20,10 +20,11 @@ type Money = Extract<ReturnType<typeof useMoney>, { ready: boolean; forecast: un
 export type AgentKind = 'forecast' | 'research' | 'invest';
 const time = (ts: { microsSinceUnixEpoch: bigint }) => Number(ts.microsSinceUnixEpoch / 1000n);
 
-const AGENTS: Record<AgentKind, { name: string; icon: IconName; color: string; blurb: string }> = {
-  forecast: { name: 'Forecasting agent', icon: 'forecast', color: 'blue', blurb: 'Sees trouble coming before payday and finds the fixes.' },
-  research: { name: 'Research agent', icon: 'search', color: 'orange', blurb: "Reads last month's spending and finds habits worth changing." },
-  invest: { name: 'Investing agent', icon: 'trend', color: 'green', blurb: 'Tells you where spare money should go once you\'re covered.' },
+// Three time horizons: get through this pay period -> stop this month's leaks -> build your future.
+const AGENTS: Record<AgentKind, { name: string; icon: IconName; color: string; horizon: string; blurb: string }> = {
+  forecast: { name: 'Forecasting agent', icon: 'forecast', color: 'blue', horizon: 'This pay period', blurb: 'Sees trouble coming before payday and finds the fixes.' },
+  research: { name: 'Research agent', icon: 'search', color: 'orange', horizon: 'This month', blurb: "Reads last month's spending and finds habits worth changing." },
+  invest: { name: 'Investing agent', icon: 'trend', color: 'green', horizon: 'Your future', blurb: 'Tells you where spare money should go once you\'re covered.' },
 };
 
 function useLatestJob(kind: AgentKind) {
@@ -87,6 +88,7 @@ function Hub({ m, open }: { m: Money; open: (a: AgentKind) => void }) {
             <button key={k} className="agent-tile rise" style={{ ['--i' as string]: i }} onClick={() => open(k)}>
               <span className={`pico ${a.color}`}><Icon name={a.icon} size={22} stroke={2.4} /></span>
               <span className="agent-text">
+                <span className="agent-horizon">{a.horizon}</span>
                 <span className="agent-name">{a.name}</span>
                 <span className="agent-blurb">{a.blurb}</span>
                 <span className={`agent-status ${st.tone}`}>{st.tone === 'busy' && <span className="spinner" />}{st.text}</span>
