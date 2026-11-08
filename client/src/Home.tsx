@@ -68,7 +68,14 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
 
   return (
     <div className="screen">
-      <div className={`status-glow ${sf ? 'red' : 'green'}`} aria-hidden="true" />
+      {createPortal(
+        <div className={`edge-glow ${sf ? 'red' : 'green'}`} aria-hidden="true">
+          <span className="halo"><span className="halo-ring" /></span>
+          <span className="halo soft"><span className="halo-ring" /></span>
+          <span className="ring" />
+        </div>,
+        document.body
+      )}
       <div className="topbar">
         <h1>Hi, {name}!</h1>
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
