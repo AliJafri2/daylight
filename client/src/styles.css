@@ -911,3 +911,8 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .title-content .app-mark.sun { background: linear-gradient(160deg, #ffe66b, #ffb21f); color: #fff; box-shadow: 0 6px 18px rgba(255, 178, 31, 0.35); }
 .title-content .brand { display: flex; align-items: center; gap: 10px; }
 .title-content .brand span { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+/* Ben intro: icon per point (stop = trouble coming, check = easy fixes, shield = you're in control) */
+.pico { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; flex: none; }
+.pico.red { background: #fdecec; color: #e5484d; }
+.pico.green { background: #e6f5ec; color: #1a9152; }
+.pico.blue { background: #e8efff; color: #2f5bd9; }

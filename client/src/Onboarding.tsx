@@ -202,13 +202,13 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
         <p className="lead" style={i(3)}>Your AI money coach. Ask me anything.</p>
         <div className="ai-pill" aria-hidden="true" style={{ margin: '0 0 24px', width: '100%', ...i(4) }}><div><TypedPrompts /></div></div>
         <div className="powers" style={i(5)}>
-          {[
-            ['See trouble coming', "I forecast your balance every day until payday, so you'll know 2 weeks early if you'll be behind on a payment."],
-            ['Find the easy fixes', 'I compare your bills, grocery stores and gas stations to find you savings.'],
-            ['You stay in control', 'I suggest, you decide. Nothing changes until you tap approve.'],
-          ].map(([t, d], k) => (
+          {([
+            ['stop', 'red', 'See trouble coming', "I forecast your balance every day until payday, so you'll know 2 weeks early if you'll be behind on a payment."],
+            ['checkCircle', 'green', 'Find the easy fixes', 'I compare your bills, grocery stores and gas stations to find you savings.'],
+            ['shield', 'blue', 'You stay in control', 'I suggest, you decide. Nothing changes until you tap approve.'],
+          ] as const).map(([icon, color, t, d], k) => (
             <div className="power" key={t} style={{ animationDelay: `${0.45 + k * 0.12}s` }}>
-              <span className="num">{k + 1}</span>
+              <span className={`pico ${color}`}><Icon name={icon} size={20} stroke={2.2} /></span>
               <div><h3>{t}</h3><p>{d}</p></div>
             </div>
           ))}
