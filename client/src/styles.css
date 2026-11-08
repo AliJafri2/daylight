@@ -1131,3 +1131,17 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 
 /* Ben intro icons: same simple black-on-white glyph as the financial health tiles */
 .power .glyph.mono { width: 32px; height: 32px; border-radius: 10px; background: #fff; color: var(--ink); box-shadow: none; display: grid; place-items: center; flex: none; }
+
+/* Tour: smoother transitions (overrides) */
+.tour-spot { transition: top 0.48s var(--ease-out), left 0.48s var(--ease-out), width 0.48s var(--ease-out), height 0.48s var(--ease-out), border-radius 0.48s var(--ease-out), opacity 0.3s; }
+.tour-spot.none { opacity: 0; top: 50%; left: 50%; width: 0; height: 0; }
+.tour-bubble { animation: none; opacity: 0; transform: translateY(10px) scale(0.98); pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.3s var(--ease-out), top 0.48s var(--ease-out), bottom 0.48s var(--ease-out); }
+.tour-bubble.in { opacity: 1; transform: none; pointer-events: auto; }
+.tour-tab { display: inline-block; font-size: 12px; font-weight: 700; color: var(--ink); background: var(--fill); border-radius: 999px; padding: 2px 8px; margin-right: 8px; }
+.tour-dots i.past { background: var(--ink-3); }
+.tour-travel { position: fixed; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  background: #fff; color: var(--ink); font-size: 15px; font-weight: 700; padding: 9px 14px; border-radius: 999px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  animation: travelIn 0.35s var(--ease-out) both; }
+@keyframes travelIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .tour-bubble, .tour-spot { transition: none; } .tour-travel { animation: none; } }

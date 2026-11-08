@@ -89,7 +89,7 @@ export default function App() {
         <span className="tab-indicator" aria-hidden="true"
           style={{ transform: `translateX(calc(${TABS.findIndex(t => t.id === tab)} * (100% + 8px)))` }} />
         {TABS.map(t => (
-          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => { if (t.id === 'plan') setAgent(null); setTab(t.id); }} aria-current={tab === t.id ? 'page' : undefined}>
+          <button key={t.id} data-tab={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => { if (t.id === 'plan') setAgent(null); setTab(t.id); }} aria-current={tab === t.id ? 'page' : undefined}>
             <Icon name={t.icon} size={22} />
             {t.label}
             <span className="dot" />
