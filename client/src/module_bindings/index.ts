@@ -36,10 +36,13 @@ import {
 // Import all reducer arg schemas
 import AckNessieResetReducer from "./ack_nessie_reset_reducer";
 import AddActionReducer from "./add_action_reducer";
+import AddCoachReplyReducer from "./add_coach_reply_reducer";
 import AddStepReducer from "./add_step_reducer";
 import ApproveActionReducer from "./approve_action_reducer";
 import ApproveAllReducer from "./approve_all_reducer";
+import AskCoachReducer from "./ask_coach_reducer";
 import ClaimJobReducer from "./claim_job_reducer";
+import ClearCoachReducer from "./clear_coach_reducer";
 import CloseJobIfSettledReducer from "./close_job_if_settled_reducer";
 import MarkActionExecutedReducer from "./mark_action_executed_reducer";
 import MarkNessieSyncedReducer from "./mark_nessie_synced_reducer";
@@ -59,6 +62,7 @@ import SyncBillReducer from "./sync_bill_reducer";
 import MyAccountsRow from "./my_accounts_table";
 import MyActionsRow from "./my_actions_table";
 import MyBillsRow from "./my_bills_table";
+import MyCoachRow from "./my_coach_table";
 import MyIncomeRow from "./my_income_table";
 import MyJobsRow from "./my_jobs_table";
 import MyProfileRow from "./my_profile_table";
@@ -102,6 +106,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyBillsRow),
+  myCoach: __table({
+    name: 'my_coach',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyCoachRow),
   myIncome: __table({
     name: 'my_income',
     indexes: [
@@ -143,10 +154,13 @@ const tablesSchema = __schema({
 const reducersSchema = __reducers(
   __reducerSchema("ack_nessie_reset", AckNessieResetReducer),
   __reducerSchema("add_action", AddActionReducer),
+  __reducerSchema("add_coach_reply", AddCoachReplyReducer),
   __reducerSchema("add_step", AddStepReducer),
   __reducerSchema("approve_action", ApproveActionReducer),
   __reducerSchema("approve_all", ApproveAllReducer),
+  __reducerSchema("ask_coach", AskCoachReducer),
   __reducerSchema("claim_job", ClaimJobReducer),
+  __reducerSchema("clear_coach", ClearCoachReducer),
   __reducerSchema("close_job_if_settled", CloseJobIfSettledReducer),
   __reducerSchema("mark_action_executed", MarkActionExecutedReducer),
   __reducerSchema("mark_nessie_synced", MarkNessieSyncedReducer),

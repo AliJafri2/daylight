@@ -5,10 +5,12 @@
 //   plan_job 'pending'      -> run the agents (stream agent_step rows, write plan_action rows)
 //   plan_action 'approved'  -> execute in Nessie, then mark executed (screens turn green)
 //   profile needsNessieReset -> put moved bills back in Nessie (demo reset)
+//   coach_message (user)    -> answer with Gemini, grounded in engine numbers
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { DbConnection, tables } from './module_bindings/index.ts';
 import { executeAction, restoreNessieBills, runPlanJob } from './agents.ts';
+import { answerCoachQuestion } from './chat.ts';
 import { hideKey } from './nessie.ts';
 import { loadNessieIds, syncFromNessie } from './sync.ts';
 
@@ -50,7 +52,7 @@ function subscribe(conn: DbConnection): Promise<void> {
       .onApplied(() => resolve())
       .subscribe([
         tables.myProfile, tables.myAccounts, tables.myBills, tables.myIncome, tables.mySpend,
-        tables.myJobs, tables.myActions, tables.price,
+        tables.myJobs, tables.myActions, tables.price, tables.myCoach,
       ]);
   });
 }
@@ -108,7 +110,12 @@ async function main() {
     if (a.status === 'approved') once(`act:${a.id}`, 'execute', () => executeAction(conn, a.id, sync));
   };
 
+  const onCoach = (msg: { id: bigint; role: string; status: string; text: string; language: string }) => {
+    if (msg.role === 'user' && msg.status === 'pending') once(`chat:${msg.id}`, 'coach', () => answerCoachQuestion(conn, msg));
+  };
+
   conn.db.myJobs.onInsert((_ctx, job) => onJob(job));
+  conn.db.myCoach.onInsert((_ctx, msg) => onCoach(msg));
   conn.db.myJobs.onUpdate((_ctx, _old, job) => onJob(job));
   conn.db.myActions.onUpdate((_ctx, _old, a) => onAction(a));
   conn.db.myProfile.onUpdate((_ctx, old, p) => {
@@ -118,6 +125,7 @@ async function main() {
   // Catch up on anything that happened while the worker was offline.
   for (const job of conn.db.myJobs.iter()) onJob(job);
   for (const a of conn.db.myActions.iter()) onAction(a);
+  for (const msg of conn.db.myCoach.iter()) onCoach(msg);
 
   setInterval(() => void queue('sync', sync), SYNC_EVERY_MS);
   log('worker ready: waiting for plan requests and approvals');

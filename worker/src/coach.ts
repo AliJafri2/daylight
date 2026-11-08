@@ -50,9 +50,46 @@ export async function explainAll(items: WhyRequest[]): Promise<{ whys: Why[]; so
   }
 }
 
-/** Guard against hallucinated figures: every number in the answer must appear in the facts. */
+/** Guard against hallucinated figures: every number in the answer must appear in the source text. */
 function numbersAreGrounded(w: Why, facts: string) {
-  const nums = (s: string) => (s.match(/\d+(?:[.,]\d+)?/g) ?? []).map(x => x.replace(',', '.'));
-  const allowed = new Set(nums(facts));
-  return [...nums(w.en), ...nums(w.es)].every(x => allowed.has(x));
+  return textIsGrounded(`${w.en} ${w.es}`, facts);
+}
+
+function numbersIn(s: string) {
+  return (s.replace(/(\d),(\d{3})\b/g, '$1$2').match(/\d+(?:[.,]\d+)?/g) ?? []).map(x => x.replace(',', '.'));
+}
+
+export function textIsGrounded(answer: string, source: string) {
+  const allowed = new Set(numbersIn(source));
+  return numbersIn(answer).every(x => allowed.has(x) || allowed.has(x.replace(/\.0+$/, '')));
+}
+
+/** Free-form answer (coach chat). Returns undefined on timeout, error, or an ungrounded number. */
+export async function askGemini(system: string, prompt: string, groundingSource: string): Promise<string | undefined> {
+  if (!KEY) return undefined;
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, thinkingConfig: { thinkingLevel: 'low' } },
+      }),
+    });
+    if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    const parts: Array<{ text?: string; thought?: boolean }> = data?.candidates?.[0]?.content?.parts ?? [];
+    const text = parts.filter(p => !p.thought && p.text).map(p => p.text).join('').trim();
+    if (!text) throw new Error('empty answer');
+    if (!textIsGrounded(text, groundingSource)) {
+      console.log('coach: rejected an answer with a number not in the facts:', text.slice(0, 160));
+      return undefined;
+    }
+    return text;
+  } catch (err) {
+    console.log('coach: chat fallback:', String(err).replaceAll(KEY, '***'));
+    return undefined;
+  }
 }

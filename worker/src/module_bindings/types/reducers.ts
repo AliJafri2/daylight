@@ -8,10 +8,13 @@ import { type Infer as __Infer } from "spacetimedb";
 // Import all reducer arg schemas
 import AckNessieResetReducer from "../ack_nessie_reset_reducer";
 import AddActionReducer from "../add_action_reducer";
+import AddCoachReplyReducer from "../add_coach_reply_reducer";
 import AddStepReducer from "../add_step_reducer";
 import ApproveActionReducer from "../approve_action_reducer";
 import ApproveAllReducer from "../approve_all_reducer";
+import AskCoachReducer from "../ask_coach_reducer";
 import ClaimJobReducer from "../claim_job_reducer";
+import ClearCoachReducer from "../clear_coach_reducer";
 import CloseJobIfSettledReducer from "../close_job_if_settled_reducer";
 import MarkActionExecutedReducer from "../mark_action_executed_reducer";
 import MarkNessieSyncedReducer from "../mark_nessie_synced_reducer";
@@ -27,10 +30,13 @@ import SyncBillReducer from "../sync_bill_reducer";
 
 export type AckNessieResetParams = __Infer<typeof AckNessieResetReducer>;
 export type AddActionParams = __Infer<typeof AddActionReducer>;
+export type AddCoachReplyParams = __Infer<typeof AddCoachReplyReducer>;
 export type AddStepParams = __Infer<typeof AddStepReducer>;
 export type ApproveActionParams = __Infer<typeof ApproveActionReducer>;
 export type ApproveAllParams = __Infer<typeof ApproveAllReducer>;
+export type AskCoachParams = __Infer<typeof AskCoachReducer>;
 export type ClaimJobParams = __Infer<typeof ClaimJobReducer>;
+export type ClearCoachParams = __Infer<typeof ClearCoachReducer>;
 export type CloseJobIfSettledParams = __Infer<typeof CloseJobIfSettledReducer>;
 export type MarkActionExecutedParams = __Infer<typeof MarkActionExecutedReducer>;
 export type MarkNessieSyncedParams = __Infer<typeof MarkNessieSyncedReducer>;

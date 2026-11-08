@@ -185,6 +185,20 @@ const planAction = table(
   }
 );
 
+// Coach chat: the user asks, the worker answers with Gemini grounded in engine numbers.
+const coachMessage = table(
+  { name: 'coach_message' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    profileId: t.u64().index('btree'),
+    role: t.string(), // 'user' | 'coach'
+    text: t.string(),
+    language: t.string(), // 'en' | 'es'
+    status: t.string(), // user: 'pending' | 'answered'; coach: 'final'
+    createdAt: t.timestamp(),
+  }
+);
+
 const spacetimedb = schema({
   appConfig,
   worker,
@@ -199,6 +213,7 @@ const spacetimedb = schema({
   planJob,
   agentStep,
   planAction,
+  coachMessage,
 });
 export default spacetimedb;
 
@@ -339,6 +354,7 @@ function wipeProfileData(ctx: Ctx, profileId: bigint) {
   for (const r of [...ctx.db.planJob.profileId.filter(profileId)]) ctx.db.planJob.id.delete(r.id);
   for (const r of [...ctx.db.agentStep.profileId.filter(profileId)]) ctx.db.agentStep.id.delete(r.id);
   for (const r of [...ctx.db.planAction.profileId.filter(profileId)]) ctx.db.planAction.id.delete(r.id);
+  for (const r of [...ctx.db.coachMessage.profileId.filter(profileId)]) ctx.db.coachMessage.id.delete(r.id);
 }
 
 // ---------- Lifecycle ----------
@@ -413,6 +429,11 @@ export const mySteps = spacetimedb.view({ name: 'my_steps', public: true }, t.ar
 export const myActions = spacetimedb.view({ name: 'my_actions', public: true }, t.array(planAction.rowType), ctx => {
   const m = ctx.db.member.identity.find(ctx.sender);
   return m ? [...ctx.db.planAction.profileId.filter(m.profileId)] : [];
+});
+
+export const myCoach = spacetimedb.view({ name: 'my_coach', public: true }, t.array(coachMessage.rowType), ctx => {
+  const m = ctx.db.member.identity.find(ctx.sender);
+  return m ? [...ctx.db.coachMessage.profileId.filter(m.profileId)] : [];
 });
 
 // ---------- User reducers ----------
@@ -668,4 +689,34 @@ export const ackNessieReset = spacetimedb.reducer(ctx => {
   requireWorker(ctx);
   const p = ctx.db.profile.id.find(requireDemoProfile(ctx));
   if (p) ctx.db.profile.id.update({ ...p, needsNessieReset: false });
+});
+
+// ---------- Coach chat ----------
+
+export const askCoach = spacetimedb.reducer({ text: t.string(), language: t.string() }, (ctx, { text, language }) => {
+  const m = requireMember(ctx);
+  const q = text.trim();
+  if (!q) throw new SenderError('Ask a question');
+  if (q.length > 500) throw new SenderError('Please keep questions under 500 characters');
+  const lang = language === 'es' ? 'es' : 'en';
+  // Rate limit: one open question at a time per profile.
+  for (const msg of ctx.db.coachMessage.profileId.filter(m.profileId)) {
+    if (msg.role === 'user' && msg.status === 'pending') throw new SenderError('The coach is still answering');
+  }
+  ctx.db.coachMessage.insert({ id: 0n, profileId: m.profileId, role: 'user', text: q, language: lang, status: 'pending', createdAt: ctx.timestamp });
+});
+
+export const addCoachReply = spacetimedb.reducer({ replyTo: t.u64(), text: t.string() }, (ctx, { replyTo, text }) => {
+  requireWorker(ctx);
+  const q = ctx.db.coachMessage.id.find(replyTo);
+  if (!q || q.role !== 'user') throw new SenderError('Question not found');
+  ctx.db.coachMessage.id.update({ ...q, status: 'answered' });
+  ctx.db.coachMessage.insert({
+    id: 0n, profileId: q.profileId, role: 'coach', text: text.slice(0, 1200), language: q.language, status: 'final', createdAt: ctx.timestamp,
+  });
+});
+
+export const clearCoach = spacetimedb.reducer(ctx => {
+  const m = requireMember(ctx);
+  for (const r of [...ctx.db.coachMessage.profileId.filter(m.profileId)]) ctx.db.coachMessage.id.delete(r.id);
 });

@@ -52,6 +52,17 @@ export const Bill = __t.object("Bill", {
 });
 export type Bill = __Infer<typeof Bill>;
 
+export const CoachMessage = __t.object("CoachMessage", {
+  id: __t.u64(),
+  profileId: __t.u64(),
+  role: __t.string(),
+  text: __t.string(),
+  language: __t.string(),
+  status: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type CoachMessage = __Infer<typeof CoachMessage>;
+
 export const Income = __t.object("Income", {
   id: __t.u64(),
   profileId: __t.u64(),
@@ -77,6 +88,9 @@ export type MyActions = __Infer<typeof MyActions>;
 
 export const MyBills = __t.object("MyBills", {});
 export type MyBills = __Infer<typeof MyBills>;
+
+export const MyCoach = __t.object("MyCoach", {});
+export type MyCoach = __Infer<typeof MyCoach>;
 
 export const MyIncome = __t.object("MyIncome", {});
 export type MyIncome = __Infer<typeof MyIncome>;
