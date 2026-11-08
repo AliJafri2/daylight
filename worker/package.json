@@ -1,5 +1,5 @@
 {
-  "name": "minimum-worker",
+  "name": "daylight-worker",
   "private": true,
   "type": "module",
   "scripts": {

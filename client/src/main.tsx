@@ -7,6 +7,7 @@ import { SpacetimeDBProvider } from 'spacetimedb/react';
 import { DbConnection, ErrorContext } from './module_bindings/index.ts';
 
 const HOST = import.meta.env.VITE_SPACETIMEDB_HOST ?? 'ws://localhost:3000';
+// The Spacetime database is still named 'minimum' (Daylight's original codename). Internal only.
 const DB_NAME = import.meta.env.VITE_SPACETIMEDB_DB_NAME ?? 'minimum';
 const TOKEN_KEY = `${HOST}/${DB_NAME}/auth_token`;
 

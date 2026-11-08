@@ -17,7 +17,7 @@ import { summaryFingerprint, writeSummary } from './summary.ts';
 import { runReceiptJob } from './receipt.ts';
 
 const URI = process.env.SPACETIME_URI ?? 'wss://maincloud.spacetimedb.com';
-const DB = process.env.SPACETIME_DB_NAME ?? 'minimum';
+const DB = process.env.SPACETIME_DB_NAME ?? 'minimum'; // database keeps its original codename (internal only)
 const SECRET = process.env.WORKER_SECRET ?? '';
 const SYNC_EVERY_MS = Number(process.env.SYNC_INTERVAL_MS ?? 60_000);
 const ONCE = process.argv.includes('--once');
