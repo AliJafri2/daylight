@@ -81,11 +81,11 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
       </div>
 
-      <div className="rise" style={{ ['--i' as string]: 1 }}>
+      <div className="rise" style={{ ['--i' as string]: 1 }} data-tour="ring">
         <CoverRing dueCents={ring.due} haveCents={ring.have} payday={f.nextPayday} heroCents={sf ? sf.balanceCents : low.balanceCents} />
       </div>
 
-      <button className={`ai-cta rise ${sf ? '' : 'ok'}`} style={{ ['--i' as string]: 2 }} onClick={onOpenPlan}>
+      <button className={`ai-cta rise ${sf ? '' : 'ok'}`} style={{ ['--i' as string]: 2 }} onClick={onOpenPlan} data-tour="green">
         <span className="spark"><Icon name={sf ? 'sparkle' : 'check'} size={22} stroke={sf ? 2 : 3} /></span>
         <span>
           {sf ? 'Stay in the green!' : "You're in the green"}
@@ -98,9 +98,9 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         <span className="chev"><Icon name="chevron" /></span>
       </button>
 
-      <div className="section-title">Your health</div>
+      <div className="section-title">Your financial health</div>
       <p className="section-sub">Tap any card to see why.</p>
-      <div className="tiles">
+      <div className="tiles" data-tour="tiles">
         {tiles.map((t, k) => (
           <button key={t.label} className={`tile t-${t.color} rise`} style={{ ['--i' as string]: 3 + k }} onClick={() => setWhy(t.why)} aria-label={`${t.value} ${t.label}. Tap for why`}>
             <span className="more"><Icon name="chevron" size={18} /></span>

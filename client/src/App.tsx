@@ -6,6 +6,7 @@ import { useMoney } from './engine';
 import Onboarding from './Onboarding';
 import Home from './Home';
 import Plan, { type AgentKind } from './Agents';
+import Tour, { type TourTab } from './Tour';
 import Coach from './Coach';
 import Accounts from './Accounts';
 import { Icon, type IconName } from './ui';
@@ -35,6 +36,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>(initialTab);
   const [settings, setSettings] = useState(false);
   const [agent, setAgent] = useState<AgentKind | null>(null);
+  const [tour, setTour] = useState(false);
   const [pendingQ, setPendingQ] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
   const m = useMoney();
@@ -52,7 +54,7 @@ export default function App() {
       : null;
 
   if (!onboarded) {
-    return <div className="app" style={{ minHeight: '100dvh' }}><Onboarding onDone={n => { if (n?.trim()) void conn?.reducers.setDisplayName({ name: n }).catch(console.error); writeOnboarded(true); setOnboarded(true); setTab('home'); }} /></div>;
+    return <div className="app" style={{ minHeight: '100dvh' }}><Onboarding onDone={n => { if (n?.trim()) void conn?.reducers.setDisplayName({ name: n }).catch(console.error); writeOnboarded(true); setOnboarded(true); setTab('home'); setTour(true); }} /></div>;
   }
 
   if (!m.ready || !('forecast' in m)) {
@@ -95,6 +97,8 @@ export default function App() {
         ))}
       </nav>
 
+      {tour && <Tour onClose={() => setTour(false)} goTo={(t: TourTab) => { if (t === 'plan') setAgent(null); setTab(t); }} />}
+
       {settings && (
         <>
           <div className="backdrop" onClick={() => setSettings(false)} />
@@ -108,6 +112,9 @@ export default function App() {
               </button>
               <button className="btn secondary" onClick={() => { writeOnboarded(false); setOnboarded(false); setSettings(false); }}>
                 Replay intro
+              </button>
+              <button className="btn secondary" onClick={() => { setSettings(false); setTab('home'); setTour(true); }}>
+                Replay tour
               </button>
             </div>
           </div>

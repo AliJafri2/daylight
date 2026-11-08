@@ -79,7 +79,7 @@ function Hub({ m, open }: { m: Money; open: (a: AgentKind) => void }) {
       <Summary360 />
       <div className="section-title">Your agents</div>
       <p className="hub-lead">Tap one to run it. Nothing changes until you approve.</p>
-      <div className="agent-tiles">
+      <div className="agent-tiles" data-tour="agents">
         {(Object.keys(AGENTS) as AgentKind[]).map((k, i) => {
           const a = AGENTS[k];
           const st = status[k];
@@ -218,7 +218,7 @@ function Summary360() {
   ];
   const ago = s ? Math.max(0, Math.round((Date.now() - time(s.updatedAt)) / 60_000)) : 0;
   return (
-    <section className="s360" aria-label="Daylight 360 degree summary" aria-live="polite">
+    <section className="s360" aria-label="Daylight 360 degree summary" aria-live="polite" data-tour="s360">
       <div className="s360-head">
         <span className="s360-ico"><Icon name="sun" size={18} stroke={2.4} /></span>
         <span className="s360-title">Daylight 360° summary</span>

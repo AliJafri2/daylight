@@ -38,7 +38,7 @@ export default function Accounts({ m, syncedAgo }: { m: Money; syncedAgo: string
     <div className="screen">
       <div className="topbar"><h1>Accounts</h1></div>
 
-      <div className="acct-hero rise" style={{ ['--i' as string]: 0 }}>
+      <div className="acct-hero rise" style={{ ['--i' as string]: 0 }} data-tour="acct">
         <div className="acct-half">
           <span className="acct-k">You have</span>
           <span className="acct-big green">{usd(have, { whole: true })}</span>

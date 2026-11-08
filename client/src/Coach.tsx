@@ -66,7 +66,7 @@ export default function Coach({ name, pending, onPendingSent }: {
       <div style={{ flex: 1, minHeight: 24 }} />
 
 
-      <form className="composer" onSubmit={e => { e.preventDefault(); ask(text); }}
+      <form data-tour="ask" className="composer" onSubmit={e => { e.preventDefault(); ask(text); }}
         style={{ background: 'rgba(255,255,255,0.7)', WebkitBackdropFilter: 'blur(16px)', backdropFilter: 'blur(16px)', borderRadius: 28, padding: 6, boxShadow: 'var(--warm-shadow)' }}>
         <input value={text} onChange={e => setText(e.target.value)} placeholder="Ask Ben anything…"
           style={{ boxShadow: 'none', background: 'transparent' }} disabled={!isActive} aria-label="Ask Ben" />
