@@ -145,6 +145,7 @@ const planJob = table(
     gapDate: t.string(),
     createdAt: t.timestamp(),
     claimedBy: t.option(t.identity()),
+    kind: t.string().default('forecast'), // which agent: 'forecast' | 'research' | 'invest'
   }
 );
 
@@ -462,10 +463,16 @@ export const myTransactions = spacetimedb.view({ name: 'my_transactions', public
 
 const ACTIVE_JOB = new Set(['pending', 'running', 'ready', 'executing']);
 
-export const requestPlan = spacetimedb.reducer(ctx => {
+export const requestPlan = spacetimedb.reducer(ctx => startAgent(ctx, 'forecast'));
+
+// Run one of the three agents. Each kind runs one at a time.
+export const runAgent = spacetimedb.reducer({ kind: t.string() }, (ctx, { kind }) => startAgent(ctx, kind));
+
+function startAgent(ctx: Ctx, kind: string) {
+  if (!['forecast', 'research', 'invest'].includes(kind)) throw new SenderError('Unknown agent');
   const m = requireMember(ctx);
   for (const j of ctx.db.planJob.profileId.filter(m.profileId)) {
-    if (ACTIVE_JOB.has(j.status)) throw new SenderError('A plan is already in progress');
+    if (j.kind === kind && ACTIVE_JOB.has(j.status)) throw new SenderError('That agent is already running');
   }
   ctx.db.planJob.insert({
     id: 0n,
@@ -475,8 +482,9 @@ export const requestPlan = spacetimedb.reducer(ctx => {
     gapDate: '',
     createdAt: ctx.timestamp,
     claimedBy: undefined,
+    kind,
   });
-});
+}
 
 function setActionStatus(ctx: Ctx, actionId: bigint, status: 'approved' | 'rejected') {
   const m = requireMember(ctx);
@@ -520,9 +528,9 @@ export const scheduleMove = spacetimedb.reducer(
     if (toKind !== 'savings') throw new SenderError('Only moves to savings are supported right now');
     if (amountCents < 500n || amountCents > 50_000n) throw new SenderError('Amount must be between $5 and $500');
     if (amountCents % 100n !== 0n) throw new SenderError('Whole dollars only');
-    const jobs = [...ctx.db.planJob.profileId.filter(m.profileId)].sort((a, b) => (a.id < b.id ? 1 : -1));
+    const jobs = [...ctx.db.planJob.profileId.filter(m.profileId)].filter(j => j.kind === 'invest').sort((a, b) => (a.id < b.id ? 1 : -1));
     const job = jobs[0];
-    if (!job || job.status !== 'done') throw new SenderError('Finish this pay period\'s plan first');
+    if (!job || job.status !== 'done') throw new SenderError('Run the Investing agent first');
     for (const a of ctx.db.planAction.jobId.filter(job.id)) {
       if (a.kind === 'transfer' && a.status !== 'failed' && a.status !== 'rejected') throw new SenderError('Already scheduled');
     }

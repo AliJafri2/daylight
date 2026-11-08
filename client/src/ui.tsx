@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   House, ListChecks, MessageCircle, Wallet, ChevronLeft, ChevronRight, Lock, CalendarDays, Tag, Fuel,
   ShoppingCart, Receipt, PiggyBank, CreditCard, Hourglass, TriangleAlert, Settings, Check, Sparkles,
-  ArrowUp, ArrowRight, X, Mic, Landmark, RefreshCw, MapPin, Sun, OctagonAlert, CircleCheck, ShieldCheck, ShoppingBag, Bike, Coffee, Tv, type LucideIcon,
+  ArrowUp, ArrowRight, X, Mic, Landmark, RefreshCw, MapPin, Sun, OctagonAlert, CircleCheck, ShieldCheck, ShoppingBag, Bike, Coffee, Tv, CalendarClock, Search, TrendingUp, type LucideIcon,
 } from 'lucide-react';
 
 // Professional icon set (Lucide, MIT). Same names as before so every screen upgrades at once.
@@ -12,7 +12,7 @@ const ICONS = {
   home: House, plan: ListChecks, chat: MessageCircle, wallet: Wallet, back: ChevronLeft, chevron: ChevronRight,
   lock: Lock, calendar: CalendarDays, tag: Tag, gas: Fuel, cart: ShoppingCart, bill: Receipt, piggy: PiggyBank,
   card: CreditCard, hourglass: Hourglass, alert: TriangleAlert, gear: Settings, check: Check, sparkle: Sparkles,
-  arrowUp: ArrowUp, arrowRight: ArrowRight, x: X, mic: Mic, bank: Landmark, refresh: RefreshCw, pin: MapPin, sun: Sun, stop: OctagonAlert, checkCircle: CircleCheck, shield: ShieldCheck, bag: ShoppingBag, delivery: Bike, coffee: Coffee, tv: Tv,
+  arrowUp: ArrowUp, arrowRight: ArrowRight, x: X, mic: Mic, bank: Landmark, refresh: RefreshCw, pin: MapPin, sun: Sun, stop: OctagonAlert, checkCircle: CircleCheck, shield: ShieldCheck, bag: ShoppingBag, delivery: Bike, coffee: Coffee, tv: Tv, forecast: CalendarClock, search: Search, trend: TrendingUp,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

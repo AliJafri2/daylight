@@ -9,7 +9,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { DbConnection, tables } from './module_bindings/index.ts';
-import { executeAction, restoreNessieBills, runPlanJob } from './agents.ts';
+import { executeAction, restoreNessieBills, runInvestJob, runPlanJob, runResearchJob } from './agents.ts';
 import { answerCoachQuestion } from './chat.ts';
 import { hideKey } from './nessie.ts';
 import { loadNessieIds, syncFromNessie } from './sync.ts';
@@ -103,8 +103,10 @@ async function main() {
     void queue(label, fn);
   };
 
-  const onJob = (job: { id: bigint; status: string }) => {
-    if (job.status === 'pending') once(`job:${job.id}`, 'plan', () => runPlanJob(conn, job.id));
+  const onJob = (job: { id: bigint; status: string; kind: string }) => {
+    if (job.status !== 'pending') return;
+    const run = job.kind === 'research' ? runResearchJob : job.kind === 'invest' ? runInvestJob : runPlanJob;
+    once(`job:${job.id}`, job.kind, () => run(conn, job.id));
   };
   const onAction = (a: { id: bigint; status: string }) => {
     if (a.status === 'approved') once(`act:${a.id}`, 'execute', () => executeAction(conn, a.id, sync));

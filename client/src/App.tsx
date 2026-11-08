@@ -5,7 +5,7 @@ import { tables, type DbConnection } from './module_bindings';
 import { useMoney } from './engine';
 import Onboarding from './Onboarding';
 import Home from './Home';
-import Plan from './Plan';
+import Plan, { type AgentKind } from './Agents';
 import Coach from './Coach';
 import Accounts from './Accounts';
 import { Icon, type IconName } from './ui';
@@ -34,6 +34,7 @@ export default function App() {
   const [onboarded, setOnboarded] = useState(readOnboarded);
   const [tab, setTab] = useState<Tab>(initialTab);
   const [settings, setSettings] = useState(false);
+  const [agent, setAgent] = useState<AgentKind | null>(null);
   const [pendingQ, setPendingQ] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
   const m = useMoney();
@@ -75,10 +76,10 @@ export default function App() {
       {toast && <div className="toast"><span className="spinner" />{toast}</div>}
 
       {tab === 'home' && (
-        <Home m={m} name={name} onOpenPlan={() => setTab('plan')} onSettings={() => setSettings(true)}
+        <Home m={m} name={name} onOpenPlan={() => { setAgent('forecast'); setTab('plan'); }} onSettings={() => setSettings(true)}
           onAsk={q => { setPendingQ(q); setTab('coach'); }} />
       )}
-      {tab === 'plan' && <Plan m={m} onDone={() => setTab('home')} />}
+      {tab === 'plan' && <Plan m={m} agent={agent} setAgent={setAgent} onDone={() => setTab('home')} onAsk={q => { setPendingQ(q); setTab('coach'); }} />}
       {tab === 'coach' && <Coach name={name} pending={pendingQ} onPendingSent={() => setPendingQ(null)} />}
       {tab === 'accounts' && <Accounts m={m} syncedAgo={syncedAgo} />}
 
@@ -86,7 +87,7 @@ export default function App() {
         <span className="tab-indicator" aria-hidden="true"
           style={{ transform: `translateX(calc(${TABS.findIndex(t => t.id === tab)} * (100% + 8px)))` }} />
         {TABS.map(t => (
-          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}>
+          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => { if (t.id === 'plan') setAgent(null); setTab(t.id); }} aria-current={tab === t.id ? 'page' : undefined}>
             <Icon name={t.icon} size={22} />
             {t.label}
             <span className="dot" />

@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import { useTable } from 'spacetimedb/react';
 import { tables } from './module_bindings';
-import { spendingInsights, totalMonthly } from '../../shared/insights.ts';
+import { spendingInsights } from '../../shared/insights.ts';
 import { Icon, usd } from './ui';
 
 export default function BenNoticed({ asOf, onAsk }: { asOf: string; onAsk: (q: string) => void }) {
@@ -15,15 +15,9 @@ export default function BenNoticed({ asOf, onAsk }: { asOf: string; onAsk: (q: s
     [rows, asOf]
   );
   if (!insights.length) return null;
-  const total = totalMonthly(insights);
 
   return (
     <>
-      <div className="section-title noticed-head">
-        <span>Ben noticed</span>
-        <span className="noticed-total">+{usd(total, { whole: true })}/mo</span>
-      </div>
-      <p className="noticed-lead">Small changes to last month's habits. Tap one to see the math.</p>
       <div className="noticed">
         {insights.map(x => (
           <div key={x.key} className="noticed-row">

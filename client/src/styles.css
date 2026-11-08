@@ -976,3 +976,29 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .nm-bar span { display: block; height: 100%; background: var(--green); border-radius: 3px; transition: width 0.6s var(--ease-out); }
 .nm-foot { font-size: 14px; color: var(--ink-2); margin: 16px 4px 0; }
 .nm-fine { font-size: 12px; color: var(--ink-3); margin: 8px 4px 0; }
+
+/* ---------- Plan: three agents ---------- */
+.hub-lead { font-size: 15px; color: var(--ink-3); margin: 0 0 16px; }
+.agent-tiles { display: flex; flex-direction: column; gap: 12px; }
+.agent-tile { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 14px; padding: 18px 16px; background: var(--fill); border-radius: 22px; cursor: pointer; transition: transform 0.15s var(--ease-out); }
+.agent-tile:active { transform: scale(0.98); }
+.agent-tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.agent-tile .chev { color: var(--ink-3); flex: none; }
+.agent-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.agent-name { font-size: 17px; font-weight: 700; color: var(--ink); }
+.agent-blurb { font-size: 14px; color: var(--ink-3); margin-top: 2px; line-height: 1.35; }
+.agent-status { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 14px; font-weight: 600; }
+.agent-status.red { color: var(--red); }
+.agent-status.green { color: var(--green); }
+.agent-status.muted { color: var(--ink-3); }
+.agent-status.busy { color: var(--ink-2); }
+.pico.orange { background: linear-gradient(160deg, #ffb36b 0%, #f5852b 55%, #db6a14 100%); color: #fff; box-shadow: 0 6px 14px rgba(229, 120, 30, 0.30), inset 0 1px 0 rgba(255,255,255,0.45); }
+.pico.big { width: 64px; height: 64px; border-radius: 18px; }
+.agent-bar { display: flex; align-items: center; justify-content: flex-start; gap: 10px; }
+.agent-intro { text-align: center; padding-top: 24px; display: flex; flex-direction: column; align-items: center; }
+.agent-intro .plan-hint { max-width: 340px; }
+.agent-intro .plan-go { width: 100%; }
+.agent-result-head { text-align: center; margin: 8px 0 16px; }
+.agent-steps { max-width: none; margin-top: 12px; }
+.agent-steps .check-item { align-items: flex-start; }
+.agent-steps .check-item.finding { color: var(--ink); }

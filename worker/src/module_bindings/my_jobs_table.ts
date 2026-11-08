@@ -18,4 +18,5 @@ export default __t.row({
   gapDate: __t.string().name("gap_date"),
   createdAt: __t.timestamp().name("created_at"),
   claimedBy: __t.option(__t.identity()).name("claimed_by"),
+  kind: __t.string(),
 });

@@ -140,6 +140,7 @@ export const PlanJob = __t.object("PlanJob", {
   gapDate: __t.string(),
   createdAt: __t.timestamp(),
   claimedBy: __t.option(__t.identity()),
+  kind: __t.string(),
 });
 export type PlanJob = __Infer<typeof PlanJob>;
 

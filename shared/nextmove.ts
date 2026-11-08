@@ -33,6 +33,7 @@ export type NextMove = {
   };
   steps: Step[];
   monthsToCushion?: number; // if the "Ben noticed" changes are followed too
+  window?: { from: string; to: string; lowCents: number; lowDate: string }; // next pay period looked at
 };
 
 const usd = (c: number) => {
@@ -92,7 +93,9 @@ export function nextBestMove(input: ForecastInput, accounts: Account[], opts: { 
   if (!window.length || window[window.length - 1].date < addDays(nextPay, -1)) {
     return { blockedReason: 'Not enough forecast to see the next pay period yet.', steps };
   }
-  const low = Math.min(...window.map(d => d.balanceCents));
+  const lowDay = window.reduce((a, d) => (d.balanceCents < a.balanceCents ? d : a));
+  const low = lowDay.balanceCents;
+  const win = { from: payday, to: addDays(nextPay, -1), lowCents: low, lowDate: lowDay.date };
   const spare = Math.floor((low - SAFETY_FLOOR_CENTS) / ROUND_TO_CENTS) * ROUND_TO_CENTS;
 
   const monthsToCushion = cushionDone || habits <= 0 ? undefined : Math.ceil((CUSHION_GOAL_CENTS - savings - Math.max(0, spare)) / habits);
@@ -100,7 +103,7 @@ export function nextBestMove(input: ForecastInput, accounts: Account[], opts: { 
   if (spare < ROUND_TO_CENTS) {
     return {
       blockedReason: `Next pay period is tight: your lowest point is ${usd(low)}. Ben will keep that money in checking for now.`,
-      steps, monthsToCushion,
+      steps, monthsToCushion, window: win,
     };
   }
 
@@ -125,5 +128,5 @@ export function nextBestMove(input: ForecastInput, accounts: Account[], opts: { 
         why: `Cushion set and no card debt. Your lowest point before ${day(nextPay)} is ${usd(low)}, so ${usd(spare)} can be invested and still leave ${usd(lowAfter)}.`,
       };
 
-  return { move: { amountCents: spare, date, toKind, lowAfterCents: lowAfter, ...move }, steps, monthsToCushion };
+  return { move: { amountCents: spare, date, toKind, lowAfterCents: lowAfter, ...move }, steps, monthsToCushion, window: win };
 }

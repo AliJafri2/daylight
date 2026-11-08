@@ -67,9 +67,7 @@ export default function NextMove({ m, jobId }: { m: Money; jobId?: bigint }) {
   }
 
   return (
-    <div className="nextmove">
-      <div className="section-title">After payday</div>
-      <p className="noticed-lead">Ben's next best move for spare money.</p>
+    <div className="nextmove" style={{ marginTop: 0 }}>
       {hero}
       <div className="nm-steps">
         {nm.steps.map((s, i) => (

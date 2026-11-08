@@ -8,7 +8,7 @@ import { explainAll, type WhyRequest } from './coach.ts';
 import { readMoney } from './money.ts';
 import { nessie } from './nessie.ts';
 import { loadNessieIds } from './sync.ts';
-import { SAFETY_FLOOR_CENTS } from '../../shared/nextmove.ts';
+import { SAFETY_FLOOR_CENTS, CUSHION_GOAL_CENTS, nextBestMove } from '../../shared/nextmove.ts';
 
 const STEP_DELAY_MS = Number(process.env.STEP_DELAY_MS ?? 900);
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -78,15 +78,6 @@ export async function runPlanJob(conn: DbConnection, jobId: bigint) {
       } else if (best) {
         await step('savings', `${best.place} saves you ${usd(best.netSavingsCents)} on your next fill-up.`);
       }
-    }
-
-    // Spending agent: habits from last month's purchases (rules, no AI math). Monthly money, after payday.
-    const txns = [...conn.db.myTransactions.iter()].map(t => ({ merchant: t.merchant, category: t.category, amountCents: Number(t.amountCents), date: t.date }));
-    const habits = spendingInsights(txns, m.input.asOf);
-    if (habits.length) {
-      await step('spending', `Looking at last month's spending (${txns.length} purchases)…`);
-      const top = habits.slice(0, 2).map(h => (h.title.charAt(0).toLowerCase() + h.title.slice(1)).replace(/ this month$/, '')).join(' and ');
-      await step('spending', `Noticed ${top}. Small changes there could free up about ${usd(totalMonthly(habits))} a month. I put them on your Home screen.`);
     }
 
     const low = plan.after.lowPoint.balanceCents;
@@ -178,6 +169,84 @@ function actionRow(jobId: bigint, a: PlanAction, why: { en: string }, sortOrder:
     detail: `${usd(o.priceCents)} a gallon instead of ${usd(Math.round(o.priceCents + (o.grossSavingsCents / o.gallons)))} at ${a.fromPlace}, even counting the drive.`,
     spendId: BigInt(a.spendId), spendDeltaCents: BigInt(-a.savingsCents), newPlace: o.place,
   };
+}
+
+// ---------- Research agent: reads last month's purchases, finds habits worth changing ----------
+
+async function runSimpleJob(conn: DbConnection, jobId: bigint, agent: string, body: (step: (m: string) => Promise<void>) => Promise<void>) {
+  const step = async (message: string) => {
+    await conn.reducers.addStep({ jobId, agent, message });
+    await sleep(STEP_DELAY_MS);
+  };
+  try {
+    await conn.reducers.claimJob({ jobId });
+    log(`job ${jobId} (${agent}): claimed`);
+    await body(step);
+    await conn.reducers.setJobStatus({ jobId, status: 'done', gapCents: 0n, gapDate: '' });
+    log(`job ${jobId} (${agent}): done`);
+  } catch (err) {
+    log(`job ${jobId} (${agent}): failed`, String(err));
+    await conn.reducers.addStep({ jobId, agent, message: 'Something went wrong. Please try again.' }).catch(() => {});
+    await conn.reducers.setJobStatus({ jobId, status: 'failed', gapCents: 0n, gapDate: '' }).catch(() => {});
+  }
+}
+
+const readTxns = (conn: DbConnection) =>
+  [...conn.db.myTransactions.iter()].map(t => ({ merchant: t.merchant, category: t.category, amountCents: Number(t.amountCents), date: t.date }));
+
+export function runResearchJob(conn: DbConnection, jobId: bigint) {
+  return runSimpleJob(conn, jobId, 'research', async step => {
+    const m = readMoney(conn);
+    if (!m) throw new Error('No data for this profile yet');
+    const txns = readTxns(conn).filter(t => t.date < m.input.asOf).sort((a, b) => a.date.localeCompare(b.date));
+    await step('Reading your purchases from the bank…');
+    if (!txns.length) { await step('No purchases yet. Check back after you spend a little.'); return; }
+    await step(`Found ${txns.length} purchases from ${day(txns[0].date)} to ${day(txns[txns.length - 1].date)}.`);
+
+    await step('Grouping them by category…');
+    const byCat = new Map<string, number>();
+    for (const t of txns) byCat.set(t.category, (byCat.get(t.category) ?? 0) + t.amountCents);
+    const top = [...byCat].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([c, v]) => `${c} ${usd(v)}`).join(', ');
+    await step(`Biggest categories: ${top}.`);
+
+    await step('Looking for habits you could change…');
+    const habits = spendingInsights(txns, m.input.asOf);
+    for (const h of habits) await step(`${h.title}. ${h.change}: about ${usd(h.monthlySavingsCents)} a month.`);
+    await step(habits.length
+      ? `Found about ${usd(totalMonthly(habits))} a month you could keep. Nothing changes unless you decide to.`
+      : 'Your spending looks steady. Nothing stands out to change.');
+  });
+}
+
+// ---------- Investing agent: where spare money should go once the pay period is safe ----------
+
+export function runInvestJob(conn: DbConnection, jobId: bigint) {
+  return runSimpleJob(conn, jobId, 'invest', async step => {
+    const m = readMoney(conn);
+    if (!m) throw new Error('No data for this profile yet');
+    const habits = totalMonthly(spendingInsights(readTxns(conn), m.input.asOf));
+    const nm = nextBestMove(m.input, m.accounts, { habitsMonthlyCents: habits });
+
+    await step('Checking this pay period first…');
+    const f = buildForecast(m.input);
+    if (f.shortfall) {
+      await step(`You'd still be ${usd(-f.shortfall.balanceCents)} short on ${day(f.shortfall.date)}. Run the Forecasting agent first: no spare money until that's fixed.`);
+      return;
+    }
+    await step('This pay period is covered.');
+
+    if (nm.window) {
+      await step(`Looking ahead to your next pay period (${day(nm.window.from)} to ${day(nm.window.to)})…`);
+      await step(`Lowest point: ${usd(nm.window.lowCents)} on ${day(nm.window.lowDate)}. I always keep at least ${usd(SAFETY_FLOOR_CENTS)} in checking.`);
+    }
+
+    await step('Comparing where spare money does the most good…');
+    const card = m.accounts.find(a => a.kind === 'credit_card');
+    const savings = m.accounts.filter(a => a.kind === 'savings').reduce((s, a) => s + a.balanceCents, 0);
+    await step(`Savings: ${usd(savings)} of a ${usd(CUSHION_GOAL_CENTS)} cushion.${card?.apr ? ` Card: ${usd(card.balanceCents)} at ${card.apr}% APR.` : ''} Cushion comes first, then the card, then investing.`);
+
+    await step(nm.move ? `Suggestion: ${nm.move.title.toLowerCase()} on ${day(nm.move.date)}. Nothing moves until you tap.` : (nm.blockedReason ?? 'No spare money this time.'));
+  });
 }
 
 // ---------- Executor (only after the user's approval) ----------

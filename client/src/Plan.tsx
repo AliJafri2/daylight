@@ -6,8 +6,8 @@ import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables, type DbConnection } from './module_bindings';
 import { buildForecast, type Adjustments } from '../../shared/forecast.ts';
 import CoverRing, { ringFrom } from './CoverRing';
-import NextMove from './NextMove';
 import { Icon, day, usd, type IconName } from './ui';
+import { AgentBar } from './AgentBar';
 import type { useMoney } from './engine';
 
 type Money = Extract<ReturnType<typeof useMoney>, { ready: boolean; forecast: unknown }>;
@@ -16,7 +16,7 @@ const time = (ts: { microsSinceUnixEpoch: bigint }) => Number(ts.microsSinceUnix
 const KIND: Record<string, IconName> = { move_bill: 'calendar', grocery_swap: 'cart', gas_switch: 'gas' };
 const AGENT: Record<string, string> = { forecast: 'Forecast', savings: 'Savings', spending: 'Spending', coach: 'Ben', executor: 'Bank' };
 
-export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
+export default function ForecastAgent({ m, onDone, onBack }: { m: Money; onDone: () => void; onBack: () => void }) {
   const { isActive, getConnection } = useSpacetimeDB();
   const conn = getConnection() as DbConnection | null;
   const [jobs] = useTable(tables.myJobs);
@@ -27,7 +27,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
   const [showSteps, setShowSteps] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const job = useMemo(() => [...jobs].sort((a, b) => (a.id < b.id ? 1 : -1))[0], [jobs]);
+  const job = useMemo(() => [...jobs].filter(j => j.kind === 'forecast').sort((a, b) => (a.id < b.id ? 1 : -1))[0], [jobs]);
   const jobSteps = useMemo(
     () => (job ? steps.filter(s => s.jobId === job.id).sort((a, b) => time(a.createdAt) - time(b.createdAt)) : []),
     [steps, job]
@@ -96,7 +96,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
     const r = ringFrom(m.forecast);
     return (
       <div className="screen plan">
-        <div className="topbar"><h1>Your plan</h1></div>
+        <AgentBar title="Forecasting agent" onBack={onBack} />
         <CoverRing dueCents={r.due} haveCents={r.have} payday={m.forecast.nextPayday} heroCents={m.forecast.lowPoint.balanceCents} />
         <div className="plan-done">
           <div className="plan-head">{m.forecast.shortfall ? 'Done! Closer to green.' : 'Done! Ring closed.'}</div>
@@ -113,8 +113,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
           ))}
         </div>
         <button className="btn green" style={{ marginTop: 20 }} onClick={onDone}>See my new forecast</button>
-        <NextMove m={m} jobId={job?.id} />
-        {stepsLink()}
+                {stepsLink()}
       </div>
     );
   }
@@ -123,7 +122,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
   if (ready || executing) {
     return (
       <div className="screen plan">
-        <div className="topbar"><h1>Your plan</h1></div>
+        <AgentBar title="Forecasting agent" onBack={onBack} />
         <CoverRing dueCents={preview.ring.due} haveCents={preview.ring.have} payday={m.forecast.nextPayday}
           heroCents={preview.f.shortfall ? preview.f.shortfall.balanceCents : preview.f.lowPoint.balanceCents} />
         <p className="plan-hint">{executing ? 'Making the changes…' : 'Tap a fix to see what it does to your ring.'}</p>
@@ -181,7 +180,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
     const items = doing.length ? doing : [{ id: 0n, message: 'Starting…' }];
     return (
       <div className="screen plan">
-        <div className="topbar"><h1>Your plan</h1></div>
+        <AgentBar title="Forecasting agent" onBack={onBack} />
         <div className="plan-working">
           <div className="work-spin" />
           <div className="plan-head" style={{ marginTop: 18 }}>Ben is finding the cheapest fix</div>
@@ -205,7 +204,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
   const r0 = ringFrom(m.forecast);
   return (
     <div className="screen plan">
-      <div className="topbar"><h1>Your plan</h1></div>
+      <AgentBar title="Forecasting agent" onBack={onBack} />
       <CoverRing dueCents={r0.due} haveCents={r0.have} payday={m.forecast.nextPayday} heroCents={sf ? sf.balanceCents : m.forecast.lowPoint.balanceCents} />
       {sf ? (
         <>
@@ -216,10 +215,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
           {job?.status === 'failed' && <p className="small" style={{ color: 'var(--red)' }}>Something went wrong. Tap Find a fix to try again.</p>}
         </>
       ) : (
-        <>
-          <p className="plan-hint">Your ring is closed. Nothing to fix before payday ({m.forecast.nextPayday ? day(m.forecast.nextPayday) : 'soon'}).</p>
-          <NextMove m={m} jobId={job?.status === 'done' ? job.id : undefined} />
-        </>
+        <p className="plan-hint">Your ring is closed. Nothing to fix before payday ({m.forecast.nextPayday ? day(m.forecast.nextPayday) : 'soon'}).</p>
       )}
       {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
     </div>
