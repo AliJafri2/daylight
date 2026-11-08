@@ -618,7 +618,7 @@ input { font: inherit; }
   padding: 16px 18px; border-radius: 22px; border: 1.5px solid var(--ink); background: #fff;
   font-size: 20px; font-weight: 700; letter-spacing: -0.01em; box-shadow: var(--shadow);
 }
-.ai-cta .spark { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #f2771e, #e5484d 55%, #7c5cf2); flex: none; }
+.ai-cta .spark { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; background: linear-gradient(160deg, #34c77b, #1d8f53); box-shadow: 0 4px 12px rgba(29, 143, 83, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3); flex: none; }
 .ai-cta .chev { margin-left: auto; color: var(--ink-2); }
 .ai-cta.ok { border-color: var(--green); color: var(--green); }
 .ai-cta.ok .spark { background: var(--green); }
