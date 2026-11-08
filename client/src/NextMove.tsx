@@ -13,7 +13,7 @@ type Money = Extract<ReturnType<typeof useMoney>, { ready: boolean; forecast: un
 const STEP_ICON: Record<string, IconName> = { cushion: 'piggy', card: 'card', ira: 'arrowUp' };
 const STATUS: Record<string, string> = { now: 'Now', next: 'Next', later: 'Later', done: 'Done' };
 
-export default function NextMove({ m, jobId }: { m: Money; jobId?: bigint }) {
+export default function NextMove({ m, jobId, reveal = false }: { m: Money; jobId?: bigint; reveal?: boolean }) {
   const { isActive, getConnection } = useSpacetimeDB();
   const conn = getConnection() as DbConnection | null;
   const [actions] = useTable(tables.myActions);
@@ -40,7 +40,7 @@ export default function NextMove({ m, jobId }: { m: Money; jobId?: bigint }) {
   if (scheduled && scheduled.status !== 'failed') {
     const doneNow = scheduled.status === 'executed';
     hero = (
-      <div className="nm-hero">
+      <div className={`nm-hero ${reveal ? 'reveal-in' : ''}`} style={reveal ? { animationDelay: '1.0s', ['--sweep' as string]: '1.4s' } : undefined}>
         <div className="nm-title">{scheduled.title}</div>
         <div className="nm-detail">{scheduled.newDate ? `On ${day(scheduled.newDate)}, the day after payday.` : ''}</div>
         <div className={`nm-status ${doneNow ? 'ok' : ''}`}>
@@ -50,7 +50,7 @@ export default function NextMove({ m, jobId }: { m: Money; jobId?: bigint }) {
     );
   } else if (nm.move) {
     hero = (
-      <div className="nm-hero">
+      <div className={`nm-hero ${reveal ? 'reveal-in' : ''}`} style={reveal ? { animationDelay: '1.0s', ['--sweep' as string]: '1.4s' } : undefined}>
         <div className="nm-title">{nm.move.title}</div>
         <div className="nm-detail">{nm.move.detail}</div>
         <div className="nm-actions">
@@ -63,7 +63,7 @@ export default function NextMove({ m, jobId }: { m: Money; jobId?: bigint }) {
       </div>
     );
   } else {
-    hero = <div className="nm-hero"><div className="nm-detail" style={{ marginTop: 0 }}>{nm.blockedReason}</div></div>;
+    hero = <div className={`nm-hero ${reveal ? 'reveal-in' : ''}`} style={reveal ? { animationDelay: '1.0s', ['--sweep' as string]: '1.4s' } : undefined}><div className="nm-detail" style={{ marginTop: 0 }}>{nm.blockedReason}</div></div>;
   }
 
   return (
@@ -71,7 +71,7 @@ export default function NextMove({ m, jobId }: { m: Money; jobId?: bigint }) {
       {hero}
       <div className="nm-steps">
         {nm.steps.map((s, i) => (
-          <div key={s.key} className={`nm-step s-${s.status}`}>
+          <div key={s.key} className={`nm-step s-${s.status} ${reveal ? 'reveal-in' : ''}`} style={reveal ? { animationDelay: `${1.35 + i * 0.13}s` } : undefined}>
             <span className="nm-num"><Icon name={STEP_ICON[s.key]} size={16} /></span>
             <span className="nm-text">
               <span className="nm-st">{i + 1}. {s.title} <span className="nm-chip">{STATUS[s.status]}</span></span>
@@ -86,7 +86,7 @@ export default function NextMove({ m, jobId }: { m: Money; jobId?: bigint }) {
         ))}
       </div>
       {nm.monthsToCushion !== undefined && (
-        <p className="nm-foot">With Ben's spending tips (+{usd(habits, { whole: true })}/mo), you'd reach {usd(50000, { whole: true })} in about {nm.monthsToCushion} month{nm.monthsToCushion === 1 ? '' : 's'}.</p>
+        <p className={`nm-foot ${reveal ? 'reveal-fade' : ''}`}>With Ben's spending tips (+{usd(habits, { whole: true })}/mo), you'd reach {usd(50000, { whole: true })} in about {nm.monthsToCushion} month{nm.monthsToCushion === 1 ? '' : 's'}.</p>
       )}
       <p className="nm-fine">General guidance, not investment advice.</p>
     </div>

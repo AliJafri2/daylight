@@ -1066,3 +1066,19 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
   .reveal-glow, .noticed-row.reveal-in::after { display: none; }
   .agent-result-head.reveal *, .noticed-row.reveal-in, .noticed-row.reveal-in .noticed-ico { animation: none !important; }
 }
+
+/* ---------- Investing agent: result reveal ---------- */
+.nm-hero { position: relative; overflow: hidden; }
+.nm-hero.reveal-in { animation: cardIn 0.7s var(--ease-out) backwards; }
+.nm-hero.reveal-in::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%); transform: translateX(-120%);
+  animation: sweep 0.9s ease-in-out var(--sweep, 1.4s) both; }
+.nm-step.reveal-in { animation: cardIn 0.6s var(--ease-out) backwards; }
+.nm-step.reveal-in .nm-num { animation: pop 0.45s var(--ease-spring) backwards; animation-delay: inherit; }
+.nm-step.reveal-in .nm-bar span { animation: barFill 1.1s var(--ease-out) 1.9s backwards; }
+@keyframes barFill { from { width: 0; } }
+.reveal-fade { animation: riseIn 0.6s var(--ease-out) 1.9s backwards; }
+@media (prefers-reduced-motion: reduce) {
+  .nm-hero.reveal-in::after { display: none; }
+  .nm-hero.reveal-in, .nm-step.reveal-in, .nm-step.reveal-in *, .reveal-fade { animation: none !important; }
+}

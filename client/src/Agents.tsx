@@ -187,11 +187,8 @@ function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: 
             </>
           ) : (
             <>
-              <div className="agent-result-head">
-                <div className="plan-head">{m.forecast.shortfall ? 'Close the gap first' : 'Your next best move'}</div>
-                <p className="plan-sub">{m.forecast.shortfall ? 'Here is the order Ben will follow once you\'re covered.' : 'For spare money after payday. Nothing moves until you tap.'}</p>
-              </div>
-              <NextMove m={m} jobId={job.id} />
+              <InvestHead m={m} reveal={reveal} />
+              <NextMove m={m} jobId={job.id} reveal={reveal} />
             </>
           )}
           <div style={{ marginTop: 18, textAlign: 'center' }}>
@@ -234,5 +231,21 @@ function Summary360() {
       ))}
       <div className="s360-foot">{s ? `Written by Ben from your numbers · ${ago < 1 ? 'just now' : `${ago} min ago`}` : 'Ben is reading your accounts…'}</div>
     </section>
+  );
+}
+
+// Investing agent result headline (with the same reveal as Research).
+function InvestHead({ m, reveal }: { m: Money; reveal: boolean }) {
+  const nm = useMemo(() => nextBestMove(m.input, m.accounts), [m.input, m.accounts]);
+  const blocked = !!m.forecast.shortfall || !nm.move;
+  return (
+    <div className={`agent-result-head ${reveal ? 'reveal' : ''}`}>
+      {reveal && <span className="reveal-glow" aria-hidden="true" />}
+      <div className="reveal-kicker">{blocked ? 'Ben says' : "Ben's next move"}</div>
+      {blocked
+        ? <div className="plan-head reveal-num" style={{ fontSize: 32 }}>Close the gap first</div>
+        : <div className="plan-head reveal-num"><span className="reveal-unit">Move </span>+<CountUp to={nm.move!.amountCents} animate={reveal} delay={350} ms={1000} /> <span className="reveal-unit">to savings</span></div>}
+      <p className="plan-sub">{blocked ? "Here's the order Ben will follow once you're covered." : 'For spare money after payday. Nothing moves until you tap.'}</p>
+    </div>
   );
 }
