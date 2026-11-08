@@ -14,7 +14,12 @@ const KIND: Record<string, string> = { Checking: 'checking', Savings: 'savings',
 
 export function loadNessieIds(): NessieIds {
   // Hosted (Railway): the IDs come from an env var. Locally: worker/nessie-ids.json.
-  if (process.env.NESSIE_IDS_JSON) return JSON.parse(process.env.NESSIE_IDS_JSON);
+  const raw = process.env.NESSIE_IDS_JSON?.trim();
+  if (raw) {
+    // Tolerate the value being pasted with surrounding quotes (some dashboards add them).
+    const unquoted = /^(['"]).*\1$/s.test(raw) && !raw.startsWith('{') ? raw.slice(1, -1) : raw;
+    return JSON.parse(unquoted);
+  }
   return JSON.parse(readFileSync(new URL('../nessie-ids.json', import.meta.url), 'utf8'));
 }
 
