@@ -951,3 +951,28 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .noticed-amt small { font-size: 13px; font-weight: 600; }
 .noticed-why { padding: 0 16px 14px 66px; animation: rise 0.3s var(--ease-out) backwards; }
 .noticed-why p { margin: 0 0 8px; font-size: 15px; color: var(--ink-2); line-height: 1.45; }
+
+/* ---------- After payday (next best move) ---------- */
+.nextmove { margin-top: 28px; text-align: left; }
+.nm-hero { background: var(--fill); border-radius: 20px; padding: 18px; }
+.nm-title { font-size: 20px; font-weight: 700; color: var(--ink); }
+.nm-detail { font-size: 15px; color: var(--ink-2); margin-top: 4px; line-height: 1.4; }
+.nm-actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.nm-go { flex: 1; margin: 0; }
+.nm-why { font-size: 15px; color: var(--ink-2); line-height: 1.45; margin: 12px 0 0; }
+.nm-status { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; font-weight: 600; font-size: 15px; color: var(--ink-2); }
+.nm-status.ok { color: var(--green); }
+.nm-steps { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; padding: 0 4px; }
+.nm-step { display: flex; gap: 12px; align-items: flex-start; }
+.nm-num { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: var(--fill); color: var(--ink-2); flex: none; }
+.nm-step.s-now .nm-num { background: var(--ink); color: #fff; }
+.nm-step.s-done .nm-num { background: var(--green); color: #fff; }
+.nm-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.nm-st { font-size: 16px; font-weight: 600; color: var(--ink); }
+.nm-chip { font-size: 12px; font-weight: 600; color: var(--ink-3); background: var(--fill); border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px; }
+.nm-step.s-now .nm-chip { background: var(--ink); color: #fff; }
+.nm-sd { font-size: 14px; color: var(--ink-3); margin-top: 2px; line-height: 1.4; }
+.nm-bar { display: block; height: 6px; border-radius: 3px; background: var(--fill); margin-top: 8px; overflow: hidden; }
+.nm-bar span { display: block; height: 100%; background: var(--green); border-radius: 3px; transition: width 0.6s var(--ease-out); }
+.nm-foot { font-size: 14px; color: var(--ink-2); margin: 16px 4px 0; }
+.nm-fine { font-size: 12px; color: var(--ink-3); margin: 8px 4px 0; }

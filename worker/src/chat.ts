@@ -2,6 +2,7 @@
 // here by the deterministic engine first ("the AI never does math"). Answers that contain a
 // number not present in the facts or the question are rejected and replaced.
 import { spendingInsights, totalMonthly } from '../../shared/insights.ts';
+import { nextBestMove } from '../../shared/nextmove.ts';
 import type { DbConnection } from './module_bindings/index.ts';
 import { addDays, buildForecast, healthIndicators, planFixes } from '../../shared/forecast.ts';
 import { askGemini } from './coach.ts';
@@ -64,6 +65,13 @@ export function buildFacts(conn: DbConnection, question: string) {
     for (const x of habits) lines.push(`  ${x.why} Suggested change: ${x.change}.`);
     lines.push(`  Together these free up about ${usd(totalMonthly(habits))} a month.`);
   }
+
+  // Next best move after payday (same rules as the Plan screen's "After payday" card).
+  const nm = nextBestMove(m.input, m.accounts, { habitsMonthlyCents: totalMonthly(habits) });
+  lines.push(`Order for spare money: ${nm.steps.map((s, i) => `${i + 1}) ${s.title} [${s.status}]: ${s.detail}`).join(' ')}`);
+  if (nm.move) lines.push(`Next best move: ${nm.move.title}. ${nm.move.detail} ${nm.move.why}`);
+  else if (nm.blockedReason) lines.push(`Next best move: none yet. ${nm.blockedReason}`);
+  if (nm.monthsToCushion) lines.push(`Following the spending habit changes too, savings would reach $500 in about ${nm.monthsToCushion} months.`);
 
   return {
     facts: lines.join('\n'),

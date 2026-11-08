@@ -21,7 +21,7 @@ export const spend: Spend[] = [
 export const accounts: Account[] = [
   { kind: 'checking', nickname: 'Everyday Checking', balanceCents: 108900 },
   { kind: 'savings', nickname: 'Rainy Day Savings', balanceCents: 4000 },
-  { kind: 'credit_card', nickname: 'Credit Card', balanceCents: 184000, creditLimitCents: 250000 },
+  { kind: 'credit_card', nickname: 'Credit Card', balanceCents: 184000, creditLimitCents: 250000, apr: 27.9 },
   { kind: 'auto_loan', nickname: 'Auto Loan', balanceCents: 1420000 },
   { kind: 'ira', nickname: 'Roth IRA', balanceCents: 65000 },
   { kind: 'cd', nickname: '6-month CD (matures Mar 2027)', balanceCents: 30000 },

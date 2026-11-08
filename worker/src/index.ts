@@ -118,6 +118,7 @@ async function main() {
   conn.db.myCoach.onInsert((_ctx, msg) => onCoach(msg));
   conn.db.myJobs.onUpdate((_ctx, _old, job) => onJob(job));
   conn.db.myActions.onUpdate((_ctx, _old, a) => onAction(a));
+  conn.db.myActions.onInsert((_ctx, a) => onAction(a)); // scheduled moves arrive already approved
   conn.db.myProfile.onUpdate((_ctx, old, p) => {
     if (p.needsNessieReset && !old.needsNessieReset) void queue('reset', sync);
   });

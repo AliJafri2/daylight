@@ -25,7 +25,7 @@ export function useMoney(adjustments?: Adjustments) {
 
     const accounts: Account[] = accountRows.map(a => ({
       kind: a.kind, nickname: a.nickname, balanceCents: n(a.balanceCents),
-      creditLimitCents: a.creditLimitCents === undefined ? undefined : n(a.creditLimitCents),
+      creditLimitCents: a.creditLimitCents === undefined ? undefined : n(a.creditLimitCents), apr: a.apr,
     }));
     const input: ForecastInput = {
       asOf: profile.asOfDate,

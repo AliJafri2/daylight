@@ -50,6 +50,7 @@ import RegisterWorkerReducer from "./register_worker_reducer";
 import RejectActionReducer from "./reject_action_reducer";
 import RequestPlanReducer from "./request_plan_reducer";
 import ResetDemoReducer from "./reset_demo_reducer";
+import ScheduleMoveReducer from "./schedule_move_reducer";
 import SetDisplayNameReducer from "./set_display_name_reducer";
 import SetJobStatusReducer from "./set_job_status_reducer";
 import SetWorkerSecretReducer from "./set_worker_secret_reducer";
@@ -177,6 +178,7 @@ const reducersSchema = __reducers(
   __reducerSchema("reject_action", RejectActionReducer),
   __reducerSchema("request_plan", RequestPlanReducer),
   __reducerSchema("reset_demo", ResetDemoReducer),
+  __reducerSchema("schedule_move", ScheduleMoveReducer),
   __reducerSchema("set_display_name", SetDisplayNameReducer),
   __reducerSchema("set_job_status", SetJobStatusReducer),
   __reducerSchema("set_worker_secret", SetWorkerSecretReducer),

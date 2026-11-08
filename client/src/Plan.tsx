@@ -6,6 +6,7 @@ import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables, type DbConnection } from './module_bindings';
 import { buildForecast, type Adjustments } from '../../shared/forecast.ts';
 import CoverRing, { ringFrom } from './CoverRing';
+import NextMove from './NextMove';
 import { Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
 
@@ -32,7 +33,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
     [steps, job]
   );
   const jobActions = useMemo(
-    () => (job ? actions.filter(a => a.jobId === job.id).sort((a, b) => a.sortOrder - b.sortOrder) : []),
+    () => (job ? actions.filter(a => a.jobId === job.id && a.kind !== 'transfer').sort((a, b) => a.sortOrder - b.sortOrder) : []),
     [actions, job]
   );
   useEffect(() => { setOff(new Set()); }, [job?.id]);
@@ -112,6 +113,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
           ))}
         </div>
         <button className="btn green" style={{ marginTop: 20 }} onClick={onDone}>See my new forecast</button>
+        <NextMove m={m} jobId={job?.id} />
         {stepsLink()}
       </div>
     );
@@ -214,7 +216,10 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
           {job?.status === 'failed' && <p className="small" style={{ color: 'var(--red)' }}>Something went wrong. Tap Find a fix to try again.</p>}
         </>
       ) : (
-        <p className="plan-hint">Your ring is closed. Nothing to fix before payday ({m.forecast.nextPayday ? day(m.forecast.nextPayday) : 'soon'}).</p>
+        <>
+          <p className="plan-hint">Your ring is closed. Nothing to fix before payday ({m.forecast.nextPayday ? day(m.forecast.nextPayday) : 'soon'}).</p>
+          <NextMove m={m} jobId={job?.status === 'done' ? job.id : undefined} />
+        </>
       )}
       {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
     </div>

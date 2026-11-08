@@ -7,6 +7,8 @@ import { spendingInsights, totalMonthly } from '../../shared/insights.ts';
 import { explainAll, type WhyRequest } from './coach.ts';
 import { readMoney } from './money.ts';
 import { nessie } from './nessie.ts';
+import { loadNessieIds } from './sync.ts';
+import { SAFETY_FLOOR_CENTS } from '../../shared/nextmove.ts';
 
 const STEP_DELAY_MS = Number(process.env.STEP_DELAY_MS ?? 900);
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -195,6 +197,24 @@ export async function executeAction(conn: DbConnection, actionId: bigint, resync
       await nessie.moveBill(bill.nessieBillId, a.newDate);
       await conn.reducers.markActionExecuted({ actionId, ok: true, nessieRef: bill.nessieBillId });
       await say(`Done: ${bill.payee} now pays on ${day(a.newDate)} in your bank account (Nessie).`);
+    } else if (a.kind === 'transfer' && a.newDate) {
+      // Guardrail: re-check with the engine before touching the bank. Never dip below the $100 floor.
+      const m = readMoney(conn);
+      if (!m) throw new Error('No data yet');
+      const amount = Number(a.savingsCents);
+      const f = buildForecast({ ...m.input, spend: [...m.input.spend, { id: 'move', category: 'savings', place: 'Savings', amountCents: amount, date: a.newDate }] });
+      const low = Math.min(...f.days.map(d => d.balanceCents));
+      if (f.shortfall || low < SAFETY_FLOOR_CENTS) {
+        await conn.reducers.markActionExecuted({ actionId, ok: false, nessieRef: undefined });
+        await say(`I didn't move ${usd(amount)}: it would leave you with ${usd(low)}, below the $100 floor. Nothing was changed.`);
+        return;
+      }
+      const ids = loadNessieIds();
+      const desc = 'Daylight: move to savings';
+      await nessie.withdraw(ids.accounts.checking, amount / 100, a.newDate, desc);
+      const dep = await nessie.deposit(ids.accounts.savings, amount / 100, a.newDate, desc);
+      await conn.reducers.markActionExecuted({ actionId, ok: true, nessieRef: dep.objectCreated._id });
+      await say(`Done: ${usd(amount)} moves from checking to savings on ${day(a.newDate)} in your bank account (Nessie).`);
     } else {
       await conn.reducers.markActionExecuted({ actionId, ok: true, nessieRef: undefined });
       await say(`Added to your plan: ${a.title}.`);

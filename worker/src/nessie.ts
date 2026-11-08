@@ -30,6 +30,11 @@ export const nessie = {
   loans: (accountId: string) => request<NessieLoan[]>('GET', `/accounts/${accountId}/loans`),
   purchases: (accountId: string) => request<NessiePurchase[]>('GET', `/accounts/${accountId}/purchases`),
   merchant: (id: string) => request<NessieMerchant>('GET', `/merchants/${id}`),
+  // Verified Nov 8: pending withdrawals/deposits don't change balances, so the demo numbers stay put.
+  withdraw: (accountId: string, amountDollars: number, date: string, description: string) =>
+    request<{ objectCreated: { _id: string } }>('POST', `/accounts/${accountId}/withdrawals`, { medium: 'balance', amount: amountDollars, transaction_date: date, status: 'pending', description }),
+  deposit: (accountId: string, amountDollars: number, date: string, description: string) =>
+    request<{ objectCreated: { _id: string } }>('POST', `/accounts/${accountId}/deposits`, { medium: 'balance', amount: amountDollars, transaction_date: date, status: 'pending', description }),
   moveBill: (billId: string, paymentDate: string) =>
     request<unknown>('PUT', `/bills/${billId}`, { payment_date: paymentDate }),
 };

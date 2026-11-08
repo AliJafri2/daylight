@@ -14,7 +14,7 @@ export type Bill = {
 };
 export type Income = { id: string; source: string; amountCents: number; nextDate: string; intervalDays: number };
 export type Spend = { id: string; category: 'groceries' | 'gas' | string; place: string; amountCents: number; date: string };
-export type Account = { kind: string; nickname: string; balanceCents: number; creditLimitCents?: number };
+export type Account = { kind: string; nickname: string; balanceCents: number; creditLimitCents?: number; apr?: number };
 export type GasPrice = { place: string; priceCents: number; lat: number; lng: number };
 export type GroceryPrice = {
   place: string;
@@ -78,7 +78,7 @@ export function buildForecast(input: ForecastInput, adj: Adjustments = {}): Fore
   }
   for (const s of input.spend) {
     const amount = Math.max(0, s.amountCents + (adj.spendDeltaCents?.[s.id] ?? 0));
-    events.push({ date: s.date, label: s.category === 'gas' ? `Gas (${s.place})` : `Groceries (${s.place})`, amountCents: -amount, kind: 'spend', refId: s.id });
+    events.push({ date: s.date, label: s.category === 'gas' ? `Gas (${s.place})` : s.category === 'savings' ? 'Move to savings' : `Groceries (${s.place})`, amountCents: -amount, kind: 'spend', refId: s.id });
   }
   const paydays: string[] = [];
   for (const inc of input.income) {

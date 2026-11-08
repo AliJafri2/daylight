@@ -510,6 +510,33 @@ export const approveAll = spacetimedb.reducer({ jobId: t.u64() }, (ctx, { jobId 
 });
 
 
+// Next best move: the user schedules "move $X to savings" (computed by shared/nextmove.ts in the app).
+// It's recorded as an approved action; the worker re-checks it with the engine before touching the bank.
+export const scheduleMove = spacetimedb.reducer(
+  { amountCents: t.i64(), date: t.string(), toKind: t.string() },
+  (ctx, { amountCents, date, toKind }) => {
+    const m = requireMember(ctx);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new SenderError('date must be YYYY-MM-DD');
+    if (toKind !== 'savings') throw new SenderError('Only moves to savings are supported right now');
+    if (amountCents < 500n || amountCents > 50_000n) throw new SenderError('Amount must be between $5 and $500');
+    if (amountCents % 100n !== 0n) throw new SenderError('Whole dollars only');
+    const jobs = [...ctx.db.planJob.profileId.filter(m.profileId)].sort((a, b) => (a.id < b.id ? 1 : -1));
+    const job = jobs[0];
+    if (!job || job.status !== 'done') throw new SenderError('Finish this pay period\'s plan first');
+    for (const a of ctx.db.planAction.jobId.filter(job.id)) {
+      if (a.kind === 'transfer' && a.status !== 'failed' && a.status !== 'rejected') throw new SenderError('Already scheduled');
+    }
+    const dollars = (amountCents / 100n).toString();
+    ctx.db.planAction.insert({
+      id: 0n, jobId: job.id, profileId: m.profileId, kind: 'transfer',
+      title: `Move $${dollars} to savings`, detail: `Scheduled for ${date}.`,
+      savingsCents: amountCents, feeAvoidedCents: 0n, whyEn: '', whyEs: '', status: 'approved',
+      billId: undefined, newDate: date, nessieRef: undefined,
+      spendId: undefined, spendDeltaCents: undefined, newPlace: 'Savings', sortOrder: 100,
+    });
+  }
+);
+
 // Restores George's starting numbers between judge demos.
 export const resetDemo = spacetimedb.reducer(ctx => {
   const m = requireMember(ctx);
@@ -677,6 +704,10 @@ export const markActionExecuted = spacetimedb.reducer(
       if (a.kind === 'move_bill' && a.billId !== undefined && a.newDate) {
         const b = ctx.db.bill.id.find(a.billId);
         if (b) ctx.db.bill.id.update({ ...b, dueDate: a.newDate });
+      }
+      if (a.kind === 'transfer' && a.newDate) {
+        // Checking pays it out on that date, so the forecast (and ring) count it.
+        ctx.db.scheduledSpend.insert({ id: 0n, profileId: a.profileId, category: 'savings', place: 'Savings', amountCents: a.savingsCents, date: a.newDate });
       }
       if ((a.kind === 'grocery_swap' || a.kind === 'gas_switch') && a.spendId !== undefined) {
         const s = ctx.db.scheduledSpend.id.find(a.spendId);

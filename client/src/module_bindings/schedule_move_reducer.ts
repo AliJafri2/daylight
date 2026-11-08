@@ -11,5 +11,7 @@ import {
 } from "spacetimedb";
 
 export default {
-  language: __t.string(),
+  amountCents: __t.i64(),
+  date: __t.string(),
+  toKind: __t.string(),
 };
