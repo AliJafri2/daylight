@@ -13,7 +13,7 @@ import ReceiptScanner from './ReceiptScanner';
 import { AgentBar } from './AgentBar';
 import { spendingInsights, totalMonthly } from '../../shared/insights.ts';
 import { nextBestMove } from '../../shared/nextmove.ts';
-import { Icon, day, usd, type IconName } from './ui';
+import { CountUp, Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
 
 type Money = Extract<ReturnType<typeof useMoney>, { ready: boolean; forecast: unknown }>;
@@ -118,6 +118,10 @@ function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: 
   );
   const working = !!job && (job.status === 'pending' || job.status === 'running');
   const done = !!job && job.status === 'done';
+  // Play the reveal only when the user watched this run finish (not when revisiting old results).
+  const [watched, setWatched] = useState<bigint | null>(null);
+  useEffect(() => { if (working && job) setWatched(job.id); }, [working, job]);
+  const reveal = done && watched === job?.id;
   const habits = useMemo(
     () => totalMonthly(spendingInsights(txns.map(r => ({ merchant: r.merchant, category: r.category, amountCents: Number(r.amountCents), date: r.date })), m.input.asOf)),
     [txns, m.input.asOf]
@@ -173,11 +177,13 @@ function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: 
         <>
           {kind === 'research' ? (
             <>
-              <div className="agent-result-head">
-                <div className="plan-head">Found +{usd(habits, { whole: true })} a month</div>
+              <div className={`agent-result-head ${reveal ? 'reveal' : ''}`}>
+                {reveal && <span className="reveal-glow" aria-hidden="true" />}
+                <div className="reveal-kicker">Ben found</div>
+                <div className="plan-head reveal-num">+<CountUp to={habits} animate={reveal} delay={350} ms={1200} /> <span className="reveal-unit">a month</span></div>
                 <p className="plan-sub">Small changes to last month's habits. Tap one to see the math.</p>
               </div>
-              <BenNoticed asOf={m.input.asOf} onAsk={onAsk} />
+              <BenNoticed asOf={m.input.asOf} onAsk={onAsk} reveal={reveal} />
             </>
           ) : (
             <>

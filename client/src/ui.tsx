@@ -81,3 +81,21 @@ export function BigMoney({ cents, tone, suffix }: { cents: number; tone?: 'red' 
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const day = (d: string) => `${MONTHS[Number(d.slice(5, 7)) - 1]} ${Number(d.slice(8, 10))}`;
+
+// Counts from 0 up to `to` (cents) after `delay` ms. With animate=false it just shows the number.
+export function CountUp({ to, animate, delay = 0, ms = 1000, whole = true }: { to: number; animate: boolean; delay?: number; ms?: number; whole?: boolean }) {
+  const [v, setV] = useState(animate ? 0 : to);
+  useEffect(() => {
+    if (!animate || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setV(to); return; }
+    let raf = 0;
+    const t0 = performance.now() + delay;
+    const tick = (t: number) => {
+      const k = Math.max(0, Math.min(1, (t - t0) / ms));
+      setV(to * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [to, animate, delay, ms]);
+  return <>{usd(Math.round(v), { whole })}</>;
+}

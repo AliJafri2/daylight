@@ -1040,3 +1040,29 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .rscan-prices s { color: var(--ink-3); margin-right: 2px; }
 .rscan-save { font-size: 15px; font-weight: 700; color: var(--green); min-width: 52px; text-align: right; }
 .rscan-note { font-size: 14px; color: var(--ink-3); margin: 10px 2px 0; }
+
+/* ---------- Research agent: result reveal ---------- */
+.agent-result-head { position: relative; isolation: isolate; padding: 12px 0 4px; }
+.reveal-kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); }
+.reveal-num { font-size: 44px; letter-spacing: -0.04em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.reveal-unit { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-2); }
+.reveal-glow { position: absolute; left: 50%; top: 50%; width: 320px; height: 320px; margin: -160px 0 0 -160px; border-radius: 50%; z-index: -1; pointer-events: none;
+  background: radial-gradient(circle, rgba(60, 207, 135, 0.45) 0%, rgba(60, 207, 135, 0.14) 40%, rgba(60, 207, 135, 0) 70%);
+  animation: glowPulse 1.8s var(--ease-out) both; }
+@keyframes glowPulse { 0% { opacity: 0; transform: scale(0.2); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
+.agent-result-head.reveal .reveal-kicker { animation: riseIn 0.5s var(--ease-out) 0.1s backwards; }
+.agent-result-head.reveal .reveal-num { animation: headIn 0.8s var(--ease-spring) 0.25s backwards; }
+.agent-result-head.reveal .plan-sub { animation: riseIn 0.6s var(--ease-out) 1.4s backwards; }
+@keyframes headIn { from { opacity: 0; transform: scale(0.85) translateY(10px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+.noticed-row { position: relative; }
+.noticed-row.reveal-in { animation: cardIn 0.7s var(--ease-out) backwards; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(28px) scale(0.96); filter: blur(5px); } to { opacity: 1; transform: none; filter: none; } }
+.noticed-row.reveal-in::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.75) 50%, transparent 70%); transform: translateX(-120%);
+  animation: sweep 0.9s ease-in-out var(--sweep, 1.4s) both; }
+@keyframes sweep { to { transform: translateX(120%); } }
+.noticed-row.reveal-in .noticed-ico { animation: pop 0.45s var(--ease-spring) var(--sweep, 1.4s) backwards; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal-glow, .noticed-row.reveal-in::after { display: none; }
+  .agent-result-head.reveal *, .noticed-row.reveal-in, .noticed-row.reveal-in .noticed-ico { animation: none !important; }
+}

@@ -5,9 +5,9 @@ import { useMemo, useState } from 'react';
 import { useTable } from 'spacetimedb/react';
 import { tables } from './module_bindings';
 import { spendingInsights } from '../../shared/insights.ts';
-import { Icon, usd } from './ui';
+import { CountUp, Icon } from './ui';
 
-export default function BenNoticed({ asOf, onAsk }: { asOf: string; onAsk: (q: string) => void }) {
+export default function BenNoticed({ asOf, onAsk, reveal = false }: { asOf: string; onAsk: (q: string) => void; reveal?: boolean }) {
   const [rows] = useTable(tables.myTransactions);
   const [open, setOpen] = useState<string | null>(null);
   const insights = useMemo(
@@ -19,15 +19,15 @@ export default function BenNoticed({ asOf, onAsk }: { asOf: string; onAsk: (q: s
   return (
     <>
       <div className="noticed">
-        {insights.map(x => (
-          <div key={x.key} className="noticed-row">
+        {insights.map((x, k) => (
+          <div key={x.key} className={`noticed-row ${reveal ? 'reveal-in' : ''}`} style={reveal ? { animationDelay: `${1.0 + k * 0.13}s`, ['--sweep' as string]: `${1.35 + k * 0.13}s` } : undefined}>
             <button className="noticed-main" onClick={() => setOpen(open === x.key ? null : x.key)} aria-expanded={open === x.key}>
               <span className={`noticed-ico i-${x.icon}`}><Icon name={x.icon} size={18} /></span>
               <span className="noticed-text">
                 <span className="noticed-t">{x.title}</span>
                 <span className="noticed-s">{x.change}</span>
               </span>
-              <span className="noticed-amt">+{usd(x.monthlySavingsCents, { whole: true })}<small>/mo</small></span>
+              <span className="noticed-amt">+<CountUp to={x.monthlySavingsCents} animate={reveal} delay={1150 + k * 130} ms={700} /><small>/mo</small></span>
             </button>
             {open === x.key && (
               <div className="noticed-why">
