@@ -59,11 +59,13 @@ export const usd = (cents: number, opts: { sign?: boolean; whole?: boolean } = {
   return opts.sign ? `+${s}` : s;
 };
 
-/** Smoothly animates a number toward its target (count-up on mount, glide on change). */
+/** Smoothly glides a number to its new value when it changes (e.g. -$43 -> $102 after the fix). */
 export function useAnimatedNumber(target: number, ms = 900) {
-  const [val, setVal] = useState(0);
-  const from = useRef(0);
+  // Starts AT the target (no count from $0 on load); glides only when the value changes.
+  const [val, setVal] = useState(target);
+  const from = useRef(target);
   useEffect(() => {
+    if (from.current === target) return;
     const start = performance.now();
     const a = from.current;
     let raf = 0;
@@ -81,7 +83,7 @@ export function useAnimatedNumber(target: number, ms = 900) {
   return val;
 }
 
-/** Fuse-style big number: bold dollars, greyed cents. Counts up/down smoothly. */
+/** Fuse-style big number: bold dollars, greyed cents. Glides smoothly when the value changes. */
 export function BigMoney({ cents, tone, suffix }: { cents: number; tone?: 'red' | 'green'; suffix?: ReactNode }) {
   const shown = Math.round(useAnimatedNumber(cents));
   const abs = Math.abs(shown);

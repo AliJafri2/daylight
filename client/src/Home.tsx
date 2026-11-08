@@ -2,7 +2,7 @@
 // (tap = Why?), the "I found a fix" card, and what's coming up. Reference: Fuse home.
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import BalanceLine from './BalanceLine';
+import StatusBars from './StatusBars';
 import { addDays } from '../../shared/forecast.ts';
 import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
@@ -76,41 +76,41 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         </div>,
         document.body
       )}
-      <div className="topbar">
-        <h1>Hi, {name}!</h1>
+      <div className="topbar" style={{ paddingBottom: 4 }}>
+        <span />
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
       </div>
 
       <div className="rise" style={{ ['--i' as string]: 0 }}>
-      <div className="eyebrow">Before payday · {f.nextPayday ? day(f.nextPayday) : '—'}</div>
-      {sf ? (
-        <>
-          <BigMoney cents={sf.balanceCents} tone="red" />
-          <div className="hero-sub"><strong>You need {usd(-sf.balanceCents, { whole: true })} more to stay in the green.</strong><br />That's your balance on {day(sf.date)}, {sf.daysBeforePayday} days before payday.</div>
-        </>
-      ) : (
-        <>
-          <BigMoney cents={low.balanceCents} tone="green" suffix="left" />
-          <div className="hero-sub">The least you'll have before payday ({day(low.date)}). You're covered.</div>
-        </>
-      )}
-
+        <div className="hero-hi">Hi, {name}!</div>
+        <div className="hero-you">You are</div>
+        {sf ? (
+          <>
+            <BigMoney cents={sf.balanceCents} tone="red" />
+            <div className="hero-line">short for upcoming payments.</div>
+          </>
+        ) : (
+          <>
+            <BigMoney cents={low.balanceCents} tone="green" suffix="" />
+            <div className="hero-line">ahead of upcoming payments.</div>
+          </>
+        )}
       </div>
 
-      <div className="rise" style={{ ['--i' as string]: 1 }}><BalanceLine forecast={f} /></div>
+      <div className="rise" style={{ ['--i' as string]: 1 }}><StatusBars forecast={f} /></div>
 
-      {sf && plan.actions.length > 0 && (
-        <button className="fix-card rise" style={{ ['--i' as string]: 2 }} onClick={onOpenPlan}>
-          <Glyph name="sparkle" color="green" />
-          <span>
-            <span className="title">I found a fix</span>
-            <span className="small" style={{ display: 'block', color: 'var(--ink-2)' }}>
-              Avoid a {usd(plan.feesAvoidedCents, { whole: true })} fee and end at {usd(plan.after.lowPoint.balanceCents, { sign: true })}.
-            </span>
+      <button className={`ai-cta rise ${sf ? '' : 'ok'}`} style={{ ['--i' as string]: 2 }} onClick={onOpenPlan}>
+        <span className="spark"><Icon name={sf ? 'sparkle' : 'check'} size={22} stroke={sf ? 2 : 3} /></span>
+        <span>
+          {sf ? 'Stay in the green!' : "You're in the green"}
+          <span className="small" style={{ display: 'block', fontWeight: 500, color: 'var(--ink-2)', fontSize: 14 }}>
+            {sf && plan.actions.length > 0
+              ? `Ben found ${plan.actions.length} easy fixes`
+              : 'Ben is keeping an eye on it'}
           </span>
-          <span className="chev"><Icon name="chevron" /></span>
-        </button>
-      )}
+        </span>
+        <span className="chev"><Icon name="chevron" /></span>
+      </button>
 
       <div className="section-title">Your health</div>
       <p className="section-sub">Tap any card to see why.</p>

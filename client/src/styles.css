@@ -572,3 +572,53 @@ input { font: inherit; }
 .bl-legend { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); margin-top: 8px; }
 .bl-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
 .bl-legend .sw.red { background: rgba(214, 69, 69, 0.25); }
+
+/* ===================== Stay-in-the-green bars (whiteboard design) ===================== */
+.hero-hi { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 6px 0 14px; }
+.hero-you { font-size: 18px; color: var(--ink-2); font-weight: 500; }
+.hero-line { font-size: 18px; color: var(--ink-2); font-weight: 500; margin-top: 4px; }
+
+.sb { margin: 26px 0 8px; }
+.sb-caption { font-size: 15px; color: var(--ink-2); min-height: 22px; animation: fade 0.25s ease both; }
+.sb-caption strong { color: var(--ink); }
+.sb-caption .red { color: var(--red); font-weight: 700; }
+.sb-caption .green { color: var(--green); font-weight: 700; }
+.sb-bars {
+  height: 170px; display: flex; align-items: flex-end; gap: 8px; margin-top: 12px;
+  border-bottom: 1.5px solid var(--ink); padding-bottom: 0;
+}
+.sb-bars.thin { gap: 3px; }
+.sb-col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; position: relative; min-width: 0; padding: 0; }
+.sb-stack {
+  display: flex; flex-direction: column; justify-content: flex-end; height: 100%;
+  transform-origin: bottom; animation: barGrow 0.7s var(--ease-out) backwards; animation-delay: var(--d);
+}
+@keyframes barGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.sb-stack > span { display: block; transition: height 0.9s var(--ease-out); }
+.sb-covered { background: var(--green); border-radius: 0 0 4px 4px; }
+.sb-short { background: repeating-linear-gradient(135deg, #e5484d 0 5px, #ef6b6f 5px 10px); }
+.sb-extra { background: #cdeedb; border-radius: 6px 6px 0 0; }
+.sb-stack > span:first-child:not([style*="height: 0%"]) { border-radius: 6px 6px 0 0; }
+.sb-col:not(.on) .sb-stack { opacity: 0.55; transition: opacity 0.3s; }
+.sb-col.on .sb-stack { opacity: 1; }
+.sb-x { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%); font-size: 12px; color: var(--ink-3); font-weight: 600; }
+.sb-col.on .sb-x { color: var(--ink); }
+.sb-legend { display: flex; gap: 14px; justify-content: center; font-size: 13px; color: var(--ink-2); margin-top: 30px; }
+.sb-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.sb-legend .sw.covered { background: var(--green); }
+.sb-legend .sw.short { background: #e5484d; }
+.sb-legend .sw.extra { background: #cdeedb; }
+.sb-ranges { display: flex; justify-content: center; gap: 6px; margin-top: 16px; }
+.sb-ranges button { min-height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 700; color: var(--ink-3); transition: background 0.25s, color 0.25s; }
+.sb-ranges button.on { background: var(--ink); color: #fff; }
+
+/* AI button: "Stay in the green!" */
+.ai-cta {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; margin-top: 22px;
+  padding: 16px 18px; border-radius: 22px; border: 1.5px solid var(--ink); background: #fff;
+  font-size: 20px; font-weight: 700; letter-spacing: -0.01em; box-shadow: var(--shadow);
+}
+.ai-cta .spark { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #f2771e, #e5484d 55%, #7c5cf2); flex: none; }
+.ai-cta .chev { margin-left: auto; color: var(--ink-2); }
+.ai-cta.ok { border-color: var(--green); color: var(--green); }
+.ai-cta.ok .spark { background: var(--green); }
