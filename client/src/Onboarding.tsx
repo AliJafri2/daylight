@@ -123,7 +123,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
       <div className={`step ${out ? 'out' : ''}`} key="title">
         <div style={i(0)}><WordWheel /></div>
         <div className="title-content" style={i(1)}>
-          <div className="brand"><div className="app-mark sun"><Icon name="sun" size={26} stroke={2.4} /></div><span>Daylight</span></div>
+          <div className="brand"><div className="app-mark sun"><img src="/icon.svg" alt="" width={44} height={44} /></div><span>Daylight</span></div>
           <h1>Minimum effort,<br />maximum savings.</h1>
           <p>Forecast your finances with AI and get a plan to stay on top of everything.</p>
           <button className="btn white" onClick={() => go('create')}>Get started</button>

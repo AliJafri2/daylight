@@ -1145,3 +1145,7 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
   animation: travelIn 0.35s var(--ease-out) both; }
 @keyframes travelIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @media (prefers-reduced-motion: reduce) { .tour-bubble, .tour-spot { transition: none; } .tour-travel { animation: none; } }
+
+/* App icon: the exact same artwork as the home-screen icon (public/icon.svg) */
+.title-content .app-mark.sun, .app-tile { background: none; overflow: hidden; padding: 0; }
+.title-content .app-mark.sun img, .app-tile img { display: block; width: 100%; height: 100%; }
