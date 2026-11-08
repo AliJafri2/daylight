@@ -21,3 +21,6 @@ docs/private/
 client/chart-preview.html
 client/src/chart-preview.tsx
 client/font-compare.html
+
+# local test tools
+.dev/
