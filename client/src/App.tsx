@@ -20,14 +20,13 @@ const TABS: Array<{ id: Tab; label: string; icon: IconName }> = [
 ];
 
 const ONB_KEY = 'daylight:onboarded';
-// ?skip-intro jumps straight to the app (handy for judges' QR codes); ?tab=plan opens a tab.
+// Every fresh launch starts at the intro (each judge sees the full story). ?skip-intro jumps straight
+// to the app (handy on the laptop); ?tab=plan opens a tab. The money data is NOT reset on launch:
+// that would wipe a phone approval mid-demo. Use Settings -> Reset demo for that.
 const params = new URLSearchParams(window.location.search);
-const readOnboarded = () => {
-  if (params.has('skip-intro')) return true;
-  try { return localStorage.getItem(ONB_KEY) === '1'; } catch { return false; }
-};
+const readOnboarded = () => params.has('skip-intro');
 const initialTab = (['home', 'plan', 'coach', 'accounts'] as const).find(t => t === params.get('tab')) ?? 'home';
-const writeOnboarded = (v: boolean) => { try { if (v) localStorage.setItem(ONB_KEY, '1'); else localStorage.removeItem(ONB_KEY); } catch { /* private mode */ } };
+const writeOnboarded = (_v: boolean) => { try { localStorage.removeItem(ONB_KEY); } catch { /* private mode */ } }; // no longer remembered
 
 export default function App() {
   const { isActive, getConnection } = useSpacetimeDB();

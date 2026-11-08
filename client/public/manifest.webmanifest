@@ -2,7 +2,7 @@
   "name": "Daylight",
   "short_name": "Daylight",
   "description": "Forecast your money with AI. Warns you before you run short, then finds the cheapest fix.",
-  "start_url": "/?skip-intro",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
