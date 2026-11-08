@@ -32,6 +32,24 @@ function useRingProgress(target: number) {
   return v;
 }
 
+/** Eases 0 -> 1 over ~700ms whenever `on` becomes true (resets when false). */
+function useGrowIn(on: boolean) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (!on) { setV(0); return; }
+    const start = performance.now();
+    let raf = 0;
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - start) / 700);
+      setV(1 - Math.pow(1 - k, 3));
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [on]);
+  return v;
+}
+
 export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: number; haveCents: number; payday?: string }) {
   const target = dueCents > 0 ? haveCents / dueCents : 2;
   const closed = target >= 1;
@@ -39,6 +57,7 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
   const greenEnd = 1 - redFrac;
   const p = useRingProgress(closed ? target : greenEnd);
   const filled = !closed && p >= greenEnd - 0.002;
+  const redIn = useGrowIn(filled); // 0 -> 1 once the green has arrived
   const r = (SIZE - THICK) / 2;
   const c = SIZE / 2;
   const C = 2 * Math.PI * r;
@@ -86,8 +105,10 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
               {/* Short: two segments that never overlap. Green = covered, red = missing. */}
               {p > 0.01 && <path d={sector(c, r, THICK, 0, Math.min(p, greenEnd))} fill="url(#ring-green)" stroke="url(#ring-green)" strokeWidth={8} strokeLinejoin="round" />}
               {filled && (
-                <path className="ring-gap" d={sector(c, r, THICK, greenEnd, 1)} fill="#ff3b30"
-                  stroke="#ff3b30" strokeWidth={8} strokeLinejoin="round" filter="url(#ring-gap-glow)" />
+                <g style={{ opacity: redIn }}>
+                  <path className={redIn >= 1 ? 'ring-gap' : undefined} d={sector(c, r, THICK, greenEnd, greenEnd + redFrac * Math.max(0.12, redIn))} fill="#ff3b30"
+                    stroke="#ff3b30" strokeWidth={8} strokeLinejoin="round" filter="url(#ring-gap-glow)" />
+                </g>
               )}
             </>
           )}
@@ -126,10 +147,6 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
           <div className="ring-stat-v">
             <span className="ring-col">{usd(haveCents, { whole: true })}</span>/{usd(dueCents, { whole: true })}
           </div>
-        </div>
-        <div>
-          <div className="ring-stat-l">{Math.round(target * 100)}%</div>
-          <div className="ring-stat-v">{closed ? 'closed' : 'closed so far'}</div>
         </div>
         {payday && (
           <div>
