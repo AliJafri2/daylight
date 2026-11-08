@@ -846,3 +846,36 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 /* tab bar + buttons tidy */
 .tab { font-weight: 600; font-size: 11px; }
 .btn { font-weight: 600; letter-spacing: -0.01em; }
+
+/* ===== Polish pass: Ben, Plan, Accounts ===== */
+/* Ben: same orange as the intro, but a soft wash (Ben's color, calm like the rest of the app) */
+.ben-bg { opacity: 0.32; }
+.bubble.ai { background: var(--fill); box-shadow: none; color: var(--ink); }
+.bubble.me { background: var(--ink); }
+.composer { box-shadow: 0 4px 20px rgba(17, 17, 17, 0.06) !important; }
+.composer .send { width: 44px; height: 44px; }
+
+/* icons inside cards and lists: white square, ink icon (color only via status text) */
+.list .glyph, .fix .glyph, .card .glyph, .plan-card .glyph {
+  background: #fff; color: var(--ink); box-shadow: none; border-radius: 10px;
+}
+.list-row { padding: 14px 16px; }
+.list-row .name { font-weight: 600; font-size: var(--t-sm); }
+.list-row .sub { font-size: var(--t-xs); color: var(--ink-3); }
+.list-row .amt { font-size: var(--t-sm); font-weight: 700; }
+.list-row + .list-row { border-top: 1px solid rgba(17, 17, 17, 0.06); }
+
+/* Plan */
+.plan-head { font-size: var(--t-xl); font-weight: 700; letter-spacing: -0.03em; }
+.plan-sub { font-size: var(--t-sm); color: var(--ink-2); }
+.fix { border-radius: 20px; padding: 16px; gap: 12px; animation-duration: 0.45s; }
+.fix h3 { font-size: var(--t-md); font-weight: 700; letter-spacing: -0.015em; }
+.fix p { font-size: var(--t-sm); color: var(--ink-2); }
+.fix .chip-save { font-size: var(--t-xs); font-weight: 600; background: #fff; color: var(--green); }
+.linkish { font-size: var(--t-xs); color: var(--ink-3); }
+.done-hero .check-big { width: 64px; height: 64px; }
+.summary { border-radius: 20px; }
+
+/* Accounts */
+.tile.t-green .value { color: var(--green); }
+.badge.green { background: #fff; }
