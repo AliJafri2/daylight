@@ -215,7 +215,7 @@ function Summary360() {
   return (
     <section className="s360" aria-label="Your 360 degree summary" aria-live="polite">
       <div className="s360-head">
-        <span className="s360-ico"><Icon name="sparkle" size={16} /></span>
+        <span className="s360-ico"><Icon name="sun" size={18} stroke={2.4} /></span>
         <span className="s360-title">Your 360° summary</span>
       </div>
       {lines.map(l => (
