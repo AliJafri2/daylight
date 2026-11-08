@@ -42,6 +42,34 @@ export async function syncFromNessie(conn: DbConnection, ids: NessieIds) {
       dueDate: b.payment_date,
     });
   }
+  const tx = await syncPurchases(conn, ids, seenPurchases);
   await conn.reducers.markNessieSynced({});
-  return { accounts: accounts.length + loans.length, bills: upcoming.length };
+  return { accounts: accounts.length + loans.length, bills: upcoming.length, purchases: tx };
+}
+
+// Purchase history -> transaction table (the Spending agent reads it). Only new purchases are sent.
+const merchantCache = new Map<string, { name: string; category: string }>();
+const seenPurchases = new Set<string>();
+
+async function syncPurchases(conn: DbConnection, ids: NessieIds, seen: Set<string>) {
+  const purchases = await nessie.purchases(ids.accounts.checking);
+  let added = 0;
+  for (const p of purchases) {
+    if (seen.has(p._id) || p.status === 'cancelled') continue;
+    let m = merchantCache.get(p.merchant_id);
+    if (!m) {
+      try {
+        const r = await nessie.merchant(p.merchant_id);
+        m = { name: r.name, category: Array.isArray(r.category) ? (r.category[0] ?? 'Other') : (r.category || 'Other') };
+      } catch { m = { name: 'Unknown store', category: 'Other' }; }
+      merchantCache.set(p.merchant_id, m);
+    }
+    await conn.reducers.syncTransaction({
+      nessieId: p._id, merchant: m.name, category: m.category, amountCents: toCents(p.amount),
+      date: p.purchase_date.slice(0, 10), description: p.description ?? '',
+    });
+    seen.add(p._id);
+    added++;
+  }
+  return added;
 }

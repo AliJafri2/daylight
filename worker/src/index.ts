@@ -52,7 +52,7 @@ function subscribe(conn: DbConnection): Promise<void> {
       .onApplied(() => resolve())
       .subscribe([
         tables.myProfile, tables.myAccounts, tables.myBills, tables.myIncome, tables.mySpend,
-        tables.myJobs, tables.myActions, tables.price, tables.myCoach,
+        tables.myJobs, tables.myActions, tables.price, tables.myCoach, tables.myTransactions,
       ]);
   });
 }
@@ -82,7 +82,7 @@ async function main() {
     }
     try {
       const r = await syncFromNessie(conn, ids);
-      log(`synced from Nessie: ${r.accounts} accounts, ${r.bills} bills`);
+      log(`synced from Nessie: ${r.accounts} accounts, ${r.bills} bills, ${r.purchases} new purchases`);
     } catch (err) {
       // Nessie down? The app keeps running from the last synced copy in Spacetime.
       log('sync failed (app keeps using last synced data):', hideKey(String(err)));

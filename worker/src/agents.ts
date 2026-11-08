@@ -3,6 +3,7 @@
 //   -> Executor (after the user's approval, writes to Nessie).
 import type { DbConnection } from './module_bindings/index.ts';
 import { buildForecast, gasOptions, groceryOptions, planFixes, type PlanAction } from '../../shared/forecast.ts';
+import { spendingInsights, totalMonthly } from '../../shared/insights.ts';
 import { explainAll, type WhyRequest } from './coach.ts';
 import { readMoney } from './money.ts';
 import { nessie } from './nessie.ts';
@@ -75,6 +76,15 @@ export async function runPlanJob(conn: DbConnection, jobId: bigint) {
       } else if (best) {
         await step('savings', `${best.place} saves you ${usd(best.netSavingsCents)} on your next fill-up.`);
       }
+    }
+
+    // Spending agent: habits from last month's purchases (rules, no AI math). Monthly money, after payday.
+    const txns = [...conn.db.myTransactions.iter()].map(t => ({ merchant: t.merchant, category: t.category, amountCents: Number(t.amountCents), date: t.date }));
+    const habits = spendingInsights(txns, m.input.asOf);
+    if (habits.length) {
+      await step('spending', `Looking at last month's spending (${txns.length} purchases)…`);
+      const top = habits.slice(0, 2).map(h => (h.title.charAt(0).toLowerCase() + h.title.slice(1)).replace(/ this month$/, '')).join(' and ');
+      await step('spending', `Noticed ${top}. Small changes there could free up about ${usd(totalMonthly(habits))} a month. I put them on your Home screen.`);
     }
 
     const low = plan.after.lowPoint.balanceCents;

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import CoverRing from './CoverRing';
 import CardDeck from './CardDeck';
+import BenNoticed from './BenNoticed';
 import { addDays, daysBetween } from '../../shared/forecast.ts';
 import { Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
@@ -119,6 +120,8 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         key: `${e.date}-${k}`, label: e.label, date: e.date, amountCents: e.amountCents,
         kind: e.kind, daysAway: daysBetween(f.asOf, e.date),
       }))} />
+
+      <BenNoticed asOf={f.asOf} onAsk={onAsk} />
 
       {why && createPortal(
         <>

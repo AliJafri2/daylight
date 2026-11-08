@@ -1,6 +1,7 @@
 // Coach chat agent. Gemini answers George's questions, but every number it may use is computed
 // here by the deterministic engine first ("the AI never does math"). Answers that contain a
 // number not present in the facts or the question are rejected and replaced.
+import { spendingInsights, totalMonthly } from '../../shared/insights.ts';
 import type { DbConnection } from './module_bindings/index.ts';
 import { addDays, buildForecast, healthIndicators, planFixes } from '../../shared/forecast.ts';
 import { askGemini } from './coach.ts';
@@ -53,6 +54,15 @@ export function buildFacts(conn: DbConnection, question: string) {
     lines.push(extra.shortfall
       ? `If the user spends an extra ${usd(cents)} before payday, checking would go as low as ${usd(extra.lowPoint.balanceCents)} on ${day(extra.lowPoint.date)}, with a ${usd(extra.overdraftFeesCents)} overdraft fee.`
       : `If the user spends an extra ${usd(cents)} before payday, the lowest point would be ${usd(extra.lowPoint.balanceCents)} on ${day(extra.lowPoint.date)}, still above $0.`);
+  }
+
+  // Spending habits from last month's purchases (same rules as the Home "Ben noticed" card).
+  const txns = [...conn.db.myTransactions.iter()].map(t => ({ merchant: t.merchant, category: t.category, amountCents: Number(t.amountCents), date: t.date }));
+  const habits = spendingInsights(txns, m.input.asOf);
+  if (habits.length) {
+    lines.push(`Spending habits from the last 30 days (monthly savings, after payday; not part of this pay period's plan):`);
+    for (const x of habits) lines.push(`  ${x.why} Suggested change: ${x.change}.`);
+    lines.push(`  Together these free up about ${usd(totalMonthly(habits))} a month.`);
   }
 
   return {

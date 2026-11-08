@@ -55,6 +55,7 @@ import SetJobStatusReducer from "./set_job_status_reducer";
 import SetWorkerSecretReducer from "./set_worker_secret_reducer";
 import SyncAccountReducer from "./sync_account_reducer";
 import SyncBillReducer from "./sync_bill_reducer";
+import SyncTransactionReducer from "./sync_transaction_reducer";
 
 // Import all procedure arg schemas
 
@@ -68,6 +69,7 @@ import MyJobsRow from "./my_jobs_table";
 import MyProfileRow from "./my_profile_table";
 import MySpendRow from "./my_spend_table";
 import MyStepsRow from "./my_steps_table";
+import MyTransactionsRow from "./my_transactions_table";
 import PriceRow from "./price_table";
 
 /** Type-only namespace exports for generated type groups. */
@@ -148,6 +150,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyStepsRow),
+  myTransactions: __table({
+    name: 'my_transactions',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyTransactionsRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
@@ -173,6 +182,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_worker_secret", SetWorkerSecretReducer),
   __reducerSchema("sync_account", SyncAccountReducer),
   __reducerSchema("sync_bill", SyncBillReducer),
+  __reducerSchema("sync_transaction", SyncTransactionReducer),
 );
 
 /** The schema information for all procedures in this module. This is defined the same way as the procedures would have been defined in the server. */

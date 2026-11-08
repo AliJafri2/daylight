@@ -11,5 +11,10 @@ import {
 } from "spacetimedb";
 
 export default {
-  language: __t.string(),
+  nessieId: __t.string(),
+  merchant: __t.string(),
+  category: __t.string(),
+  amountCents: __t.i64(),
+  date: __t.string(),
+  description: __t.string(),
 };

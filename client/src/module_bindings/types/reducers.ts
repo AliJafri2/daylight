@@ -27,6 +27,7 @@ import SetJobStatusReducer from "../set_job_status_reducer";
 import SetWorkerSecretReducer from "../set_worker_secret_reducer";
 import SyncAccountReducer from "../sync_account_reducer";
 import SyncBillReducer from "../sync_bill_reducer";
+import SyncTransactionReducer from "../sync_transaction_reducer";
 
 export type AckNessieResetParams = __Infer<typeof AckNessieResetReducer>;
 export type AddActionParams = __Infer<typeof AddActionReducer>;
@@ -49,4 +50,5 @@ export type SetJobStatusParams = __Infer<typeof SetJobStatusReducer>;
 export type SetWorkerSecretParams = __Infer<typeof SetWorkerSecretReducer>;
 export type SyncAccountParams = __Infer<typeof SyncAccountReducer>;
 export type SyncBillParams = __Infer<typeof SyncBillReducer>;
+export type SyncTransactionParams = __Infer<typeof SyncTransactionReducer>;
 

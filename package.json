@@ -14,7 +14,8 @@
     "client:dev:cloud": "npm run dev:cloud --prefix client",
     "worker:start": "npm start --prefix worker",
     "worker:sync": "npm run sync --prefix worker",
-    "test": "worker/node_modules/.bin/tsx --test shared/*.test.ts"
+    "test": "worker/node_modules/.bin/tsx --test shared/*.test.ts",
+    "nessie:spending": "node --env-file=worker/.env scripts/seed-nessie-spending.ts"
   },
   "type": "module"
 }

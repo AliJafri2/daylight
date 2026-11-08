@@ -20,12 +20,16 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 
 export type NessieAccount = { _id: string; type: string; nickname: string; balance: number };
 export type NessieBill = { _id: string; status: string; payee: string; payment_date: string; payment_amount: number };
+export type NessiePurchase = { _id: string; merchant_id: string; purchase_date: string; amount: number; description?: string; status?: string };
+export type NessieMerchant = { _id: string; name: string; category: string | string[] };
 export type NessieLoan = { _id: string; type: string; amount: number; monthly_payment: number };
 
 export const nessie = {
   accounts: (customerId: string) => request<NessieAccount[]>('GET', `/customers/${customerId}/accounts`),
   bills: (accountId: string) => request<NessieBill[]>('GET', `/accounts/${accountId}/bills`),
   loans: (accountId: string) => request<NessieLoan[]>('GET', `/accounts/${accountId}/loans`),
+  purchases: (accountId: string) => request<NessiePurchase[]>('GET', `/accounts/${accountId}/purchases`),
+  merchant: (id: string) => request<NessieMerchant>('GET', `/merchants/${id}`),
   moveBill: (billId: string, paymentDate: string) =>
     request<unknown>('PUT', `/bills/${billId}`, { payment_date: paymentDate }),
 };

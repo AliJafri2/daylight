@@ -185,6 +185,22 @@ const planAction = table(
   }
 );
 
+// Past purchases (from the bank, or from scanned receipts). The Spending agent reasons over these.
+const transaction = table(
+  { name: 'transaction' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    profileId: t.u64().index('btree'),
+    nessieId: t.string().unique(),
+    merchant: t.string(),
+    category: t.string(),
+    amountCents: t.i64(),
+    date: t.string(),
+    description: t.string(),
+    source: t.string(), // 'bank' | 'receipt'
+  }
+);
+
 // Coach chat: the user asks, the worker answers with Gemini grounded in engine numbers.
 const coachMessage = table(
   { name: 'coach_message' },
@@ -214,6 +230,7 @@ const spacetimedb = schema({
   agentStep,
   planAction,
   coachMessage,
+  transaction,
 });
 export default spacetimedb;
 
@@ -434,6 +451,11 @@ export const myActions = spacetimedb.view({ name: 'my_actions', public: true }, 
 export const myCoach = spacetimedb.view({ name: 'my_coach', public: true }, t.array(coachMessage.rowType), ctx => {
   const m = ctx.db.member.identity.find(ctx.sender);
   return m ? [...ctx.db.coachMessage.profileId.filter(m.profileId)] : [];
+});
+
+export const myTransactions = spacetimedb.view({ name: 'my_transactions', public: true }, t.array(transaction.rowType), ctx => {
+  const m = ctx.db.member.identity.find(ctx.sender);
+  return m ? [...ctx.db.transaction.profileId.filter(m.profileId)] : [];
 });
 
 // ---------- User reducers ----------
@@ -728,3 +750,14 @@ export const setDisplayName = spacetimedb.reducer({ name: t.string() }, (ctx, { 
   const p = ctx.db.profile.id.find(m.profileId);
   if (p) ctx.db.profile.id.update({ ...p, displayName: clean });
 });
+
+// ---------- Worker: purchase history sync ----------
+export const syncTransaction = spacetimedb.reducer(
+  { nessieId: t.string(), merchant: t.string(), category: t.string(), amountCents: t.i64(), date: t.string(), description: t.string() },
+  (ctx, a) => {
+    requireWorker(ctx);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(a.date)) throw new SenderError('date must be YYYY-MM-DD');
+    if (ctx.db.transaction.nessieId.find(a.nessieId)) return; // already synced
+    ctx.db.transaction.insert({ id: 0n, profileId: requireDemoProfile(ctx), ...a, source: 'bank' });
+  }
+);

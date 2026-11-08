@@ -13,7 +13,7 @@ type Money = Extract<ReturnType<typeof useMoney>, { ready: boolean; forecast: un
 const time = (ts: { microsSinceUnixEpoch: bigint }) => Number(ts.microsSinceUnixEpoch / 1000n);
 
 const KIND: Record<string, IconName> = { move_bill: 'calendar', grocery_swap: 'cart', gas_switch: 'gas' };
-const AGENT: Record<string, string> = { forecast: 'Forecast', savings: 'Savings', coach: 'Ben', executor: 'Bank' };
+const AGENT: Record<string, string> = { forecast: 'Forecast', savings: 'Savings', spending: 'Spending', coach: 'Ben', executor: 'Bank' };
 
 export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
   const { isActive, getConnection } = useSpacetimeDB();

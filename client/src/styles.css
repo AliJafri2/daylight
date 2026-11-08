@@ -930,3 +930,24 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
   background: linear-gradient(160deg, #ffe66b, #ffb21f); box-shadow: 0 8px 20px rgba(255, 178, 31, 0.35); animation: orbFloat 3s ease-in-out infinite; }
 .why-ico { width: 28px; height: 28px; border-radius: 9px; background: var(--fill); display: grid; place-items: center; color: var(--ink); }
 .work-spin { width: 56px; height: 56px; margin: 0 auto; border-radius: 50%; border: 4px solid var(--fill-2); border-top-color: var(--green); animation: spin 0.9s linear infinite; }
+
+/* ---------- Ben noticed (spending habits) ---------- */
+.noticed-head { display: flex; align-items: baseline; justify-content: space-between; }
+.noticed-total { font-size: 17px; font-weight: 700; color: var(--green); }
+.noticed-lead { font-size: 15px; color: var(--ink-3); margin: -4px 0 12px; }
+.noticed { display: flex; flex-direction: column; gap: 8px; }
+.noticed-row { background: var(--fill); border-radius: 20px; overflow: hidden; }
+.noticed-main { all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
+.noticed-main:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 20px; }
+.noticed-ico { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: #fff; flex: none; }
+.noticed-ico.i-bag { background: linear-gradient(135deg, #e0457b, #f47aa3); }
+.noticed-ico.i-delivery { background: linear-gradient(135deg, #e5661d, #f6a05f); }
+.noticed-ico.i-coffee { background: linear-gradient(135deg, #8a5a32, #c08a5b); }
+.noticed-ico.i-tv { background: linear-gradient(135deg, #5b4fd6, #8f86f0); }
+.noticed-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.noticed-t { font-size: 16px; font-weight: 600; color: var(--ink); }
+.noticed-s { font-size: 14px; color: var(--ink-3); margin-top: 2px; }
+.noticed-amt { font-size: 17px; font-weight: 700; color: var(--green); white-space: nowrap; }
+.noticed-amt small { font-size: 13px; font-weight: 600; }
+.noticed-why { padding: 0 16px 14px 66px; animation: rise 0.3s var(--ease-out) backwards; }
+.noticed-why p { margin: 0 0 8px; font-size: 15px; color: var(--ink-2); line-height: 1.45; }

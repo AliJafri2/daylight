@@ -107,6 +107,9 @@ export type MySpend = __Infer<typeof MySpend>;
 export const MySteps = __t.object("MySteps", {});
 export type MySteps = __Infer<typeof MySteps>;
 
+export const MyTransactions = __t.object("MyTransactions", {});
+export type MyTransactions = __Infer<typeof MyTransactions>;
+
 export const PlanAction = __t.object("PlanAction", {
   id: __t.u64(),
   jobId: __t.u64(),
@@ -179,6 +182,19 @@ export const ScheduledSpend = __t.object("ScheduledSpend", {
   date: __t.string(),
 });
 export type ScheduledSpend = __Infer<typeof ScheduledSpend>;
+
+export const Transaction = __t.object("Transaction", {
+  id: __t.u64(),
+  profileId: __t.u64(),
+  nessieId: __t.string(),
+  merchant: __t.string(),
+  category: __t.string(),
+  amountCents: __t.i64(),
+  date: __t.string(),
+  description: __t.string(),
+  source: __t.string(),
+});
+export type Transaction = __Infer<typeof Transaction>;
 
 export const Worker = __t.object("Worker", {
   identity: __t.identity(),
