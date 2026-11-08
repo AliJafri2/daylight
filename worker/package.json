@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "tsx --env-file=.env src/index.ts",
-    "sync": "tsx --env-file=.env src/index.ts --once"
+    "sync": "tsx --env-file=.env src/index.ts --once",
+    "start:prod": "tsx src/index.ts"
   },
   "dependencies": {
     "spacetimedb": "2.14.*"

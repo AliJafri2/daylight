@@ -17,5 +17,8 @@
     "test": "worker/node_modules/.bin/tsx --test shared/*.test.ts",
     "nessie:spending": "node --env-file=worker/.env scripts/seed-nessie-spending.ts"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  }
 }

@@ -13,7 +13,8 @@ type NessieIds = {
 const KIND: Record<string, string> = { Checking: 'checking', Savings: 'savings', 'Credit Card': 'credit_card' };
 
 export function loadNessieIds(): NessieIds {
-  // Path is relative to worker/ (npm scripts run there).
+  // Hosted (Railway): the IDs come from an env var. Locally: worker/nessie-ids.json.
+  if (process.env.NESSIE_IDS_JSON) return JSON.parse(process.env.NESSIE_IDS_JSON);
   return JSON.parse(readFileSync(new URL('../nessie-ids.json', import.meta.url), 'utf8'));
 }
 

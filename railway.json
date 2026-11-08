@@ -1,0 +1,11 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install --prefix worker"
+  },
+  "deploy": {
+    "startCommand": "npm run start:prod --prefix worker",
+    "restartPolicyType": "ALWAYS"
+  }
+}
