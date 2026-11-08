@@ -109,16 +109,6 @@ export default function App() {
               <button className="btn secondary" onClick={() => { writeOnboarded(false); setOnboarded(false); setSettings(false); }}>
                 Replay intro
               </button>
-              <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>Language</span>
-                <span style={{ display: 'flex', gap: 6 }}>
-                  {(['en', 'es'] as const).map(l => (
-                    <button key={l} className={`pill ${language === l ? 'dark' : ''}`} onClick={() => void conn?.reducers.setLanguage({ language: l })}>
-                      {l === 'en' ? 'English' : 'Español'}
-                    </button>
-                  ))}
-                </span>
-              </div>
             </div>
           </div>
         </>
