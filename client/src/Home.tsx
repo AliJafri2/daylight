@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import CoverRing from './CoverRing';
 import CardDeck from './CardDeck';
 import { addDays, daysBetween } from '../../shared/forecast.ts';
-import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
+import { Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
 
 type Money = Extract<ReturnType<typeof useMoney>, { ready: boolean; forecast: unknown }>;
@@ -81,30 +81,15 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
       </div>
 
-      <div className="rise" style={{ ['--i' as string]: 0, marginTop: 14 }}>
-        <div className="hero-you">You are</div>
-        {sf ? (
-          <>
-            <BigMoney cents={sf.balanceCents} tone="red" />
-            <div className="hero-line">short for upcoming payments.</div>
-          </>
-        ) : (
-          <>
-            <BigMoney cents={low.balanceCents} tone="green" suffix="" />
-            <div className="hero-line">ahead of upcoming payments.</div>
-          </>
-        )}
-      </div>
-
       <div className="rise" style={{ ['--i' as string]: 1 }}>
-        <CoverRing dueCents={ring.due} haveCents={ring.have} payday={f.nextPayday} />
+        <CoverRing dueCents={ring.due} haveCents={ring.have} payday={f.nextPayday} heroCents={sf ? sf.balanceCents : low.balanceCents} />
       </div>
 
       <button className={`ai-cta rise ${sf ? '' : 'ok'}`} style={{ ['--i' as string]: 2 }} onClick={onOpenPlan}>
         <span className="spark"><Icon name={sf ? 'sparkle' : 'check'} size={22} stroke={sf ? 2 : 3} /></span>
         <span>
           {sf ? 'Stay in the green!' : "You're in the green"}
-          <span className="small" style={{ display: 'block', fontWeight: 500, color: 'var(--ink-2)', fontSize: 14 }}>
+          <span className="sub">
             {sf && plan.actions.length > 0
               ? `Ben found ${plan.actions.length} easy fixes`
               : 'Ben is keeping an eye on it'}
@@ -118,10 +103,10 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
       <div className="tiles">
         {tiles.map((t, k) => (
           <button key={t.label} className={`tile t-${t.color} rise`} style={{ ['--i' as string]: 3 + k }} onClick={() => setWhy(t.why)} aria-label={`${t.value} ${t.label}. Tap for why`}>
-            <span className="tap">Why? <Icon name="chevron" size={14} /></span>
-            <Glyph name={t.icon} color={t.color} />
+            <span className="more"><Icon name="chevron" size={18} /></span>
+            <span className="glyph"><Icon name={t.icon} size={18} /></span>
             <span style={{ marginTop: 'auto' }}>
-              <span className="value" style={{ display: 'block' }}>{t.value}</span>
+              <span className={`value ${t.color === 'red' || t.color === 'orange' ? 'warn' : ''}`} style={{ display: 'block' }}>{t.value}</span>
               <span className="label">{t.label}</span>
             </span>
           </button>

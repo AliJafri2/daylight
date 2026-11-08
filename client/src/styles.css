@@ -772,3 +772,77 @@ input { font: inherit; }
 .ring-stat-l { margin-bottom: 2px; }
 .ring-stats { width: min(340px, 100%); grid-template-columns: 1.35fr 1fr; }
 .ring-stat-l { white-space: nowrap; font-size: 12.5px; }
+
+/* =====================================================================
+   REFINED SYSTEM (polish pass). Overrides earlier styles.
+   Type: 13 / 15 / 17 / 20 / 28 / 44 · Weights: 500 / 600 / 700 (800 only for the hero number)
+   Spacing: 8-pt grid · Palette: neutrals + green accent; red only for the shortfall
+   Cards: one style (soft grey fill, no border, no shadow)
+   ===================================================================== */
+:root {
+  --t-xs: 13px; --t-sm: 15px; --t-md: 17px; --t-lg: 20px; --t-xl: 28px; --t-hero: 44px;
+  --fill: #f5f5f4;
+  --fill-2: #ededeb;
+  --ink-2: #47474a;
+  --ink-3: #75757a;
+  --red: #e5484d;
+  --green: #1a9152;
+}
+body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
+
+/* one card style */
+.card, .tile, .list, .plan-card, .fix-card, .fix, .powers, .bank-row {
+  background: var(--fill); border: 0; box-shadow: none;
+}
+.tile.t-red, .tile.t-green, .tile.t-blue, .tile.t-orange, .tile.t-purple, .tile.t-teal { background: var(--fill); }
+@media (hover: hover) {
+  .tile:hover, .fix-card:hover, .bank-row:hover { transform: none; box-shadow: none; background: var(--fill-2); }
+}
+
+/* type */
+.section-title { font-size: var(--t-lg); font-weight: 700; letter-spacing: -0.015em; margin: 32px 0 12px; }
+.section-sub { display: none; }
+.hero-hi { font-size: var(--t-lg); font-weight: 700; letter-spacing: -0.015em; }
+
+/* home header */
+.home-top { padding: 8px 0 0; }
+.home-top .icon-btn { width: 40px; height: 40px; background: var(--fill); box-shadow: none; color: var(--ink-2); }
+
+/* tiles: neutral icon, value colored only when it's a warning */
+.tile { min-height: 124px; padding: 16px; gap: 8px; border-radius: 20px; }
+.tile .glyph { width: 32px; height: 32px; border-radius: 10px; background: #fff; color: var(--ink); box-shadow: none; }
+.tile .value { font-size: var(--t-xl); font-weight: 700; letter-spacing: -0.03em; }
+.tile .value.warn { color: var(--red); }
+.tile .label { font-size: var(--t-xs); color: var(--ink-3); font-weight: 500; }
+.tile .tap { display: none; }
+.tile .more { position: absolute; top: 16px; right: 14px; color: #b3b3b6; }
+
+/* ring: thinner, number lives inside */
+.ring-wrap { margin: 16px 0 0; }
+.ring-center .big-money { font-size: 34px; letter-spacing: -0.045em; }
+.ring-center .ring-small { font-size: var(--t-xs); color: var(--ink-3); font-weight: 600; margin-top: 4px; max-width: 150px; line-height: 1.3; }
+.ring-stats { margin-top: 16px; }
+.ring-stat-l { color: var(--ink-3); font-weight: 500; }
+.ring-stat-v { font-size: var(--t-md); font-weight: 700; color: var(--ink); }
+
+/* primary action: solid black pill */
+.ai-cta { background: var(--ink); color: #fff; border: 0; box-shadow: none; border-radius: 20px; padding: 14px 16px; font-size: var(--t-md); font-weight: 700; margin-top: 24px; }
+.ai-cta .spark { width: 36px; height: 36px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); box-shadow: none; }
+.ai-cta .chev { color: rgba(255, 255, 255, 0.6); }
+.ai-cta .sub { display: block; font-size: var(--t-xs); font-weight: 500; color: rgba(255, 255, 255, 0.65); margin-top: 1px; }
+.ai-cta.ok { background: var(--green); color: #fff; }
+.ai-cta.ok .spark { background: rgba(255, 255, 255, 0.18); }
+
+/* coming up deck: calm dark cards, category shown by a small colored dot */
+.deck-card { background: #18181b !important; box-shadow: 0 10px 24px rgba(17, 17, 17, 0.18); }
+.deck-card::after { background: radial-gradient(120% 80% at 100% 0%, rgba(255, 255, 255, 0.08), transparent 55%); }
+.deck-card:not(.top) { background: #2a2a2e !important; }
+.deck-icon { background: rgba(255, 255, 255, 0.08); }
+.deck-when { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.85); }
+.deck-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.deck-bottom .deck-note { opacity: 0.6; }
+.deck-nav .icon-btn { background: var(--fill); border: 0; }
+
+/* tab bar + buttons tidy */
+.tab { font-weight: 600; font-size: 11px; }
+.btn { font-weight: 600; letter-spacing: -0.01em; }

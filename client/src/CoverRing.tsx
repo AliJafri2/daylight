@@ -4,10 +4,10 @@
 //   >= 100% : green, closed; past 100% it laps itself with a shadowed end = money left over
 // Reference measurements: docs/design/18-rings.html (local only).
 import { useEffect, useRef, useState } from 'react';
-import { Icon, day, usd } from './ui';
+import { BigMoney, Icon, day, usd } from './ui';
 
-const SIZE = 236;
-const THICK = 40;
+const SIZE = 240;
+const THICK = 26;
 
 /** Animates 0 -> value on mount (ring fill-in), then glides on change (red -> green after the fix). */
 function useRingProgress(target: number) {
@@ -50,7 +50,7 @@ function useGrowIn(on: boolean) {
   return v;
 }
 
-export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: number; haveCents: number; payday?: string }) {
+export default function CoverRing({ dueCents, haveCents, payday, heroCents }: { dueCents: number; haveCents: number; payday?: string; heroCents: number }) {
   const target = dueCents > 0 ? haveCents / dueCents : 2;
   const closed = target >= 1;
   const redFrac = closed ? 0 : Math.max(1 - target, 0.07); // red block is at least 7% so it's visible
@@ -106,8 +106,8 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
               {p > 0.01 && <path d={sector(c, r, THICK, 0, Math.min(p, greenEnd))} fill="url(#ring-green)" stroke="url(#ring-green)" strokeWidth={8} strokeLinejoin="round" />}
               {filled && (
                 <g style={{ opacity: redIn }}>
-                  <path className={redIn >= 1 ? 'ring-gap' : undefined} d={sector(c, r, THICK, greenEnd, greenEnd + redFrac * Math.max(0.12, redIn))} fill="#ff3b30"
-                    stroke="#ff3b30" strokeWidth={8} strokeLinejoin="round" filter="url(#ring-gap-glow)" />
+                  <path className={redIn >= 1 ? 'ring-gap' : undefined} d={sector(c, r, THICK, greenEnd, greenEnd + redFrac * Math.max(0.12, redIn))} fill="#e5484d"
+                    stroke="#e5484d" strokeWidth={6} strokeLinejoin="round" filter="url(#ring-gap-glow)" />
                 </g>
               )}
             </>
@@ -122,22 +122,13 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
           return (
             <span className="ring-arrow" aria-hidden="true"
               style={{ left: x, top: y, transform: `translate(-50%, -50%) rotate(${(a * 180) / Math.PI}deg)`, opacity: p > 0.04 ? 1 : 0 }}>
-              <Icon name="arrowRight" size={20} stroke={3} />
+              <Icon name="arrowRight" size={16} stroke={3} />
             </span>
           );
         })()}
         <div className="ring-center">
-          {closed ? (
-            <>
-              <div className="ring-big">{usd(extra, { whole: true })}</div>
-              <div className="ring-small">extra · ring closed</div>
-            </>
-          ) : (
-            <>
-              <div className="ring-big">{usd(gap, { whole: true })}</div>
-              <div className="ring-small">to close your ring</div>
-            </>
-          )}
+          <BigMoney cents={heroCents} tone={closed ? 'green' : 'red'} />
+          <div className="ring-small">{closed ? 'ahead of upcoming payments' : 'short for upcoming payments'}</div>
         </div>
       </div>
 

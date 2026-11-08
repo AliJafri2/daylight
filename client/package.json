@@ -10,9 +10,10 @@
     "dev:cloud": "vite --host --mode cloud"
   },
   "dependencies": {
-    "spacetimedb": "2.14.*",
+    "lucide-react": "^0.460.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "spacetimedb": "2.14.*"
   },
   "devDependencies": {
     "@types/react": "^18.3.18",

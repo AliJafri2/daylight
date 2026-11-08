@@ -111,7 +111,7 @@ function CardBody({ it }: { it: DeckItem }) {
     <>
       <div className="deck-row">
         <span className="deck-icon"><Icon name={th.icon} size={20} /></span>
-        <span className="deck-label">{it.label}</span>
+        <span className="deck-label"><span className="deck-dot" style={{ background: th.to }} />{it.label}</span>
         <span className="deck-when">{it.daysAway <= 0 ? 'Today' : it.daysAway === 1 ? 'Tomorrow' : `In ${it.daysAway} days`}</span>
       </div>
       <div className="deck-amt">{it.kind === 'income' ? '+' : ''}{usd(Math.abs(it.amountCents))}</div>
