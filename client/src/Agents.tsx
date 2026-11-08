@@ -213,10 +213,10 @@ function Summary360() {
   ];
   const ago = s ? Math.max(0, Math.round((Date.now() - time(s.updatedAt)) / 60_000)) : 0;
   return (
-    <section className="s360" aria-label="Your 360 degree summary" aria-live="polite">
+    <section className="s360" aria-label="Daylight 360 degree summary" aria-live="polite">
       <div className="s360-head">
         <span className="s360-ico"><Icon name="sun" size={18} stroke={2.4} /></span>
-        <span className="s360-title">Your 360° summary</span>
+        <span className="s360-title">Daylight 360° summary</span>
       </div>
       {lines.map(l => (
         <div className="s360-row" key={l.key}>
