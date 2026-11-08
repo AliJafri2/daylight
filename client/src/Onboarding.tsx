@@ -136,7 +136,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
         <h1 className="ob" style={i(1)}>Connect your bank</h1>
         <p className="lead" style={i(2)}>I'll forecast your next 2 weeks using your balances and upcoming bills.</p>
         <div className="stack" style={i(3)}>
-          <button className="bank-row" onClick={connect}>
+          <button className={`bank-row ${bank === 'idle' ? 'pick' : ''}`} onClick={connect}>
             <span className="bank-logo" style={{ background: '#004977' }}><Icon name="bank" size={22} /></span>
             <span style={{ flex: 1 }}>
               <strong style={{ display: 'block' }}>Capital One</strong>
@@ -158,7 +158,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
         <div className="ob-foot" style={i(4)}>
           <div className="note"><Icon name="lock" size={13} /> Read-only · your password stays with your bank</div>
           <button className="btn white" disabled={bank !== 'done'} onClick={() => go('ai')}>
-            {bank === 'done' ? 'Continue' : 'Connect a bank to continue'}
+            {bank === 'done' ? 'Continue' : 'Tap Capital One above to continue'}
           </button>
         </div>
       </div>
