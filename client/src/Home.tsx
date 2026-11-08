@@ -77,7 +77,10 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
   return (
     <div className="screen">
       <div className="home-top rise" style={{ ['--i' as string]: 0 }}>
-        <div className="hero-hi">Hi, {name}!</div>
+        <div>
+          <div className="hero-hi">Hi, {name}!</div>
+          <div className="hero-sub">Forecast until payday{f.nextPayday ? ` · ${day(f.asOf)}–${(() => { const end = addDays(f.nextPayday!, -1); return end.slice(0, 7) === f.asOf.slice(0, 7) ? String(Number(end.slice(8, 10))) : day(end); })()}` : ''}</div>
+        </div>
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
       </div>
 
