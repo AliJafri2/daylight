@@ -51,7 +51,7 @@ export default function App() {
       : null;
 
   if (!onboarded) {
-    return <div className="app" style={{ minHeight: '100dvh' }}><Onboarding onDone={() => { writeOnboarded(true); setOnboarded(true); setTab('home'); }} /></div>;
+    return <div className="app" style={{ minHeight: '100dvh' }}><Onboarding onDone={n => { if (n?.trim()) void conn?.reducers.setDisplayName({ name: n }).catch(console.error); writeOnboarded(true); setOnboarded(true); setTab('home'); }} /></div>;
   }
 
   if (!m.ready || !('forecast' in m)) {

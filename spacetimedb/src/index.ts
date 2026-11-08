@@ -495,7 +495,7 @@ export const resetDemo = spacetimedb.reducer(ctx => {
   if (!p || !p.isDemo) throw new SenderError('Only the demo profile can be reset');
   wipeProfileData(ctx, p.id);
   seedDemoFinances(ctx, p.id);
-  ctx.db.profile.id.update({ ...p, needsNessieReset: true, lastNessieSync: undefined });
+  ctx.db.profile.id.update({ ...p, displayName: 'Bill', needsNessieReset: true, lastNessieSync: undefined });
   // Restore seeded prices (keeps nothing reported live by judges' phones from the last demo).
   for (const r of [...ctx.db.price.iter()]) ctx.db.price.id.delete(r.id);
   seedPrices(ctx);
@@ -719,4 +719,13 @@ export const addCoachReply = spacetimedb.reducer({ replyTo: t.u64(), text: t.str
 export const clearCoach = spacetimedb.reducer(ctx => {
   const m = requireMember(ctx);
   for (const r of [...ctx.db.coachMessage.profileId.filter(m.profileId)]) ctx.db.coachMessage.id.delete(r.id);
+});
+
+// Onboarding: the name typed on "Create your account" becomes the profile's display name.
+export const setDisplayName = spacetimedb.reducer({ name: t.string() }, (ctx, { name }) => {
+  const m = requireMember(ctx);
+  const clean = name.trim().replace(/\s+/g, ' ').slice(0, 24);
+  if (!clean) throw new SenderError('Please enter a name');
+  const p = ctx.db.profile.id.find(m.profileId);
+  if (p) ctx.db.profile.id.update({ ...p, displayName: clean });
 });

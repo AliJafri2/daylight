@@ -1,6 +1,7 @@
 // Home: "Am I okay until payday?" One sentence-number, a thin balance line, 4 health tiles
 // (tap = Why?), the "I found a fix" card, and what's coming up. Reference: Fuse home.
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import BalanceLine from './BalanceLine';
 import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
@@ -67,7 +68,7 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
   return (
     <div className="screen">
       <div className="topbar">
-        <h1>Hi, {name}</h1>
+        <h1>Hi, {name}!</h1>
         <button className="icon-btn" aria-label="Settings" onClick={onSettings}><Icon name="gear" size={20} /></button>
       </div>
 
@@ -127,7 +128,7 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
         ))}
       </div>
 
-      {why && (
+      {why && createPortal(
         <>
           <div className="backdrop" onClick={() => setWhy(null)} />
           <div className="sheet" role="dialog" aria-label={why.title}>
@@ -143,7 +144,8 @@ export default function Home({ m, name, onOpenPlan, onAsk, onSettings }: {
               <button className="btn secondary" onClick={() => setWhy(null)}>Got it</button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

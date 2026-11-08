@@ -1,6 +1,7 @@
 // Plan / Close the gap. Agent steps stream live like Bevel's "thinking" list, the plan arrives as
 // cards (Wabi/Fuse), and a floating pill bar approves everything (Fuse). Nothing moves without a tap.
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables, type DbConnection } from './module_bindings';
 import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
@@ -172,12 +173,13 @@ export default function Plan({ m, language, onDone }: { m: Money; language: stri
       {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
 
       {/* Floating approve bar (Fuse) */}
-      {open.length > 1 && job && (
+      {open.length > 1 && job && createPortal(
         <div style={{ position: 'fixed', left: '50%', transform: 'translateX(-50%)', bottom: 'calc(88px + var(--safe-b))', width: 'min(440px, calc(100% - 24px))', zIndex: 15 }}>
           <button className="btn" style={{ boxShadow: '0 12px 30px rgba(17,17,17,0.25)' }} onClick={() => call(conn?.reducers.approveAll({ jobId: job.id }))}>
             <Icon name="check" stroke={3} /> Approve all {open.length}
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

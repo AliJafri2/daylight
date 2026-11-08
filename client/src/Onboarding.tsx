@@ -53,16 +53,18 @@ function Progress({ at }: { at: number }) {
   );
 }
 
-export default function Onboarding({ onDone }: { onDone: () => void }) {
+export default function Onboarding({ onDone }: { onDone: (name?: string) => void }) {
   const [step, setStep] = useState<Step>('title');
   const [leaving, setLeaving] = useState(false);
   const [name, setName] = useState('Bill');
   const [email, setEmail] = useState('bill.parker@example.com');
   const [bank, setBank] = useState<'idle' | 'connecting' | 'done'>('idle');
 
+  // Name typed on "Create your account" is saved; "Log in" / "Skip" keep the existing name.
+  const [created, setCreated] = useState(false);
   const finish = () => {
     setLeaving(true);
-    setTimeout(onDone, 420);
+    setTimeout(() => onDone(created ? name : undefined), 420);
   };
 
   if (step === 'title') {
@@ -111,7 +113,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
           <input id="pw" type="password" defaultValue="minmax-demo" autoComplete="new-password" />
         </div>
         <div className="grow" />
-        <button className="btn" onClick={() => setStep('bank')}>Create account</button>
+        <button className="btn" disabled={!name.trim()} onClick={() => { setCreated(true); setStep('bank'); }}>Create account</button>
       </div>
     );
   }
@@ -161,7 +163,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
       {top('bank', 2)}
       <h1>I'm MinMax</h1>
       <p className="lead">Your AI money coach, {name || 'friend'}. Calm, honest, and on your side.</p>
-      <div className="ai-pill"><div>Ask me anything…<span className="caret" /></div></div>
+      <div className="ai-pill" aria-hidden="true"><div>Ask me anything…</div></div>
       <h2 style={{ fontSize: 19, margin: '8px 0 12px', letterSpacing: '-0.01em' }}>How I help you</h2>
       <div className="powers">
         {[

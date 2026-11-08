@@ -71,7 +71,7 @@ export default function Coach({ language, name, pending, onPendingSent }: {
 
       <div style={{ flex: 1, minHeight: 24 }} />
 
-      {sorted.length === 0 && (
+      {false && (
         <div style={{ display: 'flex', gap: 10, overflowX: 'auto', margin: '0 -20px', padding: '4px 20px 8px', scrollSnapType: 'x mandatory' }}>
           {SUGGESTIONS.map(s => (
             <button key={s.q} className="card" disabled={!isActive} onClick={() => ask(s.q)}
