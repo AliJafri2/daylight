@@ -109,7 +109,7 @@ Watching the gas price in Texas climb past $3.50 and knowing that for many famil
 1. **See it:** one view of all accounts (Nessie checking/savings/credit card + auto loan; plus manually-seeded IRA/CD in Spacetime since Nessie lacks them) and all upcoming bills.
 2. **Forecast it:** day-by-day balance timeline to the next payday. "You'll be **$43 short on Nov 17**, 3 days before payday."
 3. **Understand it:** 3+ health indicators (days of runway, credit utilization, overdraft risk, savings buffer) + a **"Why?"** button on every number/recommendation that explains it in plain language **using the user's own numbers** (English, Spanish if time).
-4. **Close the gap:** AI agents find the cheapest fix (moving a bill until after payday, store-brand/cheaper-store grocery swaps, cheaper gas by **net** savings after drive cost), stream their work live, and execute it in Nessie after the user's **one-tap approval**. Lead the result with **fees avoided**: "Avoid a $36 overdraft fee + save $18 on groceries + $3 on gas."
+4. **Close the gap:** AI agents find the cheapest fix (moving a bill until after payday, store-brand/cheaper-store grocery swaps, cheaper gas by **net** savings after drive cost), stream their work live, and execute it in Nessie after the user's **one-tap approval**. Lead the result with **fees avoided**: "Avoid a $36 overdraft fee + save $23.93 on groceries + $3.48 on gas."
 
 ### The three wow moments (+ build priority)
 1. **"Close the gap"** (MUST HAVE): red forecast → tap "Close the gap" → agent steps stream live on screen ("Checking bills you can move... Found: car insurance can move to Nov 21...") → plan appears with savings and "Why?" → approve on **phone** → executed in Nessie → forecast line animates red→green on the **laptop**.
@@ -271,9 +271,9 @@ Health indicators at start: **days of runway = 10** (Nov 7 → Nov 17), **credit
 
 Expected "Close the gap" plan (deterministic engine must reproduce these numbers):
 1. **Move car insurance $118 from Nov 14 → Nov 21** (after payday). Nov 17 balance: -43 → **+75**. Avoids the **$36 overdraft fee**.
-2. **Grocery swaps on Nov 15 trip** (store brand / cheaper store) ≈ **$18** saved → +93.
-3. **Gas on Nov 16 at a cheaper nearby station**, **net** of extra driving ≈ **$3** → **+96**.
-Headline: "Avoid a $36 overdraft fee and end the pay period +$96 instead of -$43." Never inflate savings; judges will do the math.
+2. **Shop at Aldi on Nov 15** for the 6 usual items: $53.48 vs $77.47 at H-E-B, net of $0.06 drive = **$23.93** saved → +98.93. (H-E-B store brand alone = $18; Walmart $20.64; Kroger $16.38.)
+3. **Gas on Nov 16 at Murphy USA** ($3.35 vs Shell $3.59), **net** of 1.0 extra mile = **$3.48** → **+$102.41**. Costco is cheapest per gallon ($3.29) but the 13.2-mile round trip costs $1.74, so it nets only $2.77.
+Headline: "Avoid a $36 overdraft fee and end the pay period +$102 instead of -$43." (Numbers come from `shared/forecast.ts`; `npm test` locks them.) Never inflate savings; judges will do the math.
 
 Gas net-savings formula: `net = (usual_price - alt_price) × gallons - (extra_round_trip_miles / mpg) × alt_price`. Reject stations where net ≤ $1. (GasBuddy will send you 6 miles to save 8¢; Minimum won't. Good detail to mention.)
 
@@ -354,7 +354,7 @@ Execution (after approval): `move_bill` → Nessie `PUT /bills/{id}` new payment
 3. **Forecast + indicators:** whole picture, red dip, runway 10 days, utilization 74%. Tap a "Why?".
 4. **What-if:** toggle one option, watch the line move.
 5. **Receipt (wow):** scan a judge's/sample receipt → cheaper swaps.
-6. **Close the gap (wow):** agents stream live → approve on phone → executed in Nessie → laptop turns green. "Avoided a $36 overdraft fee, ended +$96, without borrowing a dime."
+6. **Close the gap (wow):** agents stream live → approve on phone → executed in Nessie → laptop turns green. "Avoided a $36 overdraft fee, ended +$102, without borrowing a dime."
 7. **Close:** "Low Cash Mode gives 24 hours after. Minimum gives two weeks before."
 
 Show product in the first 30 seconds; no architecture slides first. Have a 30-second version. Rehearse 2-3 times. Have one architecture diagram ready for technical judges.
