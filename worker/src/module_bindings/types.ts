@@ -63,6 +63,17 @@ export const CoachMessage = __t.object("CoachMessage", {
 });
 export type CoachMessage = __Infer<typeof CoachMessage>;
 
+export const HeadsUp = __t.object("HeadsUp", {
+  id: __t.u64(),
+  profileId: __t.u64(),
+  status: __t.string(),
+  title: __t.string(),
+  body: __t.string(),
+  pushed: __t.u32(),
+  createdAt: __t.timestamp(),
+});
+export type HeadsUp = __Infer<typeof HeadsUp>;
+
 export const Income = __t.object("Income", {
   id: __t.u64(),
   profileId: __t.u64(),
@@ -92,6 +103,9 @@ export type MyBills = __Infer<typeof MyBills>;
 export const MyCoach = __t.object("MyCoach", {});
 export type MyCoach = __Infer<typeof MyCoach>;
 
+export const MyHeadsUps = __t.object("MyHeadsUps", {});
+export type MyHeadsUps = __Infer<typeof MyHeadsUps>;
+
 export const MyIncome = __t.object("MyIncome", {});
 export type MyIncome = __Infer<typeof MyIncome>;
 
@@ -100,6 +114,9 @@ export type MyJobs = __Infer<typeof MyJobs>;
 
 export const MyProfile = __t.object("MyProfile", {});
 export type MyProfile = __Infer<typeof MyProfile>;
+
+export const MyPushSubs = __t.object("MyPushSubs", {});
+export type MyPushSubs = __Infer<typeof MyPushSubs>;
 
 export const MyReceiptImages = __t.object("MyReceiptImages", {});
 export type MyReceiptImages = __Infer<typeof MyReceiptImages>;
@@ -185,6 +202,16 @@ export const Profile = __t.object("Profile", {
   needsNessieReset: __t.bool(),
 });
 export type Profile = __Infer<typeof Profile>;
+
+export const PushSub = __t.object("PushSub", {
+  id: __t.u64(),
+  profileId: __t.u64(),
+  endpoint: __t.string(),
+  p256Dh: __t.string(),
+  auth: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type PushSub = __Infer<typeof PushSub>;
 
 export const Receipt = __t.object("Receipt", {
   id: __t.u64(),

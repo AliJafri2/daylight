@@ -45,14 +45,18 @@ import AskCoachReducer from "./ask_coach_reducer";
 import ClaimJobReducer from "./claim_job_reducer";
 import ClearCoachReducer from "./clear_coach_reducer";
 import CloseJobIfSettledReducer from "./close_job_if_settled_reducer";
+import DropPushSubReducer from "./drop_push_sub_reducer";
 import FinishReceiptReducer from "./finish_receipt_reducer";
 import MarkActionExecutedReducer from "./mark_action_executed_reducer";
+import MarkHeadsUpSentReducer from "./mark_heads_up_sent_reducer";
 import MarkNessieSyncedReducer from "./mark_nessie_synced_reducer";
 import RegisterWorkerReducer from "./register_worker_reducer";
 import RejectActionReducer from "./reject_action_reducer";
+import RequestHeadsUpReducer from "./request_heads_up_reducer";
 import RequestPlanReducer from "./request_plan_reducer";
 import ResetDemoReducer from "./reset_demo_reducer";
 import RunAgentReducer from "./run_agent_reducer";
+import SavePushSubReducer from "./save_push_sub_reducer";
 import ScanReceiptReducer from "./scan_receipt_reducer";
 import ScheduleMoveReducer from "./schedule_move_reducer";
 import SetDisplayNameReducer from "./set_display_name_reducer";
@@ -70,9 +74,11 @@ import MyAccountsRow from "./my_accounts_table";
 import MyActionsRow from "./my_actions_table";
 import MyBillsRow from "./my_bills_table";
 import MyCoachRow from "./my_coach_table";
+import MyHeadsUpsRow from "./my_heads_ups_table";
 import MyIncomeRow from "./my_income_table";
 import MyJobsRow from "./my_jobs_table";
 import MyProfileRow from "./my_profile_table";
+import MyPushSubsRow from "./my_push_subs_table";
 import MyReceiptImagesRow from "./my_receipt_images_table";
 import MyReceiptItemsRow from "./my_receipt_items_table";
 import MyReceiptsRow from "./my_receipts_table";
@@ -125,6 +131,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyCoachRow),
+  myHeadsUps: __table({
+    name: 'my_heads_ups',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyHeadsUpsRow),
   myIncome: __table({
     name: 'my_income',
     indexes: [
@@ -146,6 +159,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyProfileRow),
+  myPushSubs: __table({
+    name: 'my_push_subs',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyPushSubsRow),
   myReceiptImages: __table({
     name: 'my_receipt_images',
     indexes: [
@@ -210,14 +230,18 @@ const reducersSchema = __reducers(
   __reducerSchema("claim_job", ClaimJobReducer),
   __reducerSchema("clear_coach", ClearCoachReducer),
   __reducerSchema("close_job_if_settled", CloseJobIfSettledReducer),
+  __reducerSchema("drop_push_sub", DropPushSubReducer),
   __reducerSchema("finish_receipt", FinishReceiptReducer),
   __reducerSchema("mark_action_executed", MarkActionExecutedReducer),
+  __reducerSchema("mark_heads_up_sent", MarkHeadsUpSentReducer),
   __reducerSchema("mark_nessie_synced", MarkNessieSyncedReducer),
   __reducerSchema("register_worker", RegisterWorkerReducer),
   __reducerSchema("reject_action", RejectActionReducer),
+  __reducerSchema("request_heads_up", RequestHeadsUpReducer),
   __reducerSchema("request_plan", RequestPlanReducer),
   __reducerSchema("reset_demo", ResetDemoReducer),
   __reducerSchema("run_agent", RunAgentReducer),
+  __reducerSchema("save_push_sub", SavePushSubReducer),
   __reducerSchema("scan_receipt", ScanReceiptReducer),
   __reducerSchema("schedule_move", ScheduleMoveReducer),
   __reducerSchema("set_display_name", SetDisplayNameReducer),

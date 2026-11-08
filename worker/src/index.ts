@@ -15,6 +15,7 @@ import { hideKey } from './nessie.ts';
 import { loadNessieIds, syncFromNessie } from './sync.ts';
 import { summaryFingerprint, writeSummary } from './summary.ts';
 import { runReceiptJob } from './receipt.ts';
+import { sendHeadsUp } from './headsup.ts';
 
 const URI = process.env.SPACETIME_URI ?? 'wss://maincloud.spacetimedb.com';
 const DB = process.env.SPACETIME_DB_NAME ?? 'minimum'; // database keeps its original codename (internal only)
@@ -54,7 +55,7 @@ function subscribe(conn: DbConnection): Promise<void> {
       .onApplied(() => resolve())
       .subscribe([
         tables.myProfile, tables.myAccounts, tables.myBills, tables.myIncome, tables.mySpend,
-        tables.myJobs, tables.myActions, tables.price, tables.myCoach, tables.myTransactions, tables.mySummary, tables.myReceipts, tables.myReceiptImages,
+        tables.myJobs, tables.myActions, tables.price, tables.myCoach, tables.myTransactions, tables.mySummary, tables.myReceipts, tables.myReceiptImages, tables.myPushSubs, tables.myHeadsUps,
       ]);
   });
 }
@@ -149,6 +150,15 @@ async function main() {
     (tbl as any).onDelete(refreshSummary);
   }
   refreshSummary();
+
+  // Heads-up: runs outside the queue (it waits a few seconds on purpose).
+  const onHeadsUp = (h: { id: bigint; status: string }) => {
+    if (h.status !== 'pending' || inFlight.has(`hu:${h.id}`)) return;
+    inFlight.add(`hu:${h.id}`);
+    void sendHeadsUp(conn, h.id).catch(err => log('heads-up failed:', hideKey(String(err))));
+  };
+  conn.db.myHeadsUps.onInsert((_ctx, h) => onHeadsUp(h));
+  for (const h of conn.db.myHeadsUps.iter()) onHeadsUp(h);
 
   // Catch up on anything that happened while the worker was offline.
   for (const job of conn.db.myJobs.iter()) onJob(job);

@@ -199,6 +199,31 @@ const summary = table(
   }
 );
 
+// Heads-up: Ben reaches out first. Each device's push subscription + each heads-up sent.
+const pushSub = table(
+  { name: 'push_sub' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    profileId: t.u64().index('btree'),
+    endpoint: t.string().unique(),
+    p256dh: t.string(),
+    auth: t.string(),
+    createdAt: t.timestamp(),
+  }
+);
+const headsUp = table(
+  { name: 'heads_up' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    profileId: t.u64().index('btree'),
+    status: t.string(), // 'pending' | 'sent'
+    title: t.string(),
+    body: t.string(),
+    pushed: t.u32(), // how many phones got the push
+    createdAt: t.timestamp(),
+  }
+);
+
 // Receipt scanning. The photo lives in its own table and is deleted as soon as the worker reads it.
 const receipt = table(
   { name: 'receipt' },
@@ -288,6 +313,8 @@ const spacetimedb = schema({
   receipt,
   receiptImage,
   receiptItem,
+  pushSub,
+  headsUp,
 });
 export default spacetimedb;
 
@@ -432,6 +459,7 @@ function wipeProfileData(ctx: Ctx, profileId: bigint) {
   for (const r of [...ctx.db.receipt.profileId.filter(profileId)]) ctx.db.receipt.id.delete(r.id);
   for (const r of [...ctx.db.receiptImage.profileId.filter(profileId)]) ctx.db.receiptImage.receiptId.delete(r.receiptId);
   for (const r of [...ctx.db.receiptItem.profileId.filter(profileId)]) ctx.db.receiptItem.id.delete(r.id);
+  for (const r of [...ctx.db.headsUp.profileId.filter(profileId)]) ctx.db.headsUp.id.delete(r.id); // keep push subs: phones stay signed up
 }
 
 // ---------- Lifecycle ----------
@@ -537,6 +565,16 @@ export const myReceiptItems = spacetimedb.view({ name: 'my_receipt_items', publi
 export const myReceiptImages = spacetimedb.view({ name: 'my_receipt_images', public: true }, t.array(receiptImage.rowType), ctx => {
   const m = ctx.db.member.identity.find(ctx.sender);
   return m ? [...ctx.db.receiptImage.profileId.filter(m.profileId)] : [];
+});
+
+// Only the worker subscribes to push subscriptions.
+export const myPushSubs = spacetimedb.view({ name: 'my_push_subs', public: true }, t.array(pushSub.rowType), ctx => {
+  const m = ctx.db.member.identity.find(ctx.sender);
+  return m ? [...ctx.db.pushSub.profileId.filter(m.profileId)] : [];
+});
+export const myHeadsUps = spacetimedb.view({ name: 'my_heads_ups', public: true }, t.array(headsUp.rowType), ctx => {
+  const m = ctx.db.member.identity.find(ctx.sender);
+  return m ? [...ctx.db.headsUp.profileId.filter(m.profileId)] : [];
 });
 
 // ---------- User reducers ----------
@@ -938,3 +976,41 @@ export const finishReceipt = spacetimedb.reducer(
     ctx.db.receiptImage.receiptId.delete(a.receiptId); // privacy: the photo is gone once read
   }
 );
+
+// ---------- Heads-up (Ben reaches out first) ----------
+export const savePushSub = spacetimedb.reducer(
+  { endpoint: t.string(), p256dh: t.string(), auth: t.string() },
+  (ctx, a) => {
+    const m = requireMember(ctx);
+    if (!/^https:\/\//.test(a.endpoint) || a.endpoint.length > 1000) throw new SenderError('Bad push endpoint');
+    if (a.p256dh.length > 200 || a.auth.length > 100) throw new SenderError('Bad push keys');
+    const existing = ctx.db.pushSub.endpoint.find(a.endpoint);
+    if (existing) ctx.db.pushSub.id.update({ ...existing, profileId: m.profileId, p256dh: a.p256dh, auth: a.auth });
+    else ctx.db.pushSub.insert({ id: 0n, profileId: m.profileId, ...a, createdAt: ctx.timestamp });
+  }
+);
+
+export const requestHeadsUp = spacetimedb.reducer(ctx => {
+  const m = requireMember(ctx);
+  for (const h of ctx.db.headsUp.profileId.filter(m.profileId)) {
+    if (h.status === 'pending') throw new SenderError('A heads-up is already on its way');
+  }
+  ctx.db.headsUp.insert({ id: 0n, profileId: m.profileId, status: 'pending', title: '', body: '', pushed: 0, createdAt: ctx.timestamp });
+});
+
+export const markHeadsUpSent = spacetimedb.reducer(
+  { id: t.u64(), title: t.string(), body: t.string(), pushed: t.u32() },
+  (ctx, a) => {
+    requireWorker(ctx);
+    const h = ctx.db.headsUp.id.find(a.id);
+    if (!h) throw new SenderError('Heads-up not found');
+    ctx.db.headsUp.id.update({ ...h, status: 'sent', title: a.title.slice(0, 80), body: a.body.slice(0, 200), pushed: a.pushed });
+  }
+);
+
+// Push services say an old subscription is gone (phone uninstalled the app): forget it.
+export const dropPushSub = spacetimedb.reducer({ endpoint: t.string() }, (ctx, { endpoint }) => {
+  requireWorker(ctx);
+  const s = ctx.db.pushSub.endpoint.find(endpoint);
+  if (s) ctx.db.pushSub.id.delete(s.id);
+});

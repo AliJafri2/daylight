@@ -1150,3 +1150,20 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .title-content .app-mark.sun, .app-tile { background: none; overflow: hidden; padding: 0; }
 .title-content .app-mark.sun img, .app-tile img { display: block; width: 100%; height: 100%; }
 .agent-horizon { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 2px; }
+
+/* ---------- Heads-up banner (Ben reaches out first) ---------- */
+.headsup { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 10px; right: 10px; max-width: 480px; margin: 0 auto; z-index: 900;
+  display: flex; align-items: center; gap: 12px; padding: 12px 10px 12px 12px; border-radius: 22px;
+  background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  animation: headsupIn 0.55s var(--ease-spring) both; }
+@keyframes headsupIn { from { transform: translateY(-140%); opacity: 0; } to { transform: none; opacity: 1; } }
+.headsup-ico img { display: block; border-radius: 9px; }
+.headsup-main { all: unset; cursor: pointer; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.headsup-top { display: flex; justify-content: space-between; font-size: 15px; color: var(--ink); }
+.headsup-top span { font-size: 13px; color: var(--ink-3); }
+.headsup-body { font-size: 15px; line-height: 1.35; color: var(--ink-2); }
+.headsup-x { all: unset; cursor: pointer; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-3); }
+.settings-h { font-size: 17px; margin: 22px 0 4px; }
+.settings-p { font-size: 14px; color: var(--ink-3); margin: 0 0 10px; line-height: 1.4; }
+@media (prefers-reduced-motion: reduce) { .headsup { animation: none; } }

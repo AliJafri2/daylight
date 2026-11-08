@@ -7,6 +7,8 @@ import Onboarding from './Onboarding';
 import Home from './Home';
 import Plan, { type AgentKind } from './Agents';
 import Tour, { type TourTab } from './Tour';
+import HeadsUpBanner from './HeadsUp';
+import { enablePush } from './push';
 import Coach from './Coach';
 import Accounts from './Accounts';
 import { Icon, type IconName } from './ui';
@@ -25,7 +27,7 @@ const ONB_KEY = 'daylight:onboarded';
 // that would wipe a phone approval mid-demo. Use Settings -> Reset demo for that.
 const params = new URLSearchParams(window.location.search);
 const readOnboarded = () => params.has('skip-intro');
-const initialTab = (['home', 'plan', 'coach', 'accounts'] as const).find(t => t === params.get('tab')) ?? 'home';
+const initialTab = params.get('agent') === 'forecast' ? 'plan' : (['home', 'plan', 'coach', 'accounts'] as const).find(t => t === params.get('tab')) ?? 'home';
 const writeOnboarded = (_v: boolean) => { try { localStorage.removeItem(ONB_KEY); } catch { /* private mode */ } }; // no longer remembered
 
 export default function App() {
@@ -34,7 +36,8 @@ export default function App() {
   const [onboarded, setOnboarded] = useState(readOnboarded);
   const [tab, setTab] = useState<Tab>(initialTab);
   const [settings, setSettings] = useState(false);
-  const [agent, setAgent] = useState<AgentKind | null>(null);
+  const [agent, setAgent] = useState<AgentKind | null>(params.get('agent') === 'forecast' ? 'forecast' : null);
+  const [pushMsg, setPushMsg] = useState<string | null>(null);
   const [tour, setTour] = useState(false);
   const [pendingQ, setPendingQ] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
@@ -44,6 +47,13 @@ export default function App() {
 
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
   useEffect(() => { window.scrollTo({ top: 0 }); }, [tab]);
+  // Tapping a heads-up notification while the app is open: jump to the Forecasting agent.
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const onMsg = (e: MessageEvent) => { if (e.data?.type === 'open' && String(e.data.url).includes('agent=forecast')) { setOnboarded(true); setAgent('forecast'); setTab('plan'); } };
+    navigator.serviceWorker.addEventListener('message', onMsg);
+    return () => navigator.serviceWorker.removeEventListener('message', onMsg);
+  }, []);
 
   const latestJob = useMemo(() => [...jobs].sort((a, b) => (a.id < b.id ? 1 : -1))[0], [jobs]);
   const toast = actions.some(a => a.status === 'approved')
@@ -75,6 +85,7 @@ export default function App() {
   return (
     <div className="app">
       {toast && <div className="toast"><span className="spinner" />{toast}</div>}
+      <HeadsUpBanner onReview={() => { setAgent('forecast'); setTab('plan'); }} />
 
       {tab === 'home' && (
         <Home m={m} name={name} onOpenPlan={() => { setAgent('forecast'); setTab('plan'); }} onSettings={() => setSettings(true)}
@@ -115,6 +126,27 @@ export default function App() {
               <button className="btn secondary" onClick={() => { setSettings(false); setTab('home'); setTour(true); }}>
                 Replay tour
               </button>
+            </div>
+            <h3 className="settings-h">Heads-up from Ben</h3>
+            <p className="settings-p">Ben messages you when you're about to run short. On iPhone, add Daylight to your Home Screen first.</p>
+            <div className="stack">
+              <button className="btn secondary" disabled={!isActive} onClick={async () => {
+                if (!conn) return;
+                setPushMsg('Turning on…');
+                try {
+                  const r = await enablePush(conn);
+                  setPushMsg(r === 'on' ? 'Notifications are on for this device.' : r === 'denied' ? 'Notifications are blocked. Allow them in your phone settings.' : r === 'install-first' ? 'Add Daylight to your Home Screen, open it from there, then try again.' : "This browser can't do push. The in-app banner still works.");
+                } catch (e) { setPushMsg(String((e as Error)?.message ?? e)); }
+              }}>
+                <Icon name="bell" /> Turn on notifications
+              </button>
+              <button className="btn" disabled={!isActive} onClick={() => {
+                setPushMsg('Sent. Lock your phone: Ben will reach out in 5 seconds.');
+                void conn?.reducers.requestHeadsUp({}).catch(e => setPushMsg(String(e?.message ?? e)));
+              }}>
+                Send me a heads-up (demo)
+              </button>
+              {pushMsg && <p className="settings-p" role="status">{pushMsg}</p>}
             </div>
           </div>
         </>
