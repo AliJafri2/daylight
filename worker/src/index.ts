@@ -1,4 +1,4 @@
-// Minimum agent worker: a normal Spacetime client that holds the secrets (Nessie, Gemini)
+// MinMax agent worker: a normal Spacetime client that holds the secrets (Nessie, Gemini)
 // and does the work the browser can't. Run: npm start --prefix worker   (or: npm run sync for one pass)
 //
 // It reacts to rows, never to direct calls from the app:

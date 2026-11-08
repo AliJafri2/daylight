@@ -1,4 +1,4 @@
-// Minimum's deterministic money engine. NO AI here, by design: every number the app or the
+// MinMax's deterministic money engine. NO AI here, by design: every number the app or the
 // coach shows comes from these functions, so an LLM can explain numbers but never invent them.
 // Used by the client (instant what-if) and the worker (planning). All money is integer cents.
 

@@ -11,3 +11,5 @@ spacetime.local.json
 worker/nessie-ids.json
 !client/.env.cloud
 worker/.worker-token
+docs/design/*.jpg
+docs/design/*.png

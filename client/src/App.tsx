@@ -35,7 +35,7 @@ export default function App() {
 
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
-      <h1 style={{ marginBottom: 4 }}>Minimum</h1>
+      <h1 style={{ marginBottom: 4 }}>MinMax</h1>
       <p style={{ marginTop: 0, color: isActive ? 'green' : 'crimson' }}>
         {isActive ? 'Live' : 'Connecting…'}
         {profile && ` · ${profile.displayName} · as of ${profile.asOfDate}`}

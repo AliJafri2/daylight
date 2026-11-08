@@ -31,7 +31,7 @@ export default function Coach({ language }: { language: string }) {
 
   return (
     <section style={{ border: '1px solid #ddd', borderRadius: 12, padding: 12, marginBottom: 16 }}>
-      <h2 style={{ marginTop: 0 }}>{lang === 'es' ? 'Pregúntale a Minimum' : 'Ask Minimum'}</h2>
+      <h2 style={{ marginTop: 0 }}>{lang === 'es' ? 'Pregúntale a MinMax' : 'Ask MinMax'}</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {sorted.map(m => (
           <div

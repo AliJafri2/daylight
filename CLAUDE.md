@@ -1,4 +1,4 @@
-# Minimum: HackUTD 2026 Build Brief (handoff to Claude Code)
+# MinMax: HackUTD 2026 Build Brief (handoff to Claude Code)
 
 > Read this whole file before writing any code. It captures several hours of planning, research and decisions. Do NOT re-open settled decisions (see "Decisions already made"). Your job is to help build, ship and demo this project before the deadline.
 
@@ -47,7 +47,7 @@
 
 ## 2. Tracks we are entering
 
-| Track | Prompt | Prizes | How Minimum hits it |
+| Track | Prompt | Prizes | How MinMax hits it |
 |---|---|---|---|
 | **PNC: 360° Financial Health Navigator** | "How could AI help someone see their whole financial picture, make sense of it & feel confident about their next move?" Account types listed: checking, savings, CDs & IRAs, loans, credit cards, mortgages. Suggested answers: conversational coach, 3+ health indicators, forecast balances & obligations, "what if" simulator, or something new. | PS5 Slim / Ninja CREAMi / AirPods Pro 3 | Whole picture across accounts + payday forecast + 3 health indicators + what-if slider + AI coach that explains and proposes next moves. **Strongest fit.** |
 | **Capital One: Best Use of Nessie** | "How will you reimagine banking?" Use Nessie (Capital One's mock banking API). | $300 gift cards per winning team member | Nessie is our bank: accounts, bills, paychecks, purchases come FROM Nessie, and approved actions are WRITTEN BACK (transfers, bill date changes). Most teams only read Nessie. We read AND write. |
@@ -68,15 +68,17 @@
 
 ---
 
-## 3. The product: Minimum
+## 3. The product: MinMax
+
+**Name changed Sat ~8:20 PM from "Minimum" to "MinMax". Slogan: "Minimum effort, maximum savings."** Code/db/repo identifiers stay `minimum`; everything users see says MinMax.
 
 ### One-liner (10-second pitch)
-> "63% of Americans live paycheck to paycheck. Minimum warns you two weeks before you'll run short, then its AI finds the cheapest gas, groceries and bill timing to close the gap, without lending you a dime."
+> "63% of Americans live paycheck to paycheck. MinMax warns you two weeks before you'll run short, then its AI finds the cheapest gas, groceries and bill timing to close the gap, without lending you a dime."
 
 ### Track-specific openers (judges care about their own track)
-- **PNC:** "Your Low Cash Mode gives customers 24 hours *after* they go negative. Minimum gives them two weeks *before*."
+- **PNC:** "Your Low Cash Mode gives customers 24 hours *after* they go negative. MinMax gives them two weeks *before*."
 - **Capital One:** "Most teams read Nessie. We write to it. Agents execute real banking actions after your one-tap approval."
-- **Spacetime:** "Spacetime is Minimum's entire backend. Your bank data, the AI agents' live work, and your approvals all flow through it, so your phone, laptop and agents always see the same truth."
+- **Spacetime:** "Spacetime is MinMax's entire backend. Your bank data, the AI agents' live work, and your approvals all flow through it, so your phone, laptop and agents always see the same truth."
 
 ### Who it's for (persona)
 **"Bill"**: DFW parent, paid hourly every two weeks, commutes by car, feeds a family of five. Gas and groceries are the biggest costs that change week to week. The last week before payday is when overdrafts and payday-rate cash advances happen. (Persona is illustrative; don't claim this is a real person.)
@@ -95,7 +97,7 @@ Watching the gas price in Texas climb past $3.50 and knowing that for many famil
 - PNC's own overdraft item fee: **$36** (capped one per day under Low Cash Mode). PNC Low Cash Mode: alerts + **at least 24 hours "Extra Time"** to restore a negative balance + Payment Control. It is REACTIVE.
 
 ### Competitive gap (the differentiation)
-| Product | What it does | Gap Minimum fills |
+| Product | What it does | Gap MinMax fills |
 |---|---|---|
 | GasBuddy | Crowdsourced gas prices | Doesn't know your finances; ignores drive cost |
 | Flipp / Ibotta / Basket | Grocery deals, cashback | Deals without budget context |
@@ -103,7 +105,7 @@ Watching the gas price in Texas climb past $3.50 and knowing that for many famil
 | EarnIn / Dave / Brigit | Close the gap by **lending** | ~367% APR equivalent |
 | PNC Low Cash Mode | 24h to fix a negative balance | Kicks in **after** you're short |
 
-**Minimum = prevention, not penalties. Cut costs, don't borrow. Acts for you, with your approval.**
+**MinMax = prevention, not penalties. Cut costs, don't borrow. Acts for you, with your approval.**
 
 ### What the app does
 1. **See it:** one view of all accounts (Nessie checking/savings/credit card + auto loan; plus manually-seeded IRA/CD in Spacetime since Nessie lacks them) and all upcoming bills.
@@ -113,7 +115,7 @@ Watching the gas price in Texas climb past $3.50 and knowing that for many famil
 
 ### The three wow moments (+ build priority)
 1. **"Close the gap"** (MUST HAVE): red forecast → tap "Close the gap" → agent steps stream live on screen ("Checking bills you can move... Found: car insurance can move to Nov 21...") → plan appears with savings and "Why?" → approve on **phone** → executed in Nessie → forecast line animates red→green on the **laptop**.
-2. **Minimum reaches out first** (SHOULD): push notification to phone at the table: "Heads up: you'll be $43 short on Nov 17. I found a fix. Tap to review." Shows prevention instead of describing it. (Phone call via a voice API only Sunday morning if everything else works.)
+2. **MinMax reaches out first** (SHOULD): push notification to phone at the table: "Heads up: you'll be $43 short on Nov 17. I found a fix. Tap to review." Shows prevention instead of describing it. (Phone call via a voice API only Sunday morning if everything else works.)
 3. **Scan a real receipt** (SHOULD): photo of any grocery receipt (ideally a judge's) → Gemini vision extracts items → "These 6 items are $14.20 cheaper as store brand / at Aldi" → forecast updates. Real-world input = memorable.
 4. **"What if" slider/toggles** (SHOULD, cheap if forecast engine is clean): toggles like "Fill up at Murphy USA instead", "Pay car insurance on the 21st" instantly move the balance line. PNC literally suggested a what-if simulator.
 5. **"¿Por qué?" in Spanish** (NICE): ask in Spanish, get a plain answer with real numbers.
@@ -228,8 +230,8 @@ minimum/
   - `POST /accounts/{id}/loans` {type, status, credit_score, monthly_payment, amount, description}
   - GETs: `/customers/{id}/accounts`, `/accounts/{id}/bills|purchases|deposits|loans`, `/merchants`
 - Nessie may auto-adjust balances when purchases/deposits are created. After seeding, re-read balances and reconcile with the persona numbers below (or create the customer fresh with adjusted starting balances).
-- Known gaps: no credit limit (store in Spacetime), no CDs/IRAs (seed manually in Spacetime and say "Minimum combines your bank data with your other accounts").
-- If a PNC judge asks why Capital One's API: "Nessie is our bank sandbox; Minimum is bank-agnostic and would connect to PNC the same way."
+- Known gaps: no credit limit (store in Spacetime), no CDs/IRAs (seed manually in Spacetime and say "MinMax combines your bank data with your other accounts").
+- If a PNC judge asks why Capital One's API: "Nessie is our bank sandbox; MinMax is bank-agnostic and would connect to PNC the same way."
 - **Time box Nessie setup to ~1-1.5 hours.** If it fights back, use seeded data in Spacetime and drop the Capital One track.
 
 ---
@@ -275,7 +277,7 @@ Expected "Close the gap" plan (deterministic engine must reproduce these numbers
 3. **Gas on Nov 16 at Murphy USA** ($3.35 vs Shell $3.59), **net** of 1.0 extra mile = **$3.48** → **+$102.41**. Costco is cheapest per gallon ($3.29) but the 13.2-mile round trip costs $1.74, so it nets only $2.77.
 Headline: "Avoid a $36 overdraft fee and end the pay period +$102 instead of -$43." (Numbers come from `shared/forecast.ts`; `npm test` locks them.) Never inflate savings; judges will do the math.
 
-Gas net-savings formula: `net = (usual_price - alt_price) × gallons - (extra_round_trip_miles / mpg) × alt_price`. Reject stations where net ≤ $1. (GasBuddy will send you 6 miles to save 8¢; Minimum won't. Good detail to mention.)
+Gas net-savings formula: `net = (usual_price - alt_price) × gallons - (extra_round_trip_miles / mpg) × alt_price`. Reject stations where net ≤ $1. (GasBuddy will send you 6 miles to save 8¢; MinMax won't. Good detail to mention.)
 
 Seed realistic merchants near UTD/Richardson (H-E-B, Walmart, Aldi, Kroger, Shell, QuikTrip, Murphy USA, Exxon) with approximate coordinates, plus ~4 weeks of historical gas/grocery purchases and past paycheck deposits in Nessie so "where your money goes" looks real.
 
@@ -357,7 +359,7 @@ Execution (after approval): `move_bill` → Nessie `PUT /bills/{id}` new payment
 4. **What-if:** toggle one option, watch the line move.
 5. **Receipt (wow):** scan a judge's/sample receipt → cheaper swaps.
 6. **Close the gap (wow):** agents stream live → approve on phone → executed in Nessie → laptop turns green. "Avoided a $36 overdraft fee, ended +$102, without borrowing a dime."
-7. **Close:** "Low Cash Mode gives 24 hours after. Minimum gives two weeks before."
+7. **Close:** "Low Cash Mode gives 24 hours after. MinMax gives two weeks before."
 
 Show product in the first 30 seconds; no architecture slides first. Have a 30-second version. Rehearse 2-3 times. Have one architecture diagram ready for technical judges.
 
@@ -366,7 +368,7 @@ Show product in the first 30 seconds; no architecture slides first. Have a 30-se
 - *Why not GasBuddy?* We don't compete on price data (production would license a feed); we connect prices to your forecast and count net savings.
 - *Why Spacetime instead of a normal backend?* It's the whole backend; agents are live clients; approvals and agent progress sync across devices instantly with transactional rules, no glue code.
 - *What if the AI hallucinates / moves money wrongly?* AI never does math; numbers come from a deterministic engine; nothing moves without approval and guardrails.
-- *Capital One API in a PNC project?* Nessie is the sandbox; Minimum is bank-agnostic.
+- *Capital One API in a PNC project?* Nessie is the sandbox; MinMax is bank-agnostic.
 - *Your data?* Keys server-side only, owner-scoped data, minimal LLM context, synthetic data.
 - *Who are your users / did you talk to any?* Builder should ask 3-5 people at the event "Have you ever been short before payday? What did you do?" and quote real answers only.
 
@@ -376,7 +378,7 @@ Title, tagline (10-sec pitch), inspiration (real personal sentence + stats with 
 ---
 
 ## 13. Decisions already made (do not re-open)
-- Idea: **Minimum**, paycheck-to-paycheck financial health navigator focused on cost of living (gas, groceries, bills) and prevention.
+- Idea: **MinMax** (originally "Minimum"), paycheck-to-paycheck financial health navigator focused on cost of living (gas, groceries, bills) and prevention.
 - Tracks: Spacetime main + PNC + Capital One/Nessie; HackUTD Best Design; MLH Gemini.
 - Spacetime is the full backend; we accept the Spacetime main prize is a long shot and do it well anyway.
 - Human-in-the-loop actions, not autonomous buying.
