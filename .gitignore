@@ -17,3 +17,4 @@ docs/design/*.png
 # Private build brief (stays local)
 CLAUDE.md
 docs/design/*.html
+docs/private/
