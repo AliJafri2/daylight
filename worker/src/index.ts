@@ -14,6 +14,7 @@ import { answerCoachQuestion } from './chat.ts';
 import { hideKey } from './nessie.ts';
 import { loadNessieIds, syncFromNessie } from './sync.ts';
 import { summaryFingerprint, writeSummary } from './summary.ts';
+import { runReceiptJob } from './receipt.ts';
 
 const URI = process.env.SPACETIME_URI ?? 'wss://maincloud.spacetimedb.com';
 const DB = process.env.SPACETIME_DB_NAME ?? 'minimum';
@@ -53,7 +54,7 @@ function subscribe(conn: DbConnection): Promise<void> {
       .onApplied(() => resolve())
       .subscribe([
         tables.myProfile, tables.myAccounts, tables.myBills, tables.myIncome, tables.mySpend,
-        tables.myJobs, tables.myActions, tables.price, tables.myCoach, tables.myTransactions, tables.mySummary,
+        tables.myJobs, tables.myActions, tables.price, tables.myCoach, tables.myTransactions, tables.mySummary, tables.myReceipts, tables.myReceiptImages,
       ]);
   });
 }
@@ -106,7 +107,7 @@ async function main() {
 
   const onJob = (job: { id: bigint; status: string; kind: string }) => {
     if (job.status !== 'pending') return;
-    const run = job.kind === 'research' ? runResearchJob : job.kind === 'invest' ? runInvestJob : runPlanJob;
+    const run = job.kind === 'receipt' ? runReceiptJob : job.kind === 'research' ? runResearchJob : job.kind === 'invest' ? runInvestJob : runPlanJob;
     once(`job:${job.id}`, job.kind, () => run(conn, job.id));
   };
   const onAction = (a: { id: bigint; status: string }) => {

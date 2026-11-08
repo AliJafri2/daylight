@@ -199,6 +199,45 @@ const summary = table(
   }
 );
 
+// Receipt scanning. The photo lives in its own table and is deleted as soon as the worker reads it.
+const receipt = table(
+  { name: 'receipt' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    profileId: t.u64().index('btree'),
+    jobId: t.u64().unique(),
+    status: t.string(), // 'pending' | 'done' | 'failed'
+    store: t.string(),
+    totalCents: t.i64(),
+    savingsCents: t.i64(),
+    isSample: t.bool(),
+    createdAt: t.timestamp(),
+  }
+);
+const receiptImage = table(
+  { name: 'receipt_image' },
+  {
+    receiptId: t.u64().primaryKey(),
+    profileId: t.u64().index('btree'),
+    mime: t.string(),
+    data: t.string(), // base64, ~150 KB after the phone shrinks it
+  }
+);
+const receiptItem = table(
+  { name: 'receipt_item' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    receiptId: t.u64().index('btree'),
+    profileId: t.u64().index('btree'),
+    name: t.string(),
+    label: t.string(),
+    qty: t.f64(),
+    paidCents: t.i64(),
+    altCents: t.option(t.i64()),
+    savingsCents: t.i64(),
+  }
+);
+
 // Past purchases (from the bank, or from scanned receipts). The Spending agent reasons over these.
 const transaction = table(
   { name: 'transaction' },
@@ -246,6 +285,9 @@ const spacetimedb = schema({
   coachMessage,
   transaction,
   summary,
+  receipt,
+  receiptImage,
+  receiptItem,
 });
 export default spacetimedb;
 
@@ -387,6 +429,9 @@ function wipeProfileData(ctx: Ctx, profileId: bigint) {
   for (const r of [...ctx.db.agentStep.profileId.filter(profileId)]) ctx.db.agentStep.id.delete(r.id);
   for (const r of [...ctx.db.planAction.profileId.filter(profileId)]) ctx.db.planAction.id.delete(r.id);
   for (const r of [...ctx.db.coachMessage.profileId.filter(profileId)]) ctx.db.coachMessage.id.delete(r.id);
+  for (const r of [...ctx.db.receipt.profileId.filter(profileId)]) ctx.db.receipt.id.delete(r.id);
+  for (const r of [...ctx.db.receiptImage.profileId.filter(profileId)]) ctx.db.receiptImage.receiptId.delete(r.receiptId);
+  for (const r of [...ctx.db.receiptItem.profileId.filter(profileId)]) ctx.db.receiptItem.id.delete(r.id);
 }
 
 // ---------- Lifecycle ----------
@@ -478,6 +523,20 @@ export const mySummary = spacetimedb.view({ name: 'my_summary', public: true }, 
   if (!m) return [];
   const row = ctx.db.summary.profileId.find(m.profileId);
   return row ? [row] : [];
+});
+
+export const myReceipts = spacetimedb.view({ name: 'my_receipts', public: true }, t.array(receipt.rowType), ctx => {
+  const m = ctx.db.member.identity.find(ctx.sender);
+  return m ? [...ctx.db.receipt.profileId.filter(m.profileId)] : [];
+});
+export const myReceiptItems = spacetimedb.view({ name: 'my_receipt_items', public: true }, t.array(receiptItem.rowType), ctx => {
+  const m = ctx.db.member.identity.find(ctx.sender);
+  return m ? [...ctx.db.receiptItem.profileId.filter(m.profileId)] : [];
+});
+// Only the worker subscribes to this one (the app never downloads photos back).
+export const myReceiptImages = spacetimedb.view({ name: 'my_receipt_images', public: true }, t.array(receiptImage.rowType), ctx => {
+  const m = ctx.db.member.identity.find(ctx.sender);
+  return m ? [...ctx.db.receiptImage.profileId.filter(m.profileId)] : [];
 });
 
 // ---------- User reducers ----------
@@ -832,5 +891,50 @@ export const setSummary = spacetimedb.reducer(
     const row = { profileId, rightNow: clip(a.rightNow), watchOut: clip(a.watchOut), nextMove: clip(a.nextMove), source: a.source, updatedAt: ctx.timestamp };
     if (ctx.db.summary.profileId.find(profileId)) ctx.db.summary.profileId.update(row);
     else ctx.db.summary.insert(row);
+  }
+);
+
+// ---------- Receipt scanning ----------
+export const scanReceipt = spacetimedb.reducer(
+  { mime: t.string(), data: t.string(), isSample: t.bool() },
+  (ctx, { mime, data, isSample }) => {
+    const m = requireMember(ctx);
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime)) throw new SenderError('Please use a photo (JPEG, PNG or WebP)');
+    if (data.length < 1000 || data.length > 1_500_000) throw new SenderError('Photo is too large or empty');
+    if (!/^[A-Za-z0-9+/=]+$/.test(data.slice(0, 2000))) throw new SenderError('Photo data is not valid');
+    for (const j of ctx.db.planJob.profileId.filter(m.profileId)) {
+      if (j.kind === 'receipt' && ACTIVE_JOB.has(j.status)) throw new SenderError('Still reading your last receipt');
+    }
+    const job = ctx.db.planJob.insert({
+      id: 0n, profileId: m.profileId, status: 'pending', gapCents: 0n, gapDate: '',
+      createdAt: ctx.timestamp, claimedBy: undefined, kind: 'receipt',
+    });
+    const r = ctx.db.receipt.insert({
+      id: 0n, profileId: m.profileId, jobId: job.id, status: 'pending', store: '',
+      totalCents: 0n, savingsCents: 0n, isSample, createdAt: ctx.timestamp,
+    });
+    ctx.db.receiptImage.insert({ receiptId: r.id, profileId: m.profileId, mime, data });
+  }
+);
+
+export const addReceiptItem = spacetimedb.reducer(
+  { receiptId: t.u64(), name: t.string(), label: t.string(), qty: t.f64(), paidCents: t.i64(), altCents: t.option(t.i64()), savingsCents: t.i64() },
+  (ctx, a) => {
+    requireWorker(ctx);
+    const r = ctx.db.receipt.id.find(a.receiptId);
+    if (!r) throw new SenderError('Receipt not found');
+    if (a.savingsCents < 0n) throw new SenderError('Savings cannot be negative');
+    ctx.db.receiptItem.insert({ id: 0n, profileId: r.profileId, ...a, altCents: a.altCents, name: a.name.slice(0, 80), label: a.label.slice(0, 40) });
+  }
+);
+
+export const finishReceipt = spacetimedb.reducer(
+  { receiptId: t.u64(), ok: t.bool(), store: t.string(), totalCents: t.i64(), savingsCents: t.i64() },
+  (ctx, a) => {
+    requireWorker(ctx);
+    const r = ctx.db.receipt.id.find(a.receiptId);
+    if (!r) throw new SenderError('Receipt not found');
+    ctx.db.receipt.id.update({ ...r, status: a.ok ? 'done' : 'failed', store: a.store.slice(0, 60), totalCents: a.totalCents, savingsCents: a.savingsCents });
+    ctx.db.receiptImage.receiptId.delete(a.receiptId); // privacy: the photo is gone once read
   }
 );

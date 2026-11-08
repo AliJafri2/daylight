@@ -37,6 +37,7 @@ import {
 import AckNessieResetReducer from "./ack_nessie_reset_reducer";
 import AddActionReducer from "./add_action_reducer";
 import AddCoachReplyReducer from "./add_coach_reply_reducer";
+import AddReceiptItemReducer from "./add_receipt_item_reducer";
 import AddStepReducer from "./add_step_reducer";
 import ApproveActionReducer from "./approve_action_reducer";
 import ApproveAllReducer from "./approve_all_reducer";
@@ -44,6 +45,7 @@ import AskCoachReducer from "./ask_coach_reducer";
 import ClaimJobReducer from "./claim_job_reducer";
 import ClearCoachReducer from "./clear_coach_reducer";
 import CloseJobIfSettledReducer from "./close_job_if_settled_reducer";
+import FinishReceiptReducer from "./finish_receipt_reducer";
 import MarkActionExecutedReducer from "./mark_action_executed_reducer";
 import MarkNessieSyncedReducer from "./mark_nessie_synced_reducer";
 import RegisterWorkerReducer from "./register_worker_reducer";
@@ -51,6 +53,7 @@ import RejectActionReducer from "./reject_action_reducer";
 import RequestPlanReducer from "./request_plan_reducer";
 import ResetDemoReducer from "./reset_demo_reducer";
 import RunAgentReducer from "./run_agent_reducer";
+import ScanReceiptReducer from "./scan_receipt_reducer";
 import ScheduleMoveReducer from "./schedule_move_reducer";
 import SetDisplayNameReducer from "./set_display_name_reducer";
 import SetJobStatusReducer from "./set_job_status_reducer";
@@ -70,6 +73,9 @@ import MyCoachRow from "./my_coach_table";
 import MyIncomeRow from "./my_income_table";
 import MyJobsRow from "./my_jobs_table";
 import MyProfileRow from "./my_profile_table";
+import MyReceiptImagesRow from "./my_receipt_images_table";
+import MyReceiptItemsRow from "./my_receipt_items_table";
+import MyReceiptsRow from "./my_receipts_table";
 import MySpendRow from "./my_spend_table";
 import MyStepsRow from "./my_steps_table";
 import MySummaryRow from "./my_summary_table";
@@ -140,6 +146,27 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyProfileRow),
+  myReceiptImages: __table({
+    name: 'my_receipt_images',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyReceiptImagesRow),
+  myReceiptItems: __table({
+    name: 'my_receipt_items',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyReceiptItemsRow),
+  myReceipts: __table({
+    name: 'my_receipts',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyReceiptsRow),
   mySpend: __table({
     name: 'my_spend',
     indexes: [
@@ -175,6 +202,7 @@ const reducersSchema = __reducers(
   __reducerSchema("ack_nessie_reset", AckNessieResetReducer),
   __reducerSchema("add_action", AddActionReducer),
   __reducerSchema("add_coach_reply", AddCoachReplyReducer),
+  __reducerSchema("add_receipt_item", AddReceiptItemReducer),
   __reducerSchema("add_step", AddStepReducer),
   __reducerSchema("approve_action", ApproveActionReducer),
   __reducerSchema("approve_all", ApproveAllReducer),
@@ -182,6 +210,7 @@ const reducersSchema = __reducers(
   __reducerSchema("claim_job", ClaimJobReducer),
   __reducerSchema("clear_coach", ClearCoachReducer),
   __reducerSchema("close_job_if_settled", CloseJobIfSettledReducer),
+  __reducerSchema("finish_receipt", FinishReceiptReducer),
   __reducerSchema("mark_action_executed", MarkActionExecutedReducer),
   __reducerSchema("mark_nessie_synced", MarkNessieSyncedReducer),
   __reducerSchema("register_worker", RegisterWorkerReducer),
@@ -189,6 +218,7 @@ const reducersSchema = __reducers(
   __reducerSchema("request_plan", RequestPlanReducer),
   __reducerSchema("reset_demo", ResetDemoReducer),
   __reducerSchema("run_agent", RunAgentReducer),
+  __reducerSchema("scan_receipt", ScanReceiptReducer),
   __reducerSchema("schedule_move", ScheduleMoveReducer),
   __reducerSchema("set_display_name", SetDisplayNameReducer),
   __reducerSchema("set_job_status", SetJobStatusReducer),

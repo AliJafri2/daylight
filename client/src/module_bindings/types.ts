@@ -101,6 +101,15 @@ export type MyJobs = __Infer<typeof MyJobs>;
 export const MyProfile = __t.object("MyProfile", {});
 export type MyProfile = __Infer<typeof MyProfile>;
 
+export const MyReceiptImages = __t.object("MyReceiptImages", {});
+export type MyReceiptImages = __Infer<typeof MyReceiptImages>;
+
+export const MyReceiptItems = __t.object("MyReceiptItems", {});
+export type MyReceiptItems = __Infer<typeof MyReceiptItems>;
+
+export const MyReceipts = __t.object("MyReceipts", {});
+export type MyReceipts = __Infer<typeof MyReceipts>;
+
 export const MySpend = __t.object("MySpend", {});
 export type MySpend = __Infer<typeof MySpend>;
 
@@ -176,6 +185,40 @@ export const Profile = __t.object("Profile", {
   needsNessieReset: __t.bool(),
 });
 export type Profile = __Infer<typeof Profile>;
+
+export const Receipt = __t.object("Receipt", {
+  id: __t.u64(),
+  profileId: __t.u64(),
+  jobId: __t.u64(),
+  status: __t.string(),
+  store: __t.string(),
+  totalCents: __t.i64(),
+  savingsCents: __t.i64(),
+  isSample: __t.bool(),
+  createdAt: __t.timestamp(),
+});
+export type Receipt = __Infer<typeof Receipt>;
+
+export const ReceiptImage = __t.object("ReceiptImage", {
+  receiptId: __t.u64(),
+  profileId: __t.u64(),
+  mime: __t.string(),
+  data: __t.string(),
+});
+export type ReceiptImage = __Infer<typeof ReceiptImage>;
+
+export const ReceiptItem = __t.object("ReceiptItem", {
+  id: __t.u64(),
+  receiptId: __t.u64(),
+  profileId: __t.u64(),
+  name: __t.string(),
+  label: __t.string(),
+  qty: __t.f64(),
+  paidCents: __t.i64(),
+  altCents: __t.option(__t.i64()),
+  savingsCents: __t.i64(),
+});
+export type ReceiptItem = __Infer<typeof ReceiptItem>;
 
 export const ScheduledSpend = __t.object("ScheduledSpend", {
   id: __t.u64(),

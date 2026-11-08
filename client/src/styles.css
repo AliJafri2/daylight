@@ -1021,3 +1021,22 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .s360-skel { display: block; height: 16px; width: 85%; border-radius: 8px; background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.18), rgba(255,255,255,0.08)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 .s360-foot { font-size: 12px; color: rgba(255, 255, 255, 0.5); margin-top: 6px; position: relative; z-index: 1; }
+
+/* ---------- Receipt scanner ---------- */
+.rscan { margin-top: 28px; background: var(--fill); border-radius: 22px; padding: 18px 16px 14px; }
+.rscan-head { display: flex; gap: 14px; align-items: center; }
+.rscan-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 16px; }
+.rscan-actions .plan-go { width: 100%; margin: 0; }
+.rscan-result { margin-top: 16px; }
+.rscan-total { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+.rscan-total strong { color: var(--green); }
+.rscan-sub { font-size: 14px; color: var(--ink-3); margin-top: 2px; }
+.rscan-list { display: flex; flex-direction: column; margin-top: 12px; background: var(--surface, #fff); border-radius: 16px; padding: 4px 12px; }
+.rscan-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); animation: rise 0.35s var(--ease-out) backwards; }
+.rscan-row:first-child { border-top: 0; }
+.rscan-name { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; color: var(--ink); display: flex; flex-direction: column; }
+.rscan-name small { font-size: 12px; font-weight: 500; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rscan-prices { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+.rscan-prices s { color: var(--ink-3); margin-right: 2px; }
+.rscan-save { font-size: 15px; font-weight: 700; color: var(--green); min-width: 52px; text-align: right; }
+.rscan-note { font-size: 14px; color: var(--ink-3); margin: 10px 2px 0; }

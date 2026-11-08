@@ -9,6 +9,7 @@ import { tables, type DbConnection } from './module_bindings';
 import ForecastAgent from './Plan';
 import BenNoticed from './BenNoticed';
 import NextMove from './NextMove';
+import ReceiptScanner from './ReceiptScanner';
 import { AgentBar } from './AgentBar';
 import { spendingInsights, totalMonthly } from '../../shared/insights.ts';
 import { nextBestMove } from '../../shared/nextmove.ts';
@@ -195,6 +196,7 @@ function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: 
         </>
       )}
       {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
+      {kind === 'research' && <ReceiptScanner />}
     </div>
   );
 }
