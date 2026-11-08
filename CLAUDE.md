@@ -330,7 +330,9 @@ Execution (after approval): `move_bill` → Nessie `PUT /bills/{id}` new payment
 
 **Then, in order, only if time:** "Cheapest near you" tab (gas ranked by net cost incl. drive; usual grocery basket across 4 stores; monthly savings) → coach: "Why?" explainers + text chat (Gemini) → what-if toggles → push notification "reach out first" → voice coach (Vapi, optional layer on the text coach) → receipt scan (Gemini vision) → Spanish → live price report via QR.
 
-**UI decisions:** welcome screen with "Continue as Bill (demo)" + animation instead of real login. Home = one big sentence-number ("$43 short on Nov 17"), tiny balance line (needed for the red→green moment), one "Close the gap" button; scroll: 4 health tiles (tap = Why?), accounts list, upcoming. Tabs: Home · Plan · Coach · Accounts (+ Prices). Design reference: user is choosing screens on Mobbin.
+**UI decisions:** welcome screen with "Continue as Bill (demo)" + animation instead of real login. Home = one big sentence-number ("$43 short on Nov 17"), tiny balance line (needed for the red→green moment), one "Close the gap" button; scroll: 4 health tiles (tap = Why?), accounts list, upcoming. Tabs: Home · Plan · Coach · Accounts (+ Prices).
+
+**Design (locked Sat ~8 PM, references via Mobbin MCP):** Fuse's visual system (off-white bg, black type, huge bold numbers with greyed cents, thin line chart, 2x2 rounded tiles with small colorful icons, black pill buttons, top status toasts, smooth motion) + Cleo's AI patterns (chat bubbles, typing dots, tap-to-reply chips, action buttons inside AI bubbles; agent steps shown as AI bubbles). Static bottom tab bar with a soft glassy (frosted) look. Tone: calm and kind, never sassy. Readability: darker greys, >=16px body, big tap targets. Onboarding (no real auth): Welcome -> "Here's what I do" (AI explained in bubbles) -> "Connect your bank" (Nessie, demo) -> "Continue as Bill" -> animated into Home. Inspired by, not copied: no third-party logos/illustrations.
 
 **Cut entirely:** auth flows, real grocery/gas APIs, mobile native app, household/shared features, Photon, anything not in the demo.
 
