@@ -1128,3 +1128,6 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .tour-next { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: var(--ink); color: #fff; font-size: 15px; font-weight: 700; padding: 10px 16px; border-radius: 999px; }
 .tour-next:focus-visible, .tour-skip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .tour-spot, .tour-bubble { transition: none; animation: none; } }
+
+/* Ben intro icons: same simple black-on-white glyph as the financial health tiles */
+.power .glyph.mono { width: 32px; height: 32px; border-radius: 10px; background: #fff; color: var(--ink); box-shadow: none; display: grid; place-items: center; flex: none; }

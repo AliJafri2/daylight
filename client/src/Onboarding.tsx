@@ -207,7 +207,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
             ['shield', 'blue', 'You stay in control', 'I suggest, you decide. Nothing changes until you tap approve.'],
           ] as const).map(([icon, color, t, d], k) => (
             <div className="power" key={t} style={{ animationDelay: `${0.45 + k * 0.12}s` }}>
-              <span className={`pico ${color}`}><Icon name={icon} size={22} stroke={2.4} /></span>
+              <span className="glyph mono" data-color={color}><Icon name={icon} size={18} /></span>
               <div><h3>{t}</h3><p>{d}</p></div>
             </div>
           ))}
