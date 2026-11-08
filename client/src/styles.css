@@ -1174,4 +1174,4 @@ body { letter-spacing: -0.006em; font-feature-settings: "tnum" 1; }
 .nm-receipt-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 15px; font-weight: 600; color: var(--ink); flex-wrap: wrap; }
 .nm-receipt-row svg { color: var(--ink-3); }
 .nm-receipt-meta { margin-top: 4px; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.hero-sub { font-size: 15px; font-weight: 500; color: var(--ink-3); margin-top: 6px; }
+.hero-sub { font-size: 15px; font-weight: 500; color: var(--ink-3); margin-top: 10px; }
