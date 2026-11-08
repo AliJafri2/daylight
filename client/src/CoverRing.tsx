@@ -163,3 +163,12 @@ function sector(c: number, r: number, thick: number, from: number, to: number) {
   const large = a2 - a1 > Math.PI ? 1 : 0;
   return `M ${pt(ro, a1)} A ${ro} ${ro} 0 ${large} 1 ${pt(ro, a2)} L ${pt(ri, a2)} A ${ri} ${ri} 0 ${large} 0 ${pt(ri, a1)} Z`;
 }
+
+/** Ring numbers from a forecast: payments due from tomorrow up to (not incl.) payday vs money available. */
+export function ringFrom(f: { days: Array<{ date: string; balanceCents: number; events: Array<{ amountCents: number }> }>; nextPayday?: string }) {
+  const before = f.days.slice(1).filter(d => !f.nextPayday || d.date < f.nextPayday);
+  const events = before.flatMap(d => d.events);
+  const due = events.filter(e => e.amountCents < 0).reduce((a, e) => a - e.amountCents, 0);
+  const income = events.filter(e => e.amountCents > 0).reduce((a, e) => a + e.amountCents, 0);
+  return { due, have: f.days[0].balanceCents + income };
+}

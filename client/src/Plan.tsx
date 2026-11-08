@@ -1,20 +1,18 @@
-// Plan: one clear state at a time (tester feedback: "too many words").
-//   1. What's wrong + "Find a fix"   2. Ben is working (live)   3. Here's the fix + "Fix it"   4. Done
-// The agents' full step list stays one tap away ("See how I figured this out") for judges.
-import { useMemo, useState } from 'react';
+// Plan: the ring is the star. Toggle each fix and watch the red gap fill in (a what-if built into
+// the plan); one button approves the ones you picked. Working = a live checklist; Done = the ring
+// closes and laps. Every number comes from the shared engine.
+import { useEffect, useMemo, useState } from 'react';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables, type DbConnection } from './module_bindings';
-import { BigMoney, Glyph, Icon, day, usd, type IconName } from './ui';
+import { buildForecast, type Adjustments } from '../../shared/forecast.ts';
+import CoverRing, { ringFrom } from './CoverRing';
+import { Icon, day, usd, type IconName } from './ui';
 import type { useMoney } from './engine';
 
 type Money = Extract<ReturnType<typeof useMoney>, { ready: boolean; forecast: unknown }>;
 const time = (ts: { microsSinceUnixEpoch: bigint }) => Number(ts.microsSinceUnixEpoch / 1000n);
 
-const KIND: Record<string, { icon: IconName; color: 'blue' | 'teal' | 'orange' }> = {
-  move_bill: { icon: 'calendar', color: 'blue' },
-  grocery_swap: { icon: 'cart', color: 'teal' },
-  gas_switch: { icon: 'gas', color: 'orange' },
-};
+const KIND: Record<string, IconName> = { move_bill: 'calendar', grocery_swap: 'cart', gas_switch: 'gas' };
 const AGENT: Record<string, string> = { forecast: 'Forecast', savings: 'Savings', coach: 'Ben', executor: 'Bank' };
 
 export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
@@ -23,9 +21,9 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
   const [jobs] = useTable(tables.myJobs);
   const [steps] = useTable(tables.mySteps);
   const [actions] = useTable(tables.myActions);
-  const [showSteps, setShowSteps] = useState(false);
-  const [review, setReview] = useState(false);
+  const [off, setOff] = useState<Set<string>>(new Set()); // fixes the user un-ticked
   const [openWhy, setOpenWhy] = useState<string | null>(null);
+  const [showSteps, setShowSteps] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const job = useMemo(() => [...jobs].sort((a, b) => (a.id < b.id ? 1 : -1))[0], [jobs]);
@@ -37,6 +35,7 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
     () => (job ? actions.filter(a => a.jobId === job.id).sort((a, b) => a.sortOrder - b.sortOrder) : []),
     [actions, job]
   );
+  useEffect(() => { setOff(new Set()); }, [job?.id]);
 
   const call = (p: Promise<unknown> | undefined) => {
     setError(null);
@@ -50,148 +49,172 @@ export default function Plan({ m, onDone }: { m: Money; onDone: () => void }) {
   const executed = jobActions.filter(a => a.status === 'executed');
   const ready = !!job && job.status === 'ready' && proposed.length > 0 && !executing;
   const done = !!job && job.status === 'done' && executed.length > 0;
-  const fees = jobActions.reduce((s, a) => s + Number(a.feeAvoidedCents), 0);
-  const saved = jobActions.reduce((s, a) => s + Number(a.savingsCents), 0);
-  const latestStep = jobSteps[jobSteps.length - 1];
-  const gapDate = job?.gapDate || sf?.date;
-  const gapCents = job && job.gapCents > 0n ? -Number(job.gapCents) : sf?.balanceCents ?? 0;
+  const selected = jobActions.filter(a => !off.has(String(a.id)));
 
-  const stepsList = (label: string) => jobSteps.length > 0 && (
-    <div style={{ marginTop: 20 }}>
-      <button className="linkish" onClick={() => setShowSteps(v => !v)}>{showSteps ? 'Hide the details' : label}</button>
-      {showSteps && (
-        <div className="card" style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {jobSteps.map(s => (
-            <div key={String(s.id)} style={{ fontSize: 15, color: 'var(--ink-2)', animation: 'bubbleIn 0.3s ease both' }}>
-              <strong style={{ color: 'var(--ink)' }}>{AGENT[s.agent] ?? s.agent}:</strong> {s.message}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  // Live preview: the engine re-runs the forecast with only the ticked fixes applied.
+  const selKey = selected.map(a => String(a.id)).join(',');
+  const preview = useMemo(() => {
+    const adj: Adjustments = { billDates: {}, spendDeltaCents: {} };
+    for (const a of selected) {
+      if (a.kind === 'move_bill' && a.billId !== undefined && a.newDate) adj.billDates![String(a.billId)] = a.newDate;
+      if (a.spendId !== undefined && a.spendDeltaCents !== undefined) adj.spendDeltaCents![String(a.spendId)] = Number(a.spendDeltaCents);
+    }
+    const f = buildForecast(m.input, adj);
+    return { f, ring: ringFrom(f) };
+  }, [m.input, selKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const card = (a: (typeof jobActions)[number], k: number, mode: 'propose' | 'review' | 'status') => {
-    const key = String(a.id);
-    const kind = KIND[a.kind] ?? { icon: 'sparkle' as IconName, color: 'blue' as const };
-    const chip = a.feeAvoidedCents > 0n ? `Avoids a ${usd(Number(a.feeAvoidedCents), { whole: true })} fee` : `Saves ${usd(Number(a.savingsCents))}`;
-    return (
-      <div className="fix" key={key} style={{ animationDelay: `${k * 0.08}s` }}>
-        <Glyph name={kind.icon} color={kind.color} size={40} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h3>{a.title}</h3>
-          <p>{a.detail}</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <span className="chip-save">{chip}</span>
-            <button className="linkish" style={{ marginTop: 8 }} onClick={() => setOpenWhy(openWhy === key ? null : key)}>
-              {openWhy === key ? 'Hide' : 'Why?'}
-            </button>
-          </div>
-          {openWhy === key && <p style={{ background: 'var(--surface-2)', padding: 12, borderRadius: 14, marginTop: 10 }}>{a.whyEn}</p>}
-          {mode === 'review' && a.status === 'proposed' && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <button className="pill" style={{ flex: 1, justifyContent: 'center' }}
-                onClick={() => call(conn?.reducers.rejectAction({ actionId: a.id }).then(() => conn?.reducers.closeJobIfSettled({ jobId: a.jobId })))}>Skip</button>
-              <button className="pill dark" style={{ flex: 1, justifyContent: 'center' }} onClick={() => call(conn?.reducers.approveAction({ actionId: a.id }))}>Approve</button>
-            </div>
-          )}
-          {mode !== 'propose' && a.status !== 'proposed' && (
-            <div className="status-done" style={{ marginTop: 10, color: a.status === 'executed' ? 'var(--green)' : 'var(--ink-3)' }}>
-              {a.status === 'executed' ? <><Icon name="check" size={18} stroke={3} /> Done</> : a.status === 'approved' ? <><span className="spinner" /> Doing it…</> : a.status === 'rejected' ? 'Skipped' : "Couldn't do this one"}
-            </div>
-          )}
-        </div>
-      </div>
-    );
+  const contribution = (a: (typeof jobActions)[number]) => {
+    if (a.kind === 'move_bill') {
+      const b = m.input.bills.find(x => x.id === String(a.billId));
+      return b ? b.amountCents : 0;
+    }
+    return Number(a.savingsCents);
   };
+  const fees = selected.reduce((s, a) => s + Number(a.feeAvoidedCents), 0);
 
-  // 4. Done
-  if (done) {
+  function stepsLink() {
+    if (!jobSteps.length) return null;
     return (
-      <div className="screen">
-        <div className="topbar"><h1>Your plan</h1></div>
-        <div className="done-hero">
-          <div className="celebrate"><i /><i /><i /><div className="check-big"><Icon name="check" size={40} stroke={3} /></div></div>
-          <div className="plan-head">Done!</div>
-          <p className="plan-sub">
-            You'll have <strong style={{ color: 'var(--green)' }}>{usd(m.forecast.lowPoint.balanceCents)}</strong> on {day(gapDate ?? m.forecast.lowPoint.date)} instead of {usd(gapCents)}.
-            {fees > 0 && <> No {usd(fees, { whole: true })} overdraft fee.</>} No loan.
-          </p>
-        </div>
-        {jobActions.map((a, k) => card(a, k, 'status'))}
-        <div style={{ height: 16 }} />
-        <button className="btn green" onClick={onDone}>See my new forecast</button>
-        {stepsList('See how I figured this out')}
+      <div style={{ marginTop: 18, textAlign: 'center' }}>
+        <button className="linkish" onClick={() => setShowSteps(v => !v)}>{showSteps ? 'Hide the details' : 'See how Ben figured this out'}</button>
+        {showSteps && (
+          <div className="card" style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left' }}>
+            {jobSteps.map(s => (
+              <div key={String(s.id)} style={{ fontSize: 14, color: 'var(--ink-2)' }}>
+                <strong style={{ color: 'var(--ink)' }}>{AGENT[s.agent] ?? s.agent}:</strong> {s.message}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
 
-  // 3. Ready (or executing)
+  // ---------- 4. Done ----------
+  if (done) {
+    const r = ringFrom(m.forecast);
+    return (
+      <div className="screen plan">
+        <div className="topbar"><h1>Your plan</h1></div>
+        <CoverRing dueCents={r.due} haveCents={r.have} payday={m.forecast.nextPayday} heroCents={m.forecast.lowPoint.balanceCents} />
+        <div className="plan-done">
+          <div className="plan-head">{m.forecast.shortfall ? 'Done! Closer to green.' : 'Done! Ring closed.'}</div>
+          <p className="plan-sub">{executed.length} fix{executed.length === 1 ? '' : 'es'} made{fees > 0 ? `, no ${usd(fees, { whole: true })} overdraft fee` : ''}. No loan.</p>
+        </div>
+        <div className="fixes">
+          {executed.map(a => (
+            <div className="fixrow done" key={String(a.id)}>
+              <div className="fix-main">
+                <span className="fix-ico ok"><Icon name="check" size={18} stroke={2.5} /></span>
+                <span className="fix-text"><span className="fix-t">{a.title}</span></span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button className="btn green" style={{ marginTop: 20 }} onClick={onDone}>See my new forecast</button>
+        {stepsLink()}
+      </div>
+    );
+  }
+
+  // ---------- 3. Ready: toggle fixes, watch the ring ----------
   if (ready || executing) {
     return (
-      <div className="screen">
+      <div className="screen plan">
         <div className="topbar"><h1>Your plan</h1></div>
-        <div className="plan-head">{executing ? 'Making the changes…' : "Here's how to fix it"}</div>
-        <p className="plan-sub">
-          {jobActions.length} small change{jobActions.length === 1 ? '' : 's'}. You'll have{' '}
-          <strong style={{ color: 'var(--green)' }}>{usd(m.plan.after.lowPoint.balanceCents)}</strong> on {day(gapDate ?? '')} instead of {usd(gapCents)}.
-        </p>
-        {jobActions.map((a, k) => card(a, k, review || executing ? 'review' : 'propose'))}
-        <div style={{ height: 18 }} />
-        {!executing && !review && (
+        <CoverRing dueCents={preview.ring.due} haveCents={preview.ring.have} payday={m.forecast.nextPayday}
+          heroCents={preview.f.shortfall ? preview.f.shortfall.balanceCents : preview.f.lowPoint.balanceCents} />
+        <p className="plan-hint">{executing ? 'Making the changes…' : 'Tap a fix to see what it does to your ring.'}</p>
+
+        <div className="fixes">
+          {jobActions.map((a, k) => {
+            const key = String(a.id);
+            const on = !off.has(key);
+            const st = a.status;
+            const add = contribution(a);
+            return (
+              <div key={key} className={`fixrow ${on ? 'on' : ''}`} style={{ animationDelay: `${k * 0.07}s` }}>
+                <button className="fix-main" disabled={executing} aria-pressed={on}
+                  onClick={() => setOff(s => { const n = new Set(s); if (n.has(key)) n.delete(key); else n.add(key); return n; })}>
+                  <span className="fix-ico"><Icon name={KIND[a.kind] ?? 'sparkle'} size={18} /></span>
+                  <span className="fix-text">
+                    <span className="fix-t">{a.title}</span>
+                    <span className="fix-s">
+                      <strong>+{usd(add, { whole: add % 100 === 0 })}</strong>
+                      {a.feeAvoidedCents > 0n ? ` · avoids a ${usd(Number(a.feeAvoidedCents), { whole: true })} fee` : ' saved'}
+                    </span>
+                  </span>
+                  {st === 'approved' ? <span className="spinner" />
+                    : <span className={`fix-tick ${on || st === 'executed' ? 'on' : ''}`}>{(on || st === 'executed') && <Icon name="check" size={14} stroke={3} />}</span>}
+                </button>
+                <button className="fix-why" onClick={() => setOpenWhy(openWhy === key ? null : key)}>{openWhy === key ? 'Hide' : 'Why?'}</button>
+                {openWhy === key && <p className="fix-whytext">{a.whyEn}</p>}
+              </div>
+            );
+          })}
+        </div>
+
+        {!executing && (
           <>
-            <button className="btn" onClick={() => job && call(conn?.reducers.approveAll({ jobId: job.id }))}>
-              <Icon name="check" stroke={3} /> Fix it ({fees > 0 ? `avoid a ${usd(fees, { whole: true })} fee, ` : ''}save {usd(saved)})
+            <button className="btn plan-go" disabled={selected.length === 0} onClick={() => {
+              if (!job) return;
+              const yes = selected.map(a => conn?.reducers.approveAction({ actionId: a.id }));
+              const no = jobActions.filter(a => off.has(String(a.id))).map(a => conn?.reducers.rejectAction({ actionId: a.id }));
+              call(Promise.all([...yes, ...no]).then(() => conn?.reducers.closeJobIfSettled({ jobId: job.id })));
+            }}>
+              {selected.length === 0 ? 'Pick at least one fix' : `Approve ${selected.length} fix${selected.length === 1 ? '' : 'es'}`}
             </button>
-            <p className="small muted" style={{ textAlign: 'center', margin: '10px 0 0' }}>
-              Nothing changes until you tap. <button className="linkish" onClick={() => setReview(true)}>Review each one</button>
-            </p>
+            <p className="plan-fine">Nothing changes until you tap.</p>
           </>
         )}
-        {stepsList('See how I figured this out')}
+        {stepsLink()}
         {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
       </div>
     );
   }
 
-  // 2. Working
+  // ---------- 2. Working: live checklist ----------
   if (working) {
+    const doing = jobSteps.filter(s => s.message.trim().endsWith('…'));
+    const items = doing.length ? doing : [{ id: 0n, message: 'Starting…' }];
     return (
-      <div className="screen">
+      <div className="screen plan">
         <div className="topbar"><h1>Your plan</h1></div>
-        <div style={{ textAlign: 'center', padding: '40px 0 10px' }}>
-          <div className="orb" style={{ width: 84, height: 84 }} />
-          <div className="plan-head" style={{ marginTop: 22 }}>Ben is finding the cheapest fix…</div>
-          <p className="plan-sub" key={latestStep ? String(latestStep.id) : 'start'} style={{ animation: 'bubbleIn 0.35s ease both', minHeight: 48 }}>
-            {latestStep?.message ?? 'Starting…'}
-          </p>
+        <div className="plan-working">
+          <div className="orb" style={{ width: 72, height: 72 }} />
+          <div className="plan-head" style={{ marginTop: 18 }}>Ben is finding the cheapest fix</div>
         </div>
-        {stepsList("See how I'm figuring this out")}
+        <div className="checklist">
+          {items.map((s, k) => {
+            const finished = k < items.length - 1;
+            return (
+              <div className={`check-item ${finished ? 'done' : ''}`} key={String(s.id)}>
+                {finished ? <span className="ci-dot"><Icon name="check" size={13} stroke={3} /></span> : <span className="spinner" />}
+                <span>{s.message.replace(/…$/, '')}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   }
 
-  // 1. Start
+  // ---------- 1. Start ----------
+  const r0 = ringFrom(m.forecast);
   return (
-    <div className="screen">
+    <div className="screen plan">
       <div className="topbar"><h1>Your plan</h1></div>
+      <CoverRing dueCents={r0.due} haveCents={r0.have} payday={m.forecast.nextPayday} heroCents={sf ? sf.balanceCents : m.forecast.lowPoint.balanceCents} />
       {sf ? (
         <>
-          <div className="eyebrow">Without changes</div>
-          <BigMoney cents={sf.balanceCents} tone="red" />
-          <div className="plan-head" style={{ fontSize: 24, marginTop: 10 }}>You need {usd(-sf.balanceCents, { whole: true })} more to stay in the green.</div>
-          <p className="plan-sub">That's on {day(sf.date)}, {sf.daysBeforePayday} days before payday. I can find a fix in a few seconds, and nothing changes until you say so.</p>
-          <button className="btn" disabled={!isActive} onClick={() => { setShowSteps(false); setReview(false); call(conn?.reducers.requestPlan({})); }}>
+          <p className="plan-hint">Ben can close your ring in a few seconds. Nothing changes until you say so.</p>
+          <button className="btn plan-go" disabled={!isActive} onClick={() => { setShowSteps(false); call(conn?.reducers.requestPlan({})); }}>
             <Icon name="sparkle" /> Find a fix
           </button>
           {job?.status === 'failed' && <p className="small" style={{ color: 'var(--red)' }}>Something went wrong. Tap Find a fix to try again.</p>}
         </>
       ) : (
-        <div className="done-hero">
-          <div className="check-big"><Icon name="check" size={40} stroke={3} /></div>
-          <div className="plan-head">You're covered</div>
-          <p className="plan-sub">The least you'll have before payday is {usd(m.forecast.lowPoint.balanceCents)} on {day(m.forecast.lowPoint.date)}. Nothing to fix right now.</p>
-        </div>
+        <p className="plan-hint">Your ring is closed. Nothing to fix before payday ({m.forecast.nextPayday ? day(m.forecast.nextPayday) : 'soon'}).</p>
       )}
       {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
     </div>

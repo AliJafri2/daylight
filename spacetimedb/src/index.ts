@@ -462,6 +462,12 @@ function setActionStatus(ctx: Ctx, actionId: bigint, status: 'approved' | 'rejec
   if (!a || a.profileId !== m.profileId) throw new SenderError('Action not found');
   if (a.status !== 'proposed') throw new SenderError(`Action is already ${a.status}`);
   ctx.db.planAction.id.update({ ...a, status });
+  // If that settles every action (e.g. the last skip after an approved fix already ran), close the plan.
+  const job = ctx.db.planJob.id.find(a.jobId);
+  const settled = new Set(['executed', 'rejected', 'failed']);
+  if (job && job.status === 'ready' && [...ctx.db.planAction.jobId.filter(a.jobId)].every(x => x.id === a.id ? settled.has(status) : settled.has(x.status))) {
+    ctx.db.planJob.id.update({ ...job, status: 'done' });
+  }
 }
 
 export const approveAction = spacetimedb.reducer({ actionId: t.u64() }, (ctx, { actionId }) =>
