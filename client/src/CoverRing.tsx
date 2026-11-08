@@ -76,7 +76,8 @@ export default function CoverRing({ dueCents, haveCents, payday, heroCents }: { 
             <linearGradient id="ring-red" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stopColor="#ff6b6b" /><stop offset="1" stopColor="#e5484d" />
             </linearGradient>
-            <linearGradient id="ring-green" x1="0" y1="0" x2="1" y2="1">
+            {/* userSpaceOnUse: every green piece shares one color map, so the overflow lap blends invisibly */}
+            <linearGradient id="ring-green" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2={SIZE} y2={SIZE}>
               <stop offset="0" stopColor="#3ccf87" /><stop offset="1" stopColor="#1d8f53" />
             </linearGradient>
             <filter id="ring-gap-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -94,11 +95,20 @@ export default function CoverRing({ dueCents, haveCents, payday, heroCents }: { 
               {/* first lap */}
               <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
                 strokeLinecap="round" strokeDasharray={`${Math.max(0.0001, first) * C} ${C}`} />
-              {/* overflow lap: money left over */}
-              {p > 1 && (
-                <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
-                  strokeLinecap="round" strokeDasharray={`${lap * C} ${C}`} filter="url(#ring-end)" />
-              )}
+              {/* overflow lap: money left over. Only its leading tip is round + shadowed; the body starts
+                  flat at 12 o'clock on top of the first lap, so nothing pokes out where the ring began. */}
+              {p > 1 && (() => {
+                const len = lap * C;
+                const tip = Math.min(len, THICK * 0.5);
+                return (
+                  <>
+                    <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
+                      strokeLinecap="round" strokeDasharray={`${tip} ${C}`} strokeDashoffset={-(len - tip)} filter="url(#ring-end)" />
+                    <circle cx={c} cy={c} r={r} fill="none" stroke="url(#ring-green)" strokeWidth={THICK}
+                      strokeLinecap="butt" strokeDasharray={`${len} ${C}`} />
+                  </>
+                );
+              })()}
             </g>
           ) : (
             <>
