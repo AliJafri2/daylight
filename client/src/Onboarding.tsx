@@ -156,7 +156,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
           ))}
         </div>
         <div className="ob-foot" style={i(4)}>
-          <div className="note"><Icon name="lock" size={16} /> Your password stays with your bank. I can only read.</div>
+          <div className="note"><Icon name="lock" size={13} /> Read-only · your password stays with your bank</div>
           <button className="btn white" disabled={bank !== 'done'} onClick={() => go('ai')}>
             {bank === 'done' ? 'Continue' : 'Connect a bank to continue'}
           </button>
