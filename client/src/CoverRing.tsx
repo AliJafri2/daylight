@@ -143,7 +143,7 @@ export default function CoverRing({ dueCents, haveCents, payday }: { dueCents: n
 
       <div className="ring-stats">
         <div>
-          <div className="ring-stat-l">You have / due</div>
+          <div className="ring-stat-l">You can cover / due soon</div>
           <div className="ring-stat-v">
             <span className="ring-col">{usd(haveCents, { whole: true })}</span>/{usd(dueCents, { whole: true })}
           </div>
