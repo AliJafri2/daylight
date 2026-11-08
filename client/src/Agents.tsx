@@ -44,7 +44,7 @@ export default function Plan({ m, agent, setAgent, onDone, onAsk }: {
   if (agent === 'research') return <AgentRun key="research" kind="research" m={m} onBack={back} onAsk={onAsk} autoRun={auto === 'research'} onAutoStarted={() => setAuto(null)}
     next={{ label: 'See where to invest', icon: 'trend', go: () => goTo('invest') }} />;
   if (agent === 'invest') return <AgentRun key="invest" kind="invest" m={m} onBack={back} onAsk={onAsk} autoRun={auto === 'invest'} onAutoStarted={() => setAuto(null)}
-    next={{ label: 'Give me my 360° summary', icon: 'sun', go: () => { setGlow360(true); setAgent(null); } }} />;
+    next={{ label: 'Give me my 360° summary', icon: 'sun', go: () => { window.scrollTo(0, 0); setGlow360(true); setAgent(null); } }} />;
   return <Hub m={m} open={setAgent} glow360={glow360} onGlowDone={() => setGlow360(false)} />;
 }
 
@@ -233,9 +233,12 @@ function Summary360({ glow = false, onGlowDone }: { glow?: boolean; onGlowDone?:
   const [jobs] = useTable(tables.myJobs);
   useEffect(() => {
     if (!glow) return;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Jump to the top once the Plan page has rendered (instant: a smooth scroll gets cut off by the page swap).
+    window.scrollTo(0, 0);
+    const raf = requestAnimationFrame(() => window.scrollTo(0, 0));
+    const t0 = setTimeout(() => window.scrollTo(0, 0), 120);
     const t = setTimeout(() => onGlowDone?.(), 1800);
-    return () => clearTimeout(t);
+    return () => { cancelAnimationFrame(raf); clearTimeout(t0); clearTimeout(t); };
   }, [glow]); // eslint-disable-line react-hooks/exhaustive-deps
   const [, tick] = useState(0);
   useEffect(() => { const t = setInterval(() => tick(x => x + 1), 30_000); return () => clearInterval(t); }, []);

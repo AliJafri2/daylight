@@ -47,14 +47,13 @@ export default function NextMove({ m, jobId, reveal = false }: { m: Money; jobId
         {doneNow ? (
           <div className="nm-receipt">
             <div className="nm-receipt-h"><Icon name="check" size={16} stroke={3} /> Scheduled with Capital One</div>
-            <div className="nm-receipt-row">
+            <div className="nm-receipt-flow">
               <span>{m.accounts.find(x => x.kind === 'checking')?.nickname ?? 'Checking'}</span>
-              <Icon name="arrowRight" size={14} />
+              <span className="nm-receipt-down" aria-label="to"><Icon name="arrowDown" size={16} /></span>
               <span>{m.accounts.find(x => x.kind === 'savings')?.nickname ?? 'Savings'}</span>
             </div>
             <div className="nm-receipt-meta">
               {usd(Number(scheduled.savingsCents), { whole: true })}{scheduled.newDate ? ` · ${day(scheduled.newDate)}` : ''}
-              {scheduled.nessieRef ? ` · Confirmation ${scheduled.nessieRef.slice(-6).toUpperCase()}` : ''}
             </div>
           </div>
         ) : (
