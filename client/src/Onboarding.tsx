@@ -81,7 +81,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
         <div className="title-content">
           <div className="app-mark">MM</div>
           <h1>Minimum effort,<br />maximum savings.</h1>
-          <p>Forecast your finances with AI and get a plan to stay on top of them.</p>
+          <p>Forecast your finances with AI and get a plan to stay on top of everything.</p>
           <button className="btn white" onClick={() => go('create')}>Get started</button>
           <button className="btn ghost" onClick={finish}>Log in</button>
         </div>
