@@ -9,7 +9,6 @@ import { tables, type DbConnection } from './module_bindings';
 import ForecastAgent from './Plan';
 import BenNoticed from './BenNoticed';
 import NextMove from './NextMove';
-import ReceiptScanner from './ReceiptScanner';
 import { AgentBar } from './AgentBar';
 import { spendingInsights, totalMonthly } from '../../shared/insights.ts';
 import { nextBestMove } from '../../shared/nextmove.ts';
@@ -35,10 +34,14 @@ function useLatestJob(kind: AgentKind) {
 export default function Plan({ m, agent, setAgent, onDone, onAsk }: {
   m: Money; agent: AgentKind | null; setAgent: (a: AgentKind | null) => void; onDone: () => void; onAsk: (q: string) => void;
 }) {
+  // The guided journey: Forecasting -> "Begin my spending research" -> "See where to invest".
+  // Going to the next agent this way starts it automatically.
+  const [auto, setAuto] = useState<AgentKind | null>(null);
   const back = () => setAgent(null);
-  if (agent === 'forecast') return <ForecastAgent m={m} onDone={onDone} onBack={back} />;
-  if (agent === 'research') return <AgentRun kind="research" m={m} onBack={back} onAsk={onAsk} />;
-  if (agent === 'invest') return <AgentRun kind="invest" m={m} onBack={back} onAsk={onAsk} />;
+  const goTo = (k: AgentKind) => { setAuto(k); setAgent(k); };
+  if (agent === 'forecast') return <ForecastAgent m={m} onDone={onDone} onBack={back} onResearch={() => goTo('research')} />;
+  if (agent === 'research') return <AgentRun key="research" kind="research" m={m} onBack={back} onAsk={onAsk} autoRun={auto === 'research'} onAutoStarted={() => setAuto(null)} onNext={() => goTo('invest')} />;
+  if (agent === 'invest') return <AgentRun key="invest" kind="invest" m={m} onBack={back} onAsk={onAsk} autoRun={auto === 'invest'} onAutoStarted={() => setAuto(null)} />;
   return <Hub m={m} open={setAgent} />;
 }
 
@@ -104,7 +107,10 @@ function Hub({ m, open }: { m: Money; open: (a: AgentKind) => void }) {
 
 // ---------- Research / Investing agent screen: run, stream steps, show results ----------
 
-function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: Money; onBack: () => void; onAsk: (q: string) => void }) {
+function AgentRun({ kind, m, onBack, onAsk, autoRun = false, onAutoStarted, onNext }: {
+  kind: 'research' | 'invest'; m: Money; onBack: () => void; onAsk: (q: string) => void;
+  autoRun?: boolean; onAutoStarted?: () => void; onNext?: () => void;
+}) {
   const { isActive, getConnection } = useSpacetimeDB();
   const conn = getConnection() as DbConnection | null;
   const [steps] = useTable(tables.mySteps);
@@ -118,8 +124,11 @@ function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: 
     () => (job ? steps.filter(s => s.jobId === job.id).sort((x, y) => time(x.createdAt) - time(y.createdAt)) : []),
     [steps, job]
   );
-  const working = !!job && (job.status === 'pending' || job.status === 'running');
-  const done = !!job && job.status === 'done';
+  const [starting, setStarting] = useState(false); // tapped run, job not visible yet
+  const jobWorking = !!job && (job.status === 'pending' || job.status === 'running');
+  useEffect(() => { if (jobWorking) setStarting(false); }, [jobWorking]);
+  const working = jobWorking || starting;
+  const done = !!job && job.status === 'done' && !starting;
   // Play the reveal only when the user watched this run finish (not when revisiting old results).
   const [watched, setWatched] = useState<bigint | null>(null);
   useEffect(() => { if (working && job) setWatched(job.id); }, [working, job]);
@@ -132,12 +141,20 @@ function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: 
   const run = () => {
     setError(null);
     setShowSteps(false);
-    conn?.reducers.runAgent({ kind })?.catch((e: unknown) => setError(String((e as Error)?.message ?? e)));
+    setStarting(true);
+    conn?.reducers.runAgent({ kind })?.catch((e: unknown) => { setStarting(false); setError(String((e as Error)?.message ?? e)); });
   };
+
+  // Arrived here from the previous agent's button: start right away (once).
+  useEffect(() => {
+    if (!autoRun || !conn || !isActive) return;
+    onAutoStarted?.();
+    if (!jobWorking) run();
+  }, [autoRun, conn, isActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stepList = (live: boolean) => (
     <div className="checklist agent-steps">
-      {(jobSteps.length ? jobSteps : [{ id: 0n, message: 'Starting…' }]).map((s, k, arr) => {
+      {(jobSteps.length && !(starting && !jobWorking) ? jobSteps : [{ id: 0n, message: 'Starting…' }]).map((s, k, arr) => {
         const last = k === arr.length - 1;
         const spinning = live && last;
         return (
@@ -197,11 +214,11 @@ function AgentRun({ kind, m, onBack, onAsk }: { kind: 'research' | 'invest'; m: 
             <button className="linkish" onClick={() => setShowSteps(v => !v)}>{showSteps ? 'Hide the details' : 'See how Ben figured this out'}</button>
           </div>
           {showSteps && stepList(false)}
-          <button className="btn secondary" style={{ marginTop: 18 }} disabled={!isActive} onClick={run}>Run again</button>
+          {onNext && <button className="btn" style={{ marginTop: 18 }} onClick={onNext}><Icon name="trend" /> See where to invest</button>}
+          <button className="btn secondary" style={{ marginTop: onNext ? 10 : 18 }} disabled={!isActive} onClick={run}>Run again</button>
         </>
       )}
       {error && <p className="small" style={{ color: 'var(--red)' }}>{error}</p>}
-      {kind === 'research' && <ReceiptScanner />}
     </div>
   );
 }

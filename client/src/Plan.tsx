@@ -16,7 +16,7 @@ const time = (ts: { microsSinceUnixEpoch: bigint }) => Number(ts.microsSinceUnix
 const KIND: Record<string, IconName> = { move_bill: 'calendar', grocery_swap: 'cart', gas_switch: 'gas' };
 const AGENT: Record<string, string> = { forecast: 'Forecast', savings: 'Savings', spending: 'Spending', coach: 'Ben', executor: 'Bank' };
 
-export default function ForecastAgent({ m, onDone, onBack }: { m: Money; onDone: () => void; onBack: () => void }) {
+export default function ForecastAgent({ m, onDone, onBack, onResearch }: { m: Money; onDone: () => void; onBack: () => void; onResearch?: () => void }) {
   const { isActive, getConnection } = useSpacetimeDB();
   const conn = getConnection() as DbConnection | null;
   const [jobs] = useTable(tables.myJobs);
@@ -112,7 +112,8 @@ export default function ForecastAgent({ m, onDone, onBack }: { m: Money; onDone:
             </div>
           ))}
         </div>
-        <button className="btn green" style={{ marginTop: 20 }} onClick={onDone}>See my new forecast</button>
+        {onResearch && <button className="btn" style={{ marginTop: 20 }} onClick={onResearch}><Icon name="search" /> Begin my spending research</button>}
+        <button className="btn green" style={{ marginTop: onResearch ? 10 : 20 }} onClick={onDone}>See my new forecast</button>
                 {stepsLink()}
       </div>
     );
