@@ -323,10 +323,14 @@ Execution (after approval): `move_bill` → Nessie `PUT /bills/{id}` new payment
 1. Spacetime module + schema + seed; client connects and renders live data.
 2. Nessie seed script + worker sync into Spacetime.
 3. Dashboard: accounts, health indicators, forecast timeline with red shortfall.
-4. Close the gap: job → streamed agent steps → plan → approve on phone → Nessie execution → green.
+4. Close the gap: job → streamed agent steps → plan → approve on phone → Nessie execution → green. **Includes multi-store grocery basket comparison** (H-E-B / Aldi / Walmart / Kroger) so the grocery fix can be a store switch, not just store-brand swaps. Re-derive and update the section 7 plan numbers from the engine if they change.
 5. Deployed to Maincloud; works from phone.
 
-**Then, in order, only if time:** "Why?" explainers → what-if toggles → push notification "reach out first" → receipt scan (Gemini vision) → Spanish → live price report via QR → voice.
+**Status (Sat ~6:45 PM):** 1, 2, 5 done (Maincloud db `minimum`, worker sync working, Bill seeded in Nessie). Engine (`shared/forecast.ts`) done with tests. Persona renamed to **Bill**. Hosting: app on Vercel, worker on Railway, nothing local at demo.
+
+**Then, in order, only if time:** "Cheapest near you" tab (gas ranked by net cost incl. drive; usual grocery basket across 4 stores; monthly savings) → coach: "Why?" explainers + text chat (Gemini) → what-if toggles → push notification "reach out first" → voice coach (Vapi, optional layer on the text coach) → receipt scan (Gemini vision) → Spanish → live price report via QR.
+
+**UI decisions:** welcome screen with "Continue as Bill (demo)" + animation instead of real login. Home = one big sentence-number ("$43 short on Nov 17"), tiny balance line (needed for the red→green moment), one "Close the gap" button; scroll: 4 health tiles (tap = Why?), accounts list, upcoming. Tabs: Home · Plan · Coach · Accounts (+ Prices). Design reference: user is choosing screens on Mobbin.
 
 **Cut entirely:** auth flows, real grocery/gas APIs, mobile native app, household/shared features, Photon, anything not in the demo.
 
