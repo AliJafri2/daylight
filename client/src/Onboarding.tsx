@@ -173,8 +173,8 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
         <div className="ai-pill" aria-hidden="true" style={{ margin: '0 0 24px', width: '100%', ...i(4) }}><div>Can I afford dinner out on Friday?</div></div>
         <div className="powers" style={i(5)}>
           {[
-            ['See trouble coming', 'I forecast your balance every day until payday, so you know about a shortfall two weeks early.'],
-            ['Find the cheapest fix', 'I compare your bills, grocery stores and gas stations to find savings. No loans, ever.'],
+            ['See trouble coming', "I forecast your balance every day until payday, so you'll know 2 weeks early if you'll be behind on a payment."],
+            ['Find the cheapest fix', 'I compare your bills, grocery stores and gas stations to find you savings.'],
             ['You stay in control', 'I suggest, you decide. Nothing changes until you tap approve.'],
           ].map(([t, d], k) => (
             <div className="power" key={t} style={{ animationDelay: `${0.45 + k * 0.12}s` }}>
@@ -184,7 +184,7 @@ export default function Onboarding({ onDone }: { onDone: (name?: string) => void
           ))}
         </div>
         <div className="ob-foot" style={i(6)}>
-          <button className="btn white" onClick={finish}>Let's go</button>
+          <button className="btn white" onClick={finish}>Let's go!</button>
         </div>
       </div>
     );
